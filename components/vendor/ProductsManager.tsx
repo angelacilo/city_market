@@ -413,16 +413,16 @@ function AddListingDialog({
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full h-44 rounded-[2rem] border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50/40 transition-all group relative overflow-hidden"
               >
-                  {previewUrl && (
-                    <Image src={previewUrl} alt="Preview" fill className="object-cover" />
-                  )}
-                  <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/30 inset-0 absolute backdrop-blur-[2px]")}>
-                    <Camera className={cn("w-8 h-8 mb-3 transition-all", previewUrl ? "text-white" : "text-gray-400 group-hover:scale-110 group-hover:text-green-700")} />
-                    <p className={cn("text-xs font-black uppercase tracking-wider", previewUrl ? "text-white" : "text-gray-900")}>
-                      {file ? 'Change Photo' : 'Upload Product Photo'}
-                    </p>
-                    {!file && <p className="text-[10px] text-gray-400 mt-1">PNG, JPG or WebP (Max 5MB)</p>}
-                  </div>
+                {previewUrl && (
+                  <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                )}
+                <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/30 inset-0 absolute backdrop-blur-[2px]")}>
+                  <Camera className={cn("w-8 h-8 mb-3 transition-all", previewUrl ? "text-white" : "text-gray-400 group-hover:scale-110 group-hover:text-green-700")} />
+                  <p className={cn("text-xs font-black uppercase tracking-wider", previewUrl ? "text-white" : "text-gray-900")}>
+                    {file ? 'Change Photo' : 'Upload Product Photo'}
+                  </p>
+                  {!file && <p className="text-[10px] text-gray-400 mt-1">PNG, JPG or WebP (Max 5MB)</p>}
+                </div>
               </button>
             </div>
 
@@ -459,15 +459,15 @@ function AddListingDialog({
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price per unit</label>
                 <div className="flex bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden focus-within:border-green-700 focus-within:bg-white h-12 transition-all">
-                   <div className="pl-5 pr-1 flex items-center text-gray-400 font-black text-sm">₱</div>
-                   <Input
-                     required
-                     type="number"
-                     step="0.01"
-                     value={price}
-                     onChange={e => setPrice(e.target.value)}
-                     className="bg-transparent border-0 focus-visible:ring-0 px-1 font-black text-sm h-full w-full"
-                   />
+                  <div className="pl-5 pr-1 flex items-center text-gray-400 font-black text-sm">₱</div>
+                  <Input
+                    required
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={e => setPrice(e.target.value)}
+                    className="bg-transparent border-0 focus-visible:ring-0 px-1 font-black text-sm h-full w-full"
+                  />
                 </div>
               </div>
 
@@ -624,30 +624,30 @@ export default function ProductsManager({ listings: initialListings, allProducts
             </div>
             <h3 className="text-xl font-black italic text-gray-900 font-serif mb-2">Inventory is Empty</h3>
             <p className="text-sm text-gray-400 max-w-xs mb-10 leading-relaxed font-medium">Add your first product listing to start selling to the Butuan community.</p>
-            
+
             <div className="flex flex-col gap-4">
-                <AddListingDialog
-                    vendorId={vendorId}
-                    marketId={marketId}
-                    allProducts={allProducts}
-                    categories={categories}
-                    onAdded={() => router.refresh()}
-                />
-                
-                {allProducts.length === 0 && (
-                <Button 
-                    variant="ghost"
-                    className="text-amber-600 hover:bg-amber-50 h-11 px-6 rounded-full font-bold text-xs uppercase tracking-widest gap-2"
-                    onClick={async () => {
+              <AddListingDialog
+                vendorId={vendorId}
+                marketId={marketId}
+                allProducts={allProducts}
+                categories={categories}
+                onAdded={() => router.refresh()}
+              />
+
+              {allProducts.length === 0 && (
+                <Button
+                  variant="ghost"
+                  className="text-amber-600 hover:bg-amber-50 h-11 px-6 rounded-full font-bold text-xs uppercase tracking-widest gap-2"
+                  onClick={async () => {
                     const res = await seedInitialCatalog()
                     if (res.success) router.refresh()
                     else alert(res.error)
-                    }}
+                  }}
                 >
-                    <Sparkles className="w-4 h-4" />
-                    Seed Catalog
+                  <Sparkles className="w-4 h-4" />
+                  Seed Catalog
                 </Button>
-                )}
+              )}
             </div>
           </div>
         ) : (
@@ -675,23 +675,23 @@ export default function ProductsManager({ listings: initialListings, allProducts
                       <TableCell className="pl-10 py-5">
                         <div className="flex items-center gap-5">
                           <div className="relative w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 shadow-sm">
-                             {listing.products?.image_url ? (
-                               <Image src={listing.products.image_url} alt={listing.products.name} fill className="object-cover" />
-                             ) : (
-                               <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                  <Package className="w-6 h-6 text-gray-300" />
-                               </div>
-                             )}
+                            {listing.products?.image_url ? (
+                              <Image src={listing.products.image_url} alt={listing.products.name} fill className="object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                <Package className="w-6 h-6 text-gray-300" />
+                              </div>
+                            )}
                           </div>
                           <div>
                             <p className="font-black text-gray-900 text-sm">{listing.products?.name ?? '—'}</p>
                             <div className="flex items-center gap-2 mt-1">
-                                <Badge className="bg-[#f0f7f0] text-green-700 border-0 text-[10px] font-black uppercase tracking-tighter px-2 h-5">
-                                    {listing.products?.categories?.name ?? 'Other'}
-                                </Badge>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                                    {listing.products?.unit ?? 'UNIT'}
-                                </span>
+                              <Badge className="bg-[#f0f7f0] text-green-700 border-0 text-[10px] font-black uppercase tracking-tighter px-2 h-5">
+                                {listing.products?.categories?.name ?? 'Other'}
+                              </Badge>
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                                {listing.products?.unit ?? 'UNIT'}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -716,11 +716,11 @@ export default function ProductsManager({ listings: initialListings, allProducts
                       </TableCell>
                       <TableCell className="text-right pr-10">
                         <div className="flex justify-end gap-1">
-                            <DeleteDialog
-                                listingId={listing.id}
-                                productName={listing.products?.name || 'item'}
-                                onDeleted={() => { showToast('Listing removed', 'success'); router.refresh() }}
-                            />
+                          <DeleteDialog
+                            listingId={listing.id}
+                            productName={listing.products?.name || 'item'}
+                            onDeleted={() => { showToast('Listing removed', 'success'); router.refresh() }}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -734,3 +734,4 @@ export default function ProductsManager({ listings: initialListings, allProducts
     </div>
   )
 }
+
