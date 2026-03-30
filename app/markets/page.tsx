@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import MarketFilters from '@/components/public/MarketFilters'
 import { Metadata } from 'next'
+import MarketsPageClient from '@/components/public/MarketsPageClient'
 
 export const metadata: Metadata = {
   title: 'Public Markets | BCMIS',
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default async function MarketsPage() {
   const supabase = await createClient()
 
-  // Fetch metrics in parallel
+  // Parallel fetch counts
   const [
     { count: marketsCount },
     { count: vendorsCount },
@@ -21,8 +21,7 @@ export default async function MarketsPage() {
     supabase.from('products').select('*', { count: 'exact', head: true }),
   ])
 
-  // Fetch markets with stats
-  // We use nested count selects for relational counts
+  // Fetch market data
   const { data: marketsData } = await supabase
     .from('markets')
     .select(`
@@ -37,58 +36,79 @@ export default async function MarketsPage() {
     .eq('is_active', true)
     .order('name')
 
-  // Transform data to simplify counts (Supabase returns count as an array-ish object)
   const markets = (marketsData || []).map((m: any) => ({
-    ...m,
+    id: m.id,
+    name: m.name,
     vendors_count: m.vendors_count?.[0]?.count || 0,
     products_count: m.products_count?.[0]?.count || 0,
+    image_url: m.image_url,
   }))
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Clean Header Section */}
-      <header className="bg-white border-b border-gray-100 py-10 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-8">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 uppercase tracking-tight italic">
-              Markets in <span className="text-green-600">Butuan City</span>
+    <div className="min-h-screen bg-[#f0f7f0]">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8">
+        {/* HERO SECTION */}
+        <section className="pt-16 pb-10 grid grid-cols-1 md:grid-cols-[55%_45%] gap-10 items-center">
+          {/* Left Column */}
+          <div className="flex flex-col gap-6">
+            <div className="bg-green-100 border border-green-200 rounded-full px-3 py-1 self-start">
+              <span className="text-[10px] font-bold tracking-widest text-green-700 uppercase">
+                VERIFIED CITY PORTAL
+              </span>
+            </div>
+            
+            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight leading-none uppercase">
+              <span className="block text-gray-900 font-sans">MARKETS IN</span>
+              <span className="block text-green-700 font-serif italic">BUTUAN CITY</span>
             </h1>
-            <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2 italic">
-              Browse all public markets and their available supplies.
-            </p>
+
+            <div className="max-w-sm space-y-2">
+              <p className="text-sm sm:text-base font-medium text-gray-600 uppercase tracking-wide leading-relaxed">
+                BROWSE ALL PUBLIC MARKETS AND THEIR AVAILABLE SUPPLIES.
+              </p>
+              <p className="text-sm sm:text-base font-medium text-gray-600 leading-relaxed">
+                Real-time updates on availability and local trade flow.
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-8 md:gap-16">
-            <div className="flex flex-col">
-              <span className="text-3xl font-black text-green-600 italic tracking-tighter">
+          {/* Right Column - Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:flex md:flex-row gap-4 h-fit">
+            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
+              <div className="text-4xl font-black text-green-700 font-serif">
                 {marketsCount || 0}
-              </span>
-              <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest italic">
-                Active Markets
-              </span>
+              </div>
+              <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
+                ACTIVE MARKETS
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-3xl font-black text-green-600 italic tracking-tighter">
+
+            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
+              <div className="text-4xl font-black text-green-700 font-serif">
                 {vendorsCount || 0}
-              </span>
-              <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest italic">
-                Approved Vendors
-              </span>
+              </div>
+              <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
+                APPROVED VENDORS
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-3xl font-black text-green-600 italic tracking-tighter">
+
+            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
+              <div className="text-4xl font-black text-green-700 font-serif">
                 {productsCount || 0}
-              </span>
-              <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest italic">
-                Product Catalog
-              </span>
+              </div>
+              <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
+                PRODUCT CATALOG
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </section>
 
-      {/* Main Content with Sticky Filters */}
-      <MarketFilters initialMarkets={markets} />
+        {/* Filters and Grid */}
+        <MarketsPageClient initialMarkets={markets} />
+        
+        {/* Padding at bottom */}
+        <div className="pb-20" />
+      </div>
     </div>
   )
 }

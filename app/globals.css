@@ -157,3 +157,11 @@
 @utility animate-fade-in {
   animation: fade-in 0.6s ease-out forwards;
 }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -18,15 +18,29 @@ export default async function VendorProfilePage() {
   if (!vendor) redirect('/register')
 
   return (
-    <ProfileForm
-      vendorId={vendor.id}
-      initialData={{
-        business_name: vendor.business_name ?? '',
-        owner_name: vendor.owner_name ?? '',
-        stall_number: vendor.stall_number ?? '',
-        contact_number: vendor.contact_number ?? '',
-      }}
-      marketName={(vendor.markets as any)?.name ?? '—'}
-    />
+    <div className="space-y-8">
+      <div>
+        <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
+          My
+        </span>
+        <h1 className="text-4xl font-black italic text-green-700 font-serif leading-none">
+          Profile
+        </h1>
+        <p className="text-sm text-gray-400 mt-2 font-medium">
+          {vendor.business_name}
+        </p>
+      </div>
+
+      <ProfileForm
+        vendorId={vendor.id}
+        initialData={{
+          business_name: vendor.business_name ?? '',
+          owner_name: vendor.owner_name ?? '',
+          stall_number: vendor.stall_number ?? '',
+          contact_number: vendor.contact_number ?? '',
+        }}
+        marketName={(vendor.markets as any)?.name ?? '—'}
+      />
+    </div>
   )
 }

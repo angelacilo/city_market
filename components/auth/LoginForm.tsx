@@ -8,9 +8,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Eye, EyeOff, LogIn, Loader2, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, LogIn, Loader2, AlertCircle, Mail, Lock } from 'lucide-react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -56,102 +56,113 @@ export default function LoginForm() {
       return
     }
 
-    // Success — push to vendor dashboard
     router.push('/vendor/dashboard')
+    router.refresh()
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       {/* Header */}
-      <div className="space-y-1">
-        <p className="text-xs font-bold text-green-600 uppercase tracking-widest">Welcome back 👋</p>
-        <h1 className="text-2xl font-bold text-gray-900">Sign in to your account</h1>
-        <p className="text-sm text-gray-500">Enter your email and password to access your vendor dashboard.</p>
+      <div>
+        <span className="text-[10px] font-black text-green-700 uppercase tracking-[0.2em] block mb-3">Welcome back</span>
+        <h1 className="text-4xl font-black italic text-gray-900 font-serif leading-tight">
+            Sign In
+        </h1>
+        <p className="text-sm text-gray-400 mt-2 font-medium">Access your vendor portal to managing products and inquiries.</p>
       </div>
-
-      <Separator />
 
       {/* Error alert */}
       {authError && (
-        <div className="flex items-start gap-3 bg-red-50 border-l-[3px] border-red-500 rounded-r-lg px-4 py-3 transition-opacity duration-200">
+        <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-2xl px-5 py-4 animate-in fade-in slide-in-from-top-2">
           <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-red-600">{authError}</p>
+          <p className="text-xs font-bold text-red-600 leading-relaxed">{authError}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Email */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">
-            Email address <span className="text-red-500">*</span>
+        <div className="space-y-2">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">
+            Email Address
           </label>
-          <Input
-            {...register('email')}
-            type="email"
-            autoComplete="email"
-            placeholder="e.g. juandelacruz@gmail.com"
-            className={`h-11 ${errors.email ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
-          />
-          {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+          <div className="relative">
+            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+            <Input
+                {...register('email')}
+                type="email"
+                autoComplete="email"
+                placeholder="vendor@example.com"
+                className={cn(
+                    "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 pr-5 font-bold text-sm transition-all",
+                    errors.email && "border-red-300 focus:border-red-300 ring-2 ring-red-50"
+                )}
+            />
+          </div>
+          {errors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.email.message}</p>}
         </div>
 
         {/* Password */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">
-            Password <span className="text-red-500">*</span>
-          </label>
+        <div className="space-y-2">
+           <div className="flex justify-between items-center px-1">
+             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+               Security Password
+             </label>
+             <Link href="/forgot-password" size="sm" className="text-[10px] font-black text-green-700 uppercase tracking-widest hover:underline">
+               Forgot?
+             </Link>
+           </div>
           <div className="relative">
+            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
             <Input
-              {...register('password')}
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
-              placeholder="••••••••"
-              className={`h-11 pr-10 ${errors.password ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
+                {...register('password')}
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                className={cn(
+                    "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 pr-12 font-bold text-sm transition-all font-mono tracking-widest",
+                    errors.password && "border-red-300 focus:border-red-300 ring-2 ring-red-50"
+                )}
             />
             <button
               type="button"
-              aria-label="Toggle password visibility"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-700 transition-colors"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
-          <div className="flex justify-end">
-            <Link href="/forgot-password" className="text-xs text-green-600 hover:text-green-700 font-medium">
-              Forgot password?
-            </Link>
-          </div>
+          {errors.password && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.password.message}</p>}
         </div>
 
         {/* Submit */}
         <Button
           type="submit"
           disabled={submitting}
-          className="w-full h-11 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg gap-2 disabled:opacity-60"
+          className="w-full h-14 rounded-full bg-green-700 hover:bg-green-800 text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-green-700/20 gap-3 mt-4"
         >
           {submitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Signing in...
+              Authenticating...
             </>
           ) : (
             <>
               <LogIn className="w-4 h-4" />
-              Sign in
+              Sign In
             </>
           )}
         </Button>
       </form>
 
-      {/* Register link */}
-      <p className="text-center text-sm text-gray-500">
-        Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-green-600 font-semibold hover:underline">
-          Register here
-        </Link>
-      </p>
+      {/* Footer */}
+      <div className="pt-6 border-t border-gray-50 text-center">
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            New vendor?{' '}
+            <Link href="/register" className="text-green-700 hover:underline ml-1">
+                 Create Merchant Account
+            </Link>
+        </p>
+      </div>
     </div>
   )
 }

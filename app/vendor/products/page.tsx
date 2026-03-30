@@ -40,13 +40,29 @@ export default async function VendorProductsPage() {
       .order('name'),
   ])
 
+  const listingsCount = listings?.length || 0
+
   return (
-    <ProductsManager
-      listings={(listings as any[]) ?? []}
-      allProducts={(allProducts as any[]) ?? []}
-      categories={(categories as any[]) ?? []}
-      vendorId={vendor.id}
-      marketId={vendor.market_id}
-    />
+    <div className="space-y-8">
+      <div>
+        <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
+          My
+        </span>
+        <h1 className="text-4xl font-black italic text-green-700 font-serif leading-none">
+          Products
+        </h1>
+        <p className="text-sm text-gray-400 mt-2">
+          {listingsCount} total listing{listingsCount !== 1 ? 's' : ''}
+        </p>
+      </div>
+
+      <ProductsManager
+        listings={(listings as any[]) ?? []}
+        allProducts={(allProducts as any[]) ?? []}
+        categories={(categories as any[]) ?? []}
+        vendorId={vendor.id}
+        marketId={vendor.market_id}
+      />
+    </div>
   )
 }

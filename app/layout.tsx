@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
+import ConditionalNavbar from "@/components/layout/ConditionalNavbar";
 import BottomNav from "@/components/layout/BottomNav";
 import Footer from "@/components/layout/Footer";
 
@@ -34,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white text-gray-900 font-sans`}
       >
-        <Navbar />
+        <ConditionalNavbar />
         <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
           {children}
         </main>

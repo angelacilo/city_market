@@ -32,20 +32,15 @@ export default function SearchBar({ variant = 'default', className }: Props) {
       className={cn(
         'flex w-full items-center gap-3 bg-white shadow-sm',
         isHero
-          ? 'h-12 rounded-full border border-gray-200 px-4 shadow-sm'
-          : 'min-h-12 rounded-full border border-gray-200 px-4 py-2 shadow-sm',
+          ? 'h-16 rounded-full border border-gray-100 px-7 shadow-xl shadow-green-900/5 text-lg'
+          : 'min-h-12 rounded-full border border-gray-100 px-4 py-2 shadow-sm',
         className
       )}
       role="search"
     >
-      <button
-        type="button"
-        onClick={go}
-        className="shrink-0 text-gray-400 hover:text-gray-600"
-        aria-label="Search"
-      >
-        <Search className="h-4 w-4" />
-      </button>
+      <div className="shrink-0 text-gray-400">
+        <Search className={isHero ? "h-5 w-5" : "h-4 w-4"} />
+      </div>
       <input
         type="text"
         value={query}

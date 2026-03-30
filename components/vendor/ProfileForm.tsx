@@ -6,8 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Lock, CheckCircle2 } from 'lucide-react'
+import { Lock, CheckCircle2, User, Phone, MapPin, Store } from 'lucide-react'
 import { updateVendorProfile } from '@/lib/actions/vendor'
+import { cn } from '@/lib/utils'
 
 const profileSchema = z.object({
   business_name: z
@@ -22,7 +23,7 @@ const profileSchema = z.object({
     .or(z.literal('')),
 })
 
-type ProfileForm = z.infer<typeof profileSchema>
+type ProfileFormValues = z.infer<typeof profileSchema>
 
 interface Props {
   vendorId: string
@@ -43,12 +44,12 @@ export default function ProfileForm({ vendorId, initialData, marketName }: Props
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ProfileForm>({
+  } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: initialData,
   })
 
-  async function onSubmit(data: ProfileForm) {
+  async function onSubmit(data: ProfileFormValues) {
     setServerError('')
     setSaved(false)
     const result = await updateVendorProfile(vendorId, data)
@@ -60,105 +61,111 @@ export default function ProfileForm({ vendorId, initialData, marketName }: Props
     }
   }
 
-  function Field({
-    label,
-    id,
-    placeholder,
-    registerKey,
-    error,
-    optional,
-  }: {
-    label: string
-    id: string
-    placeholder?: string
-    registerKey: keyof ProfileForm
-    error?: string
-    optional?: boolean
-  }) {
-    return (
-      <div className="space-y-1.5">
-        <label htmlFor={id} className="text-xs font-bold text-gray-600 uppercase tracking-widest">
-          {label}{optional && <span className="text-gray-400 font-normal ml-1">(optional)</span>}
-        </label>
-        <Input
-          id={id}
-          placeholder={placeholder}
-          {...register(registerKey)}
-          className={`h-11 text-sm ${error ? 'border-red-400 focus-visible:border-red-400' : ''}`}
-        />
-        {error && <p className="text-xs text-red-500">{error}</p>}
-      </div>
-    )
-  }
-
   return (
-    <div className="max-w-lg space-y-6">
-      <div>
-        <h1 className="text-xl font-black text-gray-900">My Profile</h1>
-        <p className="text-xs text-gray-400 mt-0.5">Update your stall information visible to buyers.</p>
-      </div>
-
-      {/* Success banner */}
+    <div className="max-w-4xl space-y-8">
+      {/* Success notification */}
       {saved && (
-        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-          <p className="text-sm font-bold text-green-700">Profile saved successfully.</p>
+        <div className="flex items-center gap-4 bg-[#f0f7f0] border border-green-100/50 rounded-2xl px-6 py-4 shadow-sm animate-in fade-in slide-in-from-top-2">
+           <CheckCircle2 className="w-5 h-5 text-green-700" />
+           <p className="text-sm font-black text-green-900 font-serif italic">Your profile has been synchronized successfully.</p>
         </div>
       )}
 
       {serverError && (
-        <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg font-medium">{serverError}</p>
+        <div className="p-4 bg-red-50 text-red-600 font-bold text-xs rounded-2xl border border-red-100">
+          {serverError}
+        </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Field
-          label="Business name"
-          id="business_name"
-          placeholder="e.g. Juan's Fresh Produce"
-          registerKey="business_name"
-          error={errors.business_name?.message}
-        />
-        <Field
-          label="Owner name"
-          id="owner_name"
-          placeholder="e.g. Juan Dela Cruz"
-          registerKey="owner_name"
-          optional
-          error={errors.owner_name?.message}
-        />
-        <Field
-          label="Stall number"
-          id="stall_number"
-          placeholder="e.g. Stall A-12"
-          registerKey="stall_number"
-          optional
-          error={errors.stall_number?.message}
-        />
-        <Field
-          label="Contact number"
-          id="contact_number"
-          placeholder="e.g. 09123456789"
-          registerKey="contact_number"
-          error={errors.contact_number?.message}
-        />
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Core Info Section */}
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10 space-y-8">
+           <div className="flex items-center gap-3 border-b border-gray-50 pb-6 mb-2">
+                <Store className="w-5 h-5 text-green-700" />
+                <h3 className="text-xl font-black italic text-gray-900 font-serif leading-none">Business Profile</h3>
+           </div>
 
-        {/* Read-only market */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">Market</label>
-          <div className="flex items-center gap-2 h-11 px-3 bg-gray-50 border border-gray-200 rounded-lg">
-            <Lock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-            <span className="text-sm text-gray-500 flex-1">{marketName}</span>
-          </div>
-          <p className="text-xs text-gray-400">Market assignment can only be changed by an administrator.</p>
+           <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Business Name</label>
+                <Input
+                  {...register('business_name')}
+                  placeholder="Juan's Fresh Produce"
+                  className={cn(
+                    "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm",
+                    errors.business_name && "border-red-400 focus:border-red-400"
+                  )}
+                />
+                {errors.business_name && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.business_name.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Authorized Owner</label>
+                <div className="relative">
+                    <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                    <Input
+                      {...register('owner_name')}
+                      placeholder="Full Name"
+                      className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 pl-12 pr-5 font-bold text-sm"
+                    />
+                </div>
+              </div>
+           </div>
         </div>
 
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full h-11 bg-green-600 hover:bg-green-700 text-white font-black text-sm"
-        >
-          {isSubmitting ? 'Saving…' : 'Save profile'}
-        </Button>
+        {/* Operational Info Section */}
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10 space-y-8">
+           <div className="flex items-center gap-3 border-b border-gray-50 pb-6 mb-2">
+                <MapPin className="w-5 h-5 text-green-700" />
+                <h3 className="text-xl font-black italic text-gray-900 font-serif leading-none">Location & Contact</h3>
+           </div>
+
+           <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Stall Number</label>
+                <Input
+                  {...register('stall_number')}
+                  placeholder="e.g. A-12"
+                  className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Phone Number</label>
+                <div className="relative">
+                    <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                    <Input
+                      {...register('contact_number')}
+                      placeholder="09XXXXXXXXX"
+                      className={cn(
+                        "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 pl-12 pr-5 font-bold text-sm font-mono tracking-widest",
+                        errors.contact_number && "border-red-400 focus:border-red-400"
+                      )}
+                    />
+                </div>
+                {errors.contact_number && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.contact_number.message}</p>}
+              </div>
+
+              {/* Immutable Market Info */}
+              <div className="space-y-2 opacity-60">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Assigned Market</label>
+                <div className="flex items-center gap-3 h-12 px-5 bg-gray-100/50 border border-gray-200 rounded-2xl cursor-not-allowed">
+                  <Lock className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="text-sm font-black text-gray-500 font-serif italic">{marketName}</span>
+                </div>
+              </div>
+           </div>
+        </div>
+
+        <div className="md:col-span-2 flex justify-end pt-4">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-full bg-green-700 hover:bg-green-800 text-white h-14 px-12 text-sm font-black uppercase tracking-widest transition-all shadow-xl shadow-green-700/20"
+          >
+            {isSubmitting ? 'Synchronizing...' : 'Save Profile Details'}
+          </Button>
+        </div>
       </form>
     </div>
   )

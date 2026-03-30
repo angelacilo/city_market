@@ -30,10 +30,26 @@ export default async function VendorInquiriesPage() {
     .eq('vendor_id', vendor.id)
     .order('created_at', { ascending: false })
 
+  const unreadCount = inquiries?.filter(i => !i.is_read).length || 0
+
   return (
-    <InquiriesManager
-      inquiries={(inquiries as any[]) ?? []}
-      marketName={(vendor.markets as any)?.name ?? ''}
-    />
+    <div className="space-y-8">
+      <div>
+        <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
+          Customer
+        </span>
+        <h1 className="text-4xl font-black italic text-green-700 font-serif leading-none">
+          Inquiries
+        </h1>
+        <p className="text-sm text-gray-400 mt-2">
+          {unreadCount} unread message{unreadCount !== 1 ? 's' : ''}
+        </p>
+      </div>
+
+      <InquiriesManager
+        inquiries={(inquiries as any[]) ?? []}
+        marketName={(vendor.markets as any)?.name ?? ''}
+      />
+    </div>
   )
 }

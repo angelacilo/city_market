@@ -1,72 +1,78 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import type { MarketWithStats } from '@/types'
+import { cn } from '@/lib/utils'
 
-const FALLBACK_IMAGES = [
-  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
-  'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=800&q=80',
-  'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80',
-  'https://images.unsplash.com/photo-1506484334402-40f21557d66a?w=800&q=80',
-  'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&q=80',
-  'https://images.unsplash.com/photo-1543083477-4f7fe1921694?w=800&q=80',
-]
-
-function formatProductCount(n: number) {
-  return `${n.toLocaleString('en-US')}+`
+interface MarketCardProps {
+  market: {
+    id: string
+    name: string
+    vendors_count: number
+    products_count: number
+    image_url?: string | null
+  }
+  index: number
 }
 
-export default function MarketCard({
-  market,
-  index = 0,
-}: {
-  market: MarketWithStats
-  index?: number
-}) {
-  const imgSrc = market.image_url || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]
+const MARKET_IMAGES: Record<string, string> = {
+  'Agora Market': 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&q=80',
+  'Libertad Public Market': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80',
+  'Cogon Market': 'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&q=80',
+  'Robinsons Wet Market': 'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?w=800&q=80',
+  'Divisoria Market': 'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?w=800&q=80',
+  'Pili Market': 'https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=800&q=80',
+}
+
+export default function MarketCard({ market, index }: MarketCardProps) {
   const isFirstRow = index < 3
+  const imageUrl = market.image_url || MARKET_IMAGES[market.name] || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80'
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all hover:border-green-200 hover:shadow-md">
-      <div className="relative h-40 w-full flex-shrink-0 overflow-hidden rounded-t-xl md:h-40">
-        <Image src={imgSrc} alt={market.name} fill className="object-cover" sizes="(max-width:768px) 100vw, 33vw" />
-        <div className="absolute left-3 top-3 flex items-center gap-1 rounded-sm bg-green-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
-          </span>
-          Open now
-        </div>
-      </div>
-      <div className="flex flex-1 flex-col border-x border-b border-gray-100 rounded-b-xl bg-white p-4">
-        <h3 className="text-base font-bold text-gray-900">{market.name}</h3>
-        <div className="mt-3 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-400">Registered Vendors</span>
-            <span className="font-semibold text-gray-700">{market.vendors_count}</span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-400">Total Products</span>
-            <span className="font-semibold text-gray-700">{formatProductCount(market.products_count)}</span>
+    <Link href={`/markets/${market.id}`} className="group">
+      <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col cursor-pointer">
+        {/* Image Area */}
+        <div className="relative h-[180px] w-full overflow-hidden">
+          <Image
+            src={imageUrl}
+            alt={market.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+          <div className="absolute top-3 right-3 bg-green-600 text-white text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-300 inline-block mr-1.5" />
+            OPEN NOW
           </div>
         </div>
-        <div className="mt-4">
+
+        {/* Card Body */}
+        <div className="p-4 flex flex-col flex-grow">
+          <h3 className="text-xl font-bold text-gray-900 font-serif mb-3">
+            {market.name}
+          </h3>
+
           {isFirstRow ? (
-            <Link
-              href={`/markets/${market.id}`}
-              className="flex w-full items-center justify-center rounded-lg bg-gray-100 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
-            >
-              View Price List
-            </Link>
+            <div className="mt-auto space-y-2">
+              <div className="flex justify-between items-center border-b border-gray-50 pb-2 mb-2">
+                <span className="text-xs text-gray-400">Registered Vendors</span>
+                <span className="text-sm font-bold text-gray-900">{market.vendors_count.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center pb-2 mb-2">
+                <span className="text-xs text-gray-400">Total Products</span>
+                <span className="text-sm font-bold text-gray-900">{market.products_count.toLocaleString()}+</span>
+              </div>
+              <div className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-xl transition-colors text-center w-full">
+                View Price List
+              </div>
+            </div>
           ) : (
-            <Link
-              href={`/compare?market=${market.id}`}
-              className="flex w-full items-center justify-center rounded-lg border border-gray-300 py-2 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50"
-            >
-              Track Trends
-            </Link>
+            <div className="mt-auto">
+              <div className="w-full border-2 border-green-600 text-green-700 text-sm font-semibold py-2.5 rounded-xl hover:bg-green-50 transition-colors text-center">
+                Track Trends
+              </div>
+            </div>
           )}
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MessageSquare, Phone, ArrowLeft, Check } from 'lucide-react'
+import { MessageSquare, Phone, ArrowLeft, Check, User } from 'lucide-react'
 import { markInquiryRead } from '@/lib/actions/vendor'
+import { cn } from '@/lib/utils'
 
 interface Inquiry {
   id: string
@@ -30,28 +31,25 @@ interface Props {
 function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const m = Math.floor(diff / 60000)
-  if (m < 1) return 'just now'
-  if (m < 60) return `${m}m ago`
+  if (m < 1) return 'now'
+  if (m < 60) return `${m}m`
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  if (Math.floor(h / 24) === 1) return 'yesterday'
-  return `${Math.floor(h / 24)}d ago`
+  if (h < 24) return `${h}h`
+  return `${Math.floor(h / 24)}d`
 }
 
 function fullDateTime(dateStr: string): string {
   return new Date(dateStr).toLocaleString('en-PH', {
     year: 'numeric', month: 'long', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
-    timeZone: 'Asia/Manila',
   })
 }
 
 export default function InquiriesManager({ inquiries: initialInquiries, marketName }: Props) {
   const router = useRouter()
   const [inquiries, setInquiries] = useState<Inquiry[]>(initialInquiries)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(initialInquiries[0]?.id || null)
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
-  const [resolved, setResolved] = useState<Set<string>>(new Set())
   const [mobileDetail, setMobileDetail] = useState(false)
 
   const unreadCount = inquiries.filter((i) => !i.is_read).length
@@ -76,189 +74,167 @@ export default function InquiriesManager({ inquiries: initialInquiries, marketNa
     }
   }
 
-  function handleBack() {
-    setMobileDetail(false)
-  }
-
-  function handleMarkResolved(id: string) {
-    setResolved((prev) => new Set([...prev, id]))
-  }
-
-  // ── List panel ─────────────────────────────────────────────────────
-  const listPanel = (
-    <div className="flex flex-col h-full">
-      {/* Heading + filter */}
-      <div className="px-4 py-4 border-b border-gray-100 flex-shrink-0">
-        <div className="flex items-center gap-2 mb-3">
-          <h1 className="text-base font-black text-gray-900">Inquiries</h1>
-          {unreadCount > 0 && (
-            <Badge className="bg-amber-500 text-white border-0 text-[10px] font-black px-2">
-              {unreadCount} unread
-            </Badge>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter('all')}
-            className={`h-7 px-3 rounded-full text-xs font-bold border transition-all ${
-              filter === 'all'
-                ? 'bg-gray-900 text-white border-gray-900'
-                : 'text-gray-500 border-gray-200 hover:border-gray-400'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('unread')}
-            className={`h-7 px-3 rounded-full text-xs font-bold border transition-all ${
-              filter === 'unread'
-                ? 'bg-gray-900 text-white border-gray-900'
-                : 'text-gray-500 border-gray-200 hover:border-gray-400'
-            }`}
-          >
-            Unread
-          </button>
-        </div>
-      </div>
-
-      {/* List */}
-      <div className="flex-1 overflow-y-auto">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-            <MessageSquare className="w-10 h-10 text-gray-200 mb-3" />
-            <p className="text-sm text-gray-400">
-              {filter === 'unread' ? 'No unread inquiries.' : 'No inquiries yet. Buyers will contact you here.'}
-            </p>
+  return (
+    <div className="flex bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden h-[600px]">
+      {/* Sidebar List */}
+      <div className={cn(
+        "w-full md:w-[380px] border-r border-gray-100 flex flex-col bg-white overflow-hidden",
+        mobileDetail ? "hidden md:flex" : "flex"
+      )}>
+        <div className="p-8 border-b border-gray-50 flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+             <div className="flex items-center gap-2">
+                <h3 className="text-xl font-black italic text-gray-900 font-serif">Inbox</h3>
+                {unreadCount > 0 && (
+                    <Badge className="bg-green-700 text-white rounded-full px-2 h-5 text-[10px] font-black">
+                        {unreadCount}
+                    </Badge>
+                )}
+             </div>
+             <div className="flex gap-4 mt-4">
+                <button 
+                    onClick={() => setFilter('all')}
+                    className={cn("text-[10px] font-black uppercase tracking-widest transition-colors", filter === 'all' ? "text-green-700 underline underline-offset-4" : "text-gray-400 hover:text-gray-600")}
+                >
+                    All Messages
+                </button>
+                <button 
+                     onClick={() => setFilter('unread')}
+                     className={cn("text-[10px] font-black uppercase tracking-widest transition-colors", filter === 'unread' ? "text-green-700 underline underline-offset-4" : "text-gray-400 hover:text-gray-600")}
+                >
+                    Unread Only
+                </button>
+             </div>
           </div>
-        ) : (
-          filtered.map((inq) => {
-            const isRes = resolved.has(inq.id)
-            const isActive = selectedId === inq.id
-            const preview = inq.message.length > 60 ? inq.message.slice(0, 60) + '…' : inq.message
-            const productName = inq.price_listings?.products?.name ?? 'Product'
+        </div>
 
-            return (
+        <div className="flex-1 overflow-y-auto no-scrollbar">
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center px-10">
+              <MessageSquare className="w-12 h-12 text-gray-100 mb-4" />
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No inquiries found</p>
+            </div>
+          ) : (
+            filtered.map((inq) => (
               <button
                 key={inq.id}
                 onClick={() => handleSelect(inq)}
-                className={`w-full text-left px-4 py-3 border-b border-gray-50 transition-all ${
-                  isActive ? 'bg-green-50' : !inq.is_read ? 'bg-blue-50/60 hover:bg-blue-50' : 'hover:bg-gray-50'
-                } ${isRes ? 'opacity-50' : ''}`}
+                className={cn(
+                  "w-full text-left p-8 border-b border-gray-50 transition-all relative group",
+                  selectedId === inq.id ? "bg-[#f0f7f0]/50" : "hover:bg-gray-50/50"
+                )}
               >
-                <div className="flex items-start gap-2">
-                  {!inq.is_read && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
-                  )}
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-black text-gray-600 flex-shrink-0">
-                    {(inq.buyer_name as string).charAt(0).toUpperCase()}
+                {!inq.is_read && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-700" />
+                )}
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-white transition-colors border border-transparent group-hover:border-gray-100">
+                    <User className="w-6 h-6 text-gray-400" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className={`text-sm truncate ${!inq.is_read ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <p className={cn("text-sm truncate", !inq.is_read ? "font-black text-gray-900" : "font-bold text-gray-600")}>
                         {inq.buyer_name}
                       </p>
-                      <p className="text-[10px] text-gray-400 flex-shrink-0">{relativeTime(inq.created_at)}</p>
+                      <span className="text-[10px] font-bold text-gray-400 whitespace-nowrap ml-2">
+                        {relativeTime(inq.created_at)}
+                      </span>
                     </div>
-                    <p className="text-xs text-green-600 font-medium">{productName}</p>
-                    <p className="text-xs text-gray-400 truncate mt-0.5">{preview}</p>
+                    <p className="text-[10px] font-black text-green-700/70 uppercase tracking-tight truncate mb-1">
+                      {inq.price_listings?.products?.name ?? 'General Inquiry'}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate line-clamp-1">
+                      {inq.message}
+                    </p>
                   </div>
                 </div>
               </button>
-            )
-          })
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Main Detail Area */}
+      <div className={cn(
+        "flex-1 flex flex-col bg-white overflow-hidden",
+        !mobileDetail ? "hidden md:flex" : "flex"
+      )}>
+        {selected ? (
+          <div className="flex flex-col h-full">
+             {/* Detail Header */}
+             <div className="p-8 border-b border-gray-50 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => setMobileDetail(false)}
+                        className="md:hidden w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <div>
+                        <h4 className="text-xl font-black italic text-gray-900 font-serif leading-none">{selected.buyer_name}</h4>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                            {fullDateTime(selected.created_at)}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <Button asChild className="rounded-full bg-green-700 hover:bg-green-800 text-white h-10 px-6 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-green-700/20">
+                        <a href={`tel:${selected.buyer_contact}`}>
+                            <Phone className="w-3.5 h-3.5 mr-2" />
+                            Call Buyer
+                        </a>
+                    </Button>
+                </div>
+             </div>
+
+             {/* Message Body */}
+             <div className="flex-1 overflow-y-auto p-12 space-y-12 no-scrollbar">
+                <div className="flex flex-col gap-8 max-w-2xl">
+                    <div className="bg-[#f0f7f0] rounded-[2rem] rounded-tl-none p-10 relative">
+                        <p className="text-[13px] text-green-900 font-medium leading-relaxed">
+                            {selected.message}
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-4 border-t border-gray-50 pt-10">
+                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 italic font-serif font-black text-gray-400">
+                            P
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Inquiring About</p>
+                            <p className="text-sm font-black text-gray-900 leading-none">
+                                {selected.price_listings?.products?.name ?? '—'}
+                            </p>
+                        </div>
+                        <div className="ml-auto text-right">
+                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Your Price</p>
+                             <p className="text-sm font-black text-green-700 font-serif italic">
+                                ₱{Number(selected.price_listings?.price || 0).toFixed(2)}
+                             </p>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-[2rem] p-10">
+                        <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Contact Information</h5>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-green-700 shadow-sm">
+                                <Phone className="w-4 h-4" />
+                            </div>
+                            <span className="text-sm font-black text-gray-900 font-mono tracking-wider">{selected.buyer_contact}</span>
+                        </div>
+                    </div>
+                </div>
+             </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-20">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                 <MessageSquare className="w-10 h-10 text-gray-200" />
+            </div>
+            <h4 className="text-xl font-black italic text-gray-900 font-serif">No Message Selected</h4>
+            <p className="text-xs text-gray-400 max-w-xs mt-3 leading-relaxed">Choose an inquiry from the sidebar to view the details and contact information.</p>
+          </div>
         )}
-      </div>
-    </div>
-  )
-
-  // ── Detail panel ───────────────────────────────────────────────────
-  const detailPanel = selected ? (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto">
-      {/* Mobile back button */}
-      <div className="md:hidden flex items-center gap-2 px-4 py-3 border-b border-gray-100 flex-shrink-0">
-        <Button variant="ghost" size="sm" onClick={handleBack} className="h-9 gap-1.5 text-xs font-bold">
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
-      </div>
-
-      <div className="p-6 flex-1">
-        {/* Buyer heading */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-black text-gray-600">
-            {selected.buyer_name.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h2 className="text-base font-black text-gray-900">{selected.buyer_name}</h2>
-            <p className="text-xs text-gray-400">
-              {selected.price_listings?.products?.name ?? 'Product'}
-              {marketName ? ` · ${marketName}` : ''}
-            </p>
-          </div>
-        </div>
-
-        {/* Message */}
-        <div className="bg-gray-50 rounded-xl p-5 mb-5">
-          <p className="text-sm text-gray-700 leading-relaxed">{selected.message}</p>
-        </div>
-
-        {/* Contact number */}
-        <a
-          href={`tel:${selected.buyer_contact}`}
-          className="flex items-center gap-2 text-sm font-bold text-green-700 hover:underline mb-2"
-        >
-          <Phone className="w-4 h-4" />
-          {selected.buyer_contact}
-        </a>
-
-        {/* Timestamp */}
-        <p className="text-xs text-gray-400 mb-6">{fullDateTime(selected.created_at)}</p>
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <Button asChild className="h-11 flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-sm gap-2">
-            <a href={`tel:${selected.buyer_contact}`}>
-              <Phone className="w-4 h-4" />
-              Call buyer
-            </a>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-11 flex-1 text-sm font-bold gap-2"
-            onClick={() => handleMarkResolved(selected.id)}
-            disabled={resolved.has(selected.id)}
-          >
-            <Check className="w-4 h-4" />
-            {resolved.has(selected.id) ? 'Resolved' : 'Mark as resolved'}
-          </Button>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div className="hidden md:flex flex-1 items-center justify-center flex-col text-center px-4">
-      <MessageSquare className="w-12 h-12 text-gray-200 mb-4" />
-      <p className="text-sm text-gray-400 font-medium">Select an inquiry to read it.</p>
-    </div>
-  )
-
-  return (
-    <div className="-mx-4 -my-6 sm:-mx-6 flex h-[calc(100vh-56px-48px)] md:h-[calc(100vh-56px)] overflow-hidden">
-      {/* List column */}
-      <div
-        className={`w-full md:w-80 md:flex flex-col border-r border-gray-100 bg-white flex-shrink-0 overflow-hidden ${
-          mobileDetail ? 'hidden' : 'flex'
-        }`}
-      >
-        {listPanel}
-      </div>
-
-      {/* Detail column */}
-      <div
-        className={`w-full md:flex flex-1 bg-white overflow-hidden ${
-          mobileDetail ? 'flex' : 'hidden md:flex'
-        }`}
-      >
-        {detailPanel}
       </div>
     </div>
   )
