@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
-import { checkInquiryRateLimit } from '@/lib/utils/rateLimit'
+import { checkInquiryRateLimit, recordInquirySent } from '@/lib/utils/rateLimit'
 import {
   Store,
   MapPin,
@@ -113,6 +113,7 @@ export default function InquiryForm({
       return
     }
 
+    recordInquirySent()
     setSubmitted(true)
     onSuccess?.()
   }
@@ -273,7 +274,7 @@ export default function InquiryForm({
           <Button
             type="submit"
             disabled={submitting || !isValid}
-            className="flex-1 h-11 bg-green-600 hover:bg-green-700 text-white font-black gap-2 disabled:opacity-50"
+            className="flex-1 h-12 bg-[#76c893] hover:bg-[#52b69a] text-white font-black gap-2 disabled:opacity-50 rounded-xl"
           >
             {submitting ? (
               <>

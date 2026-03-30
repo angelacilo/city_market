@@ -43,14 +43,14 @@ export default function InquiryTrigger({
         variant={triggerVariant}
         size={triggerSize}
         onClick={() => setOpen(true)}
-        className="min-h-[44px] gap-2"
+        className="w-full min-h-[48px] gap-2 rounded-xl text-xs font-black uppercase tracking-widest italic transition-all hover:bg-green-50 hover:text-green-700 border-gray-100"
       >
         <MessageSquare className="w-4 h-4" />
         {triggerLabel}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg p-5 rounded-2xl">
+        <DialogContent className="sm:max-w-xl p-8 rounded-[2.5rem] shadow-2xl border-white/40 focus-visible:ring-0">
           <DialogHeader className="mb-1">
             <DialogTitle className="text-base font-black text-gray-900">Contact vendor</DialogTitle>
             <DialogDescription className="text-xs text-gray-400">

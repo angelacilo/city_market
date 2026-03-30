@@ -132,6 +132,54 @@ export async function toggleAvailability(listingId: string, isAvailable: boolean
   return { success: true }
 }
 
+export async function updateListing(
+  listingId: string,
+  data: {
+    price: number
+    is_available: boolean
+    stock_quantity: number
+  }
+) {
+  try {
+    const supabase = await createClient()
+    const now = new Date().toISOString()
+
+    const { data: currentListing } = await supabase
+      .from('price_listings')
+      .select('price')
+      .eq('id', listingId)
+      .single()
+
+    const { error } = await supabase
+      .from('price_listings')
+      .update({
+        price: data.price,
+        is_available: data.is_available,
+        stock_quantity: data.stock_quantity,
+        last_updated: now,
+      })
+      .eq('id', listingId)
+
+    if (error) return { error: error.message }
+
+    // If price changed, record in history
+    if (currentListing && currentListing.price !== data.price) {
+      await supabase.from('price_history').insert({
+        listing_id: listingId,
+        price: data.price,
+        recorded_at: now,
+      })
+    }
+
+    revalidatePath('/vendor/products')
+    revalidatePath('/vendor/prices')
+    revalidatePath('/vendor/dashboard')
+    return { success: true }
+  } catch (e: any) {
+    return { error: e.message || 'Failed to update listing.' }
+  }
+}
+
 // ── Bulk price update ─────────────────────────────────────────────────
 
 export async function bulkUpdatePrices(

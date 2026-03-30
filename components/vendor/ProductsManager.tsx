@@ -33,9 +33,11 @@ import {
   Sparkles,
   Eye,
   Camera,
+  Coins,
 } from 'lucide-react'
 import {
   addListing,
+  updateListing,
   updateListingPrice,
   toggleAvailability,
   deleteListing,
@@ -136,7 +138,7 @@ function InlinePriceEditor({
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 text-left">
       <span className="text-gray-400 text-sm">₱</span>
       <Input
         value={value}
@@ -212,6 +214,109 @@ function AvailabilityToggle({
         )}
       />
     </button>
+  )
+}
+
+// ── Edit listing dialog ───────────────────────────────────────────────
+
+function EditListingDialog({
+  listing,
+  onUpdated,
+}: {
+  listing: Listing
+  onUpdated: (msg: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [price, setPrice] = useState(listing.price.toString())
+  const [stockQuantity, setStockQuantity] = useState(listing.stock_quantity.toString())
+  const [isAvailable, setIsAvailable] = useState(listing.is_available)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setIsSubmitting(true)
+    const result = await updateListing(listing.id, {
+      price: parseFloat(price),
+      is_available: isAvailable,
+      stock_quantity: parseInt(stockQuantity) || 0,
+    })
+    setIsSubmitting(false)
+    if (result.success) {
+      setOpen(false)
+      onUpdated('Listing updated!')
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <button
+        onClick={() => setOpen(true)}
+        className="h-9 w-9 flex items-center justify-center rounded-full text-gray-400 hover:text-green-700 hover:bg-green-50 transition-all"
+      >
+        <Pencil className="w-4 h-4" />
+      </button>
+      <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden">
+        <div className="px-10 pt-10 pb-6 border-b border-gray-50 bg-white">
+          <h2 className="text-2xl font-black italic text-green-700 font-serif leading-none">Edit Listing</h2>
+          <p className="text-xs text-gray-500 mt-2 font-medium">Update current price and stock for {listing.products?.name}.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="p-10 space-y-6 bg-white">
+          <div className="grid grid-cols-2 gap-4">
+             <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price (₱)</label>
+                <Input
+                  required
+                  type="number"
+                  step="0.01"
+                  value={price}
+                  onChange={e => setPrice(e.target.value)}
+                  className="rounded-xl border-gray-100 bg-gray-50/50 h-12 px-5 font-bold text-sm"
+                />
+             </div>
+             <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">In Stock</label>
+                <Input
+                  required
+                  type="number"
+                  value={stockQuantity}
+                  onChange={e => setStockQuantity(e.target.value)}
+                  className="rounded-xl border-gray-100 bg-gray-50/50 h-12 px-5 font-bold text-sm"
+                />
+             </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-[#f0f7f0] rounded-2xl border border-green-100/50">
+             <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
+                  <Eye className="w-4 h-4 text-green-700" />
+                </div>
+                <div>
+                   <p className="text-xs font-black text-green-900 leading-tight">Live on Market</p>
+                </div>
+             </div>
+             <button
+                type="button"
+                onClick={() => setIsAvailable(!isAvailable)}
+                className={cn(
+                  "relative w-10 h-5.5 rounded-full transition-colors",
+                  isAvailable ? 'bg-green-700' : 'bg-gray-300'
+                )}
+             >
+                <div className={cn("absolute top-1 left-1 bg-white w-3.5 h-3.5 rounded-full transition-transform shadow-sm", isAvailable && "translate-x-4.5")} />
+             </button>
+          </div>
+
+          <div className="flex gap-3">
+             <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="flex-1 h-12 font-black uppercase text-[10px] tracking-widest text-gray-400 rounded-full">
+                Cancel
+             </Button>
+             <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-full bg-green-700 hover:bg-green-800 text-white font-black uppercase text-[10px] tracking-widest shadow-lg shadow-green-700/20">
+                Save Changes
+             </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -383,7 +488,7 @@ function AddListingDialog({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-xl rounded-[2.5rem] p-0 overflow-hidden" aria-describedby="add-listing-desc">
+        <DialogContent className="max-w-3xl rounded-[2.5rem] p-0 overflow-hidden" aria-describedby="add-listing-desc">
           <div className="px-10 pt-10 pb-6 border-b border-gray-50 bg-white">
             <h2 className="text-3xl font-black italic text-green-700 font-serif leading-none">Add Product</h2>
             <p id="add-listing-desc" className="text-sm text-gray-500 mt-2 font-medium">
@@ -398,135 +503,139 @@ function AddListingDialog({
               </div>
             )}
 
-            {/* Product Image Section */}
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Visual</label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full h-44 rounded-[2rem] border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50/40 transition-all group relative overflow-hidden"
-              >
-                {previewUrl && (
-                  <Image src={previewUrl} alt="Preview" fill className="object-cover" />
-                )}
-                <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/30 inset-0 absolute backdrop-blur-[2px]")}>
-                  <Camera className={cn("w-8 h-8 mb-3 transition-all", previewUrl ? "text-white" : "text-gray-400 group-hover:scale-110 group-hover:text-green-700")} />
-                  <p className={cn("text-xs font-black uppercase tracking-wider", previewUrl ? "text-white" : "text-gray-900")}>
-                    {file ? 'Change Photo' : 'Upload Product Photo'}
-                  </p>
-                  {!file && <p className="text-[10px] text-gray-400 mt-1">PNG, JPG or WebP (Max 5MB)</p>}
+            <div className="flex flex-col md:flex-row gap-10">
+                {/* Product Image Section */}
+                <div className="space-y-4 md:w-1/2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Visual</label>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full h-72 rounded-[2rem] border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50/40 transition-all group relative overflow-hidden"
+                    >
+                        {previewUrl && (
+                        <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                        )}
+                        <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/30 inset-0 absolute backdrop-blur-[2px]")}>
+                        <Camera className={cn("w-8 h-8 mb-3 transition-all", previewUrl ? "text-white" : "text-gray-400 group-hover:scale-110 group-hover:text-green-700")} />
+                        <p className={cn("text-xs font-black uppercase tracking-wider", previewUrl ? "text-white" : "text-gray-900")}>
+                            {file ? 'Change Photo' : 'Upload Product Photo'}
+                        </p>
+                        {!file && <p className="text-[10px] text-gray-400 mt-1">PNG, JPG or WebP (Max 5MB)</p>}
+                        </div>
+                    </button>
                 </div>
-              </button>
-            </div>
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-8">
-              <div className="space-y-2 col-span-2 md:col-span-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Name</label>
-                <Input
-                  required
-                  value={productName}
-                  onChange={e => setProductName(e.target.value)}
-                  placeholder="e.g., Organic Tuna"
-                  className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm"
-                />
-              </div>
+                <div className="flex-1 space-y-8">
+                     <div className="space-y-5">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Name</label>
+                            <Input
+                                required
+                                value={productName}
+                                onChange={e => setProductName(e.target.value)}
+                                placeholder="e.g., Organic Tuna"
+                                className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm"
+                            />
+                        </div>
 
-              <div className="space-y-2 col-span-2 md:col-span-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Category</label>
-                <div className="relative">
-                  <select
-                    required
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-100 focus:border-green-700 focus:bg-white text-sm font-bold px-5 pr-12 outline-none appearance-none transition-all"
-                  >
-                    <option value="" disabled>Select Category</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                  <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Category</label>
+                            <div className="relative">
+                            <select
+                                required
+                                value={categoryId}
+                                onChange={(e) => setCategoryId(e.target.value)}
+                                className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-100 focus:border-green-700 focus:bg-white text-sm font-bold px-5 pr-12 outline-none appearance-none transition-all"
+                            >
+                                <option value="" disabled>Select Category</option>
+                                {categories.map((c) => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                            <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price (₱)</label>
+                                <Input
+                                    required
+                                    type="number"
+                                    step="0.01"
+                                    value={price}
+                                    onChange={e => setPrice(e.target.value)}
+                                    className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Unit</label>
+                                <select 
+                                    value={unit} 
+                                    onChange={e => setUnit(e.target.value)}
+                                    className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-100 focus:border-green-700 focus:bg-white text-sm font-bold px-5 pr-12 outline-none appearance-none transition-all text-center"
+                                >
+                                    <option value="kg">KG</option>
+                                    <option value="unit">PCS</option>
+                                    <option value="bundle">Bundle</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Stock Quantity</label>
+                            <div className="relative">
+                                <Package className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input
+                                    required
+                                    type="number"
+                                    value={stockQuantity}
+                                    onChange={e => setStockQuantity(e.target.value)}
+                                    placeholder="0"
+                                    className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 pl-12 px-5 font-bold text-sm"
+                                />
+                            </div>
+                        </div>
+                     </div>
+
+                    <div className="flex items-center justify-between p-6 bg-[#f0f7f0] rounded-[2rem] border border-green-100/50">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                            <Eye className="w-5 h-5 text-green-700" />
+                            </div>
+                            <div>
+                            <p className="text-sm font-black text-green-900 leading-tight">Live on Market</p>
+                            <p className="text-[10px] text-green-600 font-bold uppercase tracking-tight mt-0.5">Visible to public</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setIsAvailable(!isAvailable)}
+                            className={cn(
+                            "relative w-12 h-6.5 rounded-full transition-colors",
+                            isAvailable ? 'bg-green-700' : 'bg-gray-300'
+                            )}
+                        >
+                            <div className={cn("absolute top-1 left-1 bg-white w-4.5 h-4.5 rounded-full transition-transform shadow-sm", isAvailable && "translate-x-5.5")} />
+                        </button>
+                    </div>
+
+                    <div className="pt-4 flex gap-4">
+                        <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="flex-1 h-14 font-black uppercase text-xs tracking-widest text-gray-400 rounded-full hover:bg-gray-50">
+                            Discard
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting} className="flex-1 h-14 rounded-full bg-green-700 hover:bg-green-800 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-green-700/20">
+                            {isSubmitting ? 'Processing...' : 'Add Listing'}
+                        </Button>
+                    </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price per unit</label>
-                <div className="flex bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden focus-within:border-green-700 focus-within:bg-white h-12 transition-all">
-                  <div className="pl-5 pr-1 flex items-center text-gray-400 font-black text-sm">₱</div>
-                  <Input
-                    required
-                    type="number"
-                    step="0.01"
-                    value={price}
-                    onChange={e => setPrice(e.target.value)}
-                    className="bg-transparent border-0 focus-visible:ring-0 px-1 font-black text-sm h-full w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Pricing Unit</label>
-                <div className="flex gap-1 p-1 bg-gray-50/50 rounded-2xl border border-gray-100 h-12">
-                  <button
-                    type="button"
-                    onClick={() => setUnit('kg')}
-                    className={cn(
-                      "flex-1 text-[10px] font-black tracking-wider uppercase rounded-xl transition-all",
-                      unit === 'kg' ? "bg-white text-green-700 shadow-sm" : "text-gray-400 hover:text-gray-600"
-                    )}
-                  >
-                    KG
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUnit('unit')}
-                    className={cn(
-                      "flex-1 text-[10px] font-black tracking-wider uppercase rounded-xl transition-all",
-                      unit === 'unit' ? "bg-white text-green-700 shadow-sm" : "text-gray-400 hover:text-gray-600"
-                    )}
-                  >
-                    PCS
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-6 bg-[#f0f7f0] rounded-[2rem] border border-green-100/50">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                  <Eye className="w-5 h-5 text-green-700" />
-                </div>
-                <div>
-                  <p className="text-sm font-black text-green-900 leading-tight">Live on Market</p>
-                  <p className="text-[10px] text-green-600 font-bold uppercase tracking-tight mt-0.5">Visible to public</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsAvailable(!isAvailable)}
-                className={cn(
-                  "relative w-12 h-6.5 rounded-full transition-colors",
-                  isAvailable ? 'bg-green-700' : 'bg-gray-300'
-                )}
-              >
-                <div className={cn("absolute top-1 left-1 bg-white w-4.5 h-4.5 rounded-full transition-transform shadow-sm", isAvailable && "translate-x-5.5")} />
-              </button>
-            </div>
-
-            <div className="pt-4 flex gap-4">
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="flex-1 h-14 font-black uppercase text-xs tracking-widest text-gray-400 rounded-full hover:bg-gray-50">
-                Discard
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="flex-1 h-14 rounded-full bg-green-700 hover:bg-green-800 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-green-700/20">
-                {isSubmitting ? 'Processing...' : 'Add Listing'}
-              </Button>
             </div>
           </form>
         </DialogContent>
@@ -657,6 +766,7 @@ export default function ProductsManager({ listings: initialListings, allProducts
                 <TableRow className="bg-gray-50/40 hover:bg-gray-50/40 border-b border-gray-100">
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest pl-10 py-6">Product Item</TableHead>
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6">Price</TableHead>
+                  <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6">Stock</TableHead>
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6">Live</TableHead>
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6">Updated</TableHead>
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest text-right pr-10 py-6">Options</TableHead>
@@ -665,7 +775,7 @@ export default function ProductsManager({ listings: initialListings, allProducts
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-20 text-sm text-gray-400 font-medium">
+                    <TableCell colSpan={6} className="text-center py-20 text-sm text-gray-400 font-medium">
                       No matching products in this category.
                     </TableCell>
                   </TableRow>
@@ -705,6 +815,17 @@ export default function ProductsManager({ listings: initialListings, allProducts
                         />
                       </TableCell>
                       <TableCell>
+                         <div className="flex items-center gap-2">
+                            <span className={cn(
+                                "text-sm font-black font-mono",
+                                listing.stock_quantity > 10 ? "text-gray-900" : "text-amber-600"
+                            )}>
+                                {listing.stock_quantity}
+                            </span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">Available</span>
+                         </div>
+                      </TableCell>
+                      <TableCell>
                         <AvailabilityToggle
                           listingId={listing.id}
                           initial={listing.is_available}
@@ -716,6 +837,10 @@ export default function ProductsManager({ listings: initialListings, allProducts
                       </TableCell>
                       <TableCell className="text-right pr-10">
                         <div className="flex justify-end gap-1">
+                          <EditListingDialog 
+                            listing={listing} 
+                            onUpdated={(msg) => { showToast(msg, 'success'); router.refresh() }} 
+                          />
                           <DeleteDialog
                             listingId={listing.id}
                             productName={listing.products?.name || 'item'}
@@ -734,4 +859,3 @@ export default function ProductsManager({ listings: initialListings, allProducts
     </div>
   )
 }
-
