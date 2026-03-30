@@ -1,65 +1,158 @@
-import Image from "next/image";
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import Hero from '@/components/home/Hero'
+import LivePriceTicker, { type TickerItem } from '@/components/home/LivePriceTicker'
+import CategoriesSection from '@/components/home/CategoriesSection'
+import MarketsSection from '@/components/home/MarketsSection'
+import VendorCTA from '@/components/home/VendorCTA'
+import PriceSnapshotTable from '@/components/public/PriceSnapshotTable'
+import type { MarketWithStats, PriceSnapshot } from '@/types'
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: 'Butuan City Market Information System',
+  description: 'Find the best prices across all public markets in Butuan City, Agusan del Norte.',
+}
+
+export const revalidate = 60
+
+export default async function LandingPage() {
+  const supabase = await createClient()
+
+  const [
+    { count: marketCount },
+    { count: vendorCount },
+    { count: productCount },
+    { data: marketsData },
+    { data: snapshot },
+    { data: categoriesData },
+  ] = await Promise.all([
+    supabase.from('markets').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    supabase.from('vendors').select('*', { count: 'exact', head: true }).eq('is_approved', true),
+    supabase.from('products').select('*', { count: 'exact', head: true }),
+    supabase.from('markets').select(`
+      id, 
+      name, 
+      barangay, 
+      image_url, 
+      is_active,
+      vendors_count: vendors(count),
+      products_count: price_listings(count)
+    `).eq('is_active', true).order('name'),
+    supabase.from('price_listings').select(`
+      id, price, is_available, last_updated,
+      products ( name, unit ),
+      vendors ( business_name, stall_number ),
+      markets ( name )
+    `).eq('is_available', true).order('price', { ascending: true }).limit(5),
+    supabase.from('categories').select('id, name, icon').order('name'),
+  ])
+
+  const markets = (marketsData || []).map((m) => ({
+    ...m,
+    vendors_count: m.vendors_count?.[0]?.count || 0,
+    products_count: m.products_count?.[0]?.count || 0,
+  })) as MarketWithStats[]
+
+  const { data: tickerListings } = await supabase
+    .from('price_listings')
+    .select(`id, price, last_updated, products ( name, unit )`)
+    .eq('is_available', true)
+    .order('last_updated', { ascending: false })
+    .limit(3)
+
+  const tickerIds = (tickerListings || []).map((l) => l.id)
+  const { data: tickerHistories } =
+    tickerIds.length > 0
+      ? await supabase
+          .from('price_history')
+          .select('listing_id, price, recorded_at')
+          .in('listing_id', tickerIds)
+          .order('recorded_at', { ascending: false })
+      : { data: [] as { listing_id: string; price: number; recorded_at: string }[] }
+
+  const groupedHistory = new Map<string, { price: number; recorded_at: string }[]>()
+  for (const h of tickerHistories || []) {
+    const arr = groupedHistory.get(h.listing_id) || []
+    arr.push({ price: Number(h.price), recorded_at: h.recorded_at })
+    groupedHistory.set(h.listing_id, arr)
+  }
+  for (const arr of groupedHistory.values()) {
+    arr.sort(
+      (a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime()
+    )
+  }
+
+  const tickerItems: TickerItem[] = (tickerListings || []).map((row) => {
+    const product = Array.isArray(row.products) ? row.products[0] : row.products
+    const name = product?.name || 'Product'
+    const unit = product?.unit || 'unit'
+    const current = Number(row.price)
+    const hist = groupedHistory.get(row.id) || []
+    let prev: number | undefined
+    if (hist.length >= 2) prev = hist[1].price
+    else if (hist.length === 1 && Math.abs(hist[0].price - current) > 0.001) prev = hist[0].price
+
+    let changePct: number | null = null
+    if (prev != null && prev !== 0) {
+      changePct = Math.round(((current - prev) / prev) * 1000) / 10
+    }
+
+    return {
+      id: row.id,
+      name,
+      unit,
+      price: current,
+      changePct,
+    }
+  })
+
+  const snapshotRows: PriceSnapshot[] = ((snapshot as PriceSnapshot[] | null) || []).map(
+    (s: PriceSnapshot) => ({
+      ...s,
+      products: Array.isArray(s.products) ? s.products[0] : s.products,
+      vendors: Array.isArray(s.vendors) ? s.vendors[0] : s.vendors,
+      markets: Array.isArray(s.markets) ? s.markets[0] : s.markets,
+    })
+  )
+
+  void vendorCount
+  void productCount
+  void categoriesData
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="flex min-h-screen flex-col bg-white">
+      <Hero />
+      <LivePriceTicker items={tickerItems} />
+      <CategoriesSection />
+      <MarketsSection
+        markets={markets}
+        showAllHref="/markets"
+        showAllLabel={`Show all ${marketCount ?? markets.length} markets`}
+      />
+      <section className="bg-white px-6 py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-gray-900">
+                <span className="block text-3xl font-normal font-sans">Price</span>
+                <span className="block text-3xl font-bold italic font-serif">Snapshot</span>
+              </h2>
+              <p className="mt-2 text-sm text-gray-500">
+                Lowest listed prices right now — updated from live vendor listings.
+              </p>
+            </div>
+            <Link
+              href="/compare"
+              className="text-sm font-medium text-green-700 hover:text-green-800 shrink-0"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              Full comparisons →
+            </Link>
+          </div>
+          <PriceSnapshotTable listings={snapshotRows} />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
+      <VendorCTA />
     </div>
-  );
+  )
 }

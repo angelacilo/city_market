@@ -23,10 +23,22 @@ export async function middleware(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Redirect to login if not authenticated
-    if (!user && !request.nextUrl.pathname.startsWith('/login')) {
+    // Redirect bare /dashboard → /vendor/dashboard
+    if (request.nextUrl.pathname === '/dashboard' ||
+        request.nextUrl.pathname.startsWith('/dashboard/')) {
+        const url = request.nextUrl.clone()
+        url.pathname = request.nextUrl.pathname.replace('/dashboard', '/vendor/dashboard')
+        return NextResponse.redirect(url)
+    }
+
+    // Protect only specific private routes
+    const isDashboardRoute = request.nextUrl.pathname.startsWith('/vendor') ||
+                             request.nextUrl.pathname.startsWith('/admin');
+
+    if (!user && isDashboardRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
+        url.searchParams.set('message', 'Please sign in to access this area')
         return NextResponse.redirect(url)
     }
 
@@ -34,5 +46,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/((?!_next/static|_next/image|favicon.ico|login|register).*)'],
+    matcher: [
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * Feel free to modify this pattern to include more paths.
+         */
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    ],
 }
