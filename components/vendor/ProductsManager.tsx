@@ -231,10 +231,46 @@ function EditListingDialog({
   const [stockQuantity, setStockQuantity] = useState(listing.stock_quantity.toString())
   const [isAvailable, setIsAvailable] = useState(listing.is_available)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  const [file, setFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string>(listing.products?.image_url || '')
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(listing.products?.image_url || '')
+      return
+    }
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file, listing.products?.image_url])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsSubmitting(true)
+
+    let updatedImageUrl = listing.products?.image_url
+    if (file) {
+      try {
+        const supabase = createBrowserSupabase()
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+        const path = `products/updates/${listing.product_id}-${Date.now()}.${ext}`
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(path, file)
+        
+        if (!uploadError) {
+          const { data: pub } = supabase.storage.from('product-images').getPublicUrl(path)
+          updatedImageUrl = pub.publicUrl
+          // Update master product image
+          await updateProductImage(listing.product_id, updatedImageUrl)
+        }
+      } catch (err) {
+        console.error('Image update failed', err)
+      }
+    }
+
     const result = await updateListing(listing.id, {
       price: parseFloat(price),
       is_available: isAvailable,
@@ -251,74 +287,121 @@ function EditListingDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <button
         onClick={() => setOpen(true)}
-        className="h-9 w-9 flex items-center justify-center rounded-full text-gray-400 hover:text-green-700 hover:bg-green-50 transition-all"
+        className="h-9 w-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-[#1d631d] hover:bg-[#f0f7f0] transition-all"
       >
         <Pencil className="w-4 h-4" />
       </button>
-      <DialogContent className="max-w-md rounded-[2.5rem] p-0 overflow-hidden">
-        <div className="px-10 pt-10 pb-6 border-b border-gray-50 bg-white">
-          <h2 className="text-2xl font-black italic text-green-700 font-serif leading-none">Edit Listing</h2>
-          <p className="text-xs text-gray-500 mt-2 font-medium">Update current price and stock for {listing.products?.name}.</p>
-        </div>
-        <form onSubmit={handleSubmit} className="p-10 space-y-6 bg-white">
-          <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price (₱)</label>
-                <Input
-                  required
-                  type="number"
-                  step="0.01"
-                  value={price}
-                  onChange={e => setPrice(e.target.value)}
-                  className="rounded-xl border-gray-100 bg-gray-50/50 h-12 px-5 font-bold text-sm"
-                />
-             </div>
-             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">In Stock</label>
-                <Input
-                  required
-                  type="number"
-                  value={stockQuantity}
-                  onChange={e => setStockQuantity(e.target.value)}
-                  className="rounded-xl border-gray-100 bg-gray-50/50 h-12 px-5 font-bold text-sm"
-                />
-             </div>
-          </div>
+      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+        <form onSubmit={handleSubmit} className="bg-white overflow-y-auto max-h-[90vh] no-scrollbar">
+          <div className="p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Edit Product</h2>
+                <p className="text-xs text-gray-400 font-medium">Update listing details for {listing.products?.name}</p>
+              </div>
+            </div>
 
-          <div className="flex items-center justify-between p-4 bg-[#f0f7f0] rounded-2xl border border-green-100/50">
-             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
-                  <Eye className="w-4 h-4 text-green-700" />
-                </div>
-                <div>
-                   <p className="text-xs font-black text-green-900 leading-tight">Live on Market</p>
-                </div>
-             </div>
-             <button
+            {/* Image Update Section */}
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Sync Photo</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+              />
+              <button
                 type="button"
-                onClick={() => setIsAvailable(!isAvailable)}
-                className={cn(
-                  "relative w-10 h-5.5 rounded-full transition-colors",
-                  isAvailable ? 'bg-green-700' : 'bg-gray-300'
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-40 rounded-[1.5rem] border-2 border-dashed border-[#e6eee6] bg-[#f8faf8] flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#f0f7f0] transition-all group relative overflow-hidden"
+              >
+                {previewUrl ? (
+                  <>
+                    <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                       <Camera className="w-6 h-6 text-white mb-2" />
+                       <span className="text-white text-xs font-bold absolute bottom-4">Change Photo</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <Camera className="w-6 h-6 text-[#1d631d] mb-2 opacity-40" />
+                    <span className="text-xs font-bold text-gray-400">Upload product photo</span>
+                  </div>
                 )}
-             >
-                <div className={cn("absolute top-1 left-1 bg-white w-3.5 h-3.5 rounded-full transition-transform shadow-sm", isAvailable && "translate-x-4.5")} />
-             </button>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price (₱)</label>
+                  <Input
+                    required
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={e => setPrice(e.target.value)}
+                    className="rounded-xl border-none bg-[#e9f0e9] focus:bg-[#e1eae1] h-12 px-5 font-bold text-sm text-gray-700 shadow-none ring-0 focus-visible:ring-0"
+                  />
+               </div>
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Stock</label>
+                  <Input
+                    required
+                    type="number"
+                    value={stockQuantity}
+                    onChange={e => setStockQuantity(e.target.value)}
+                    className="rounded-xl border-none bg-[#e9f0e9] focus:bg-[#e1eae1] h-12 px-5 font-bold text-sm text-gray-700 shadow-none ring-0 focus-visible:ring-0"
+                  />
+               </div>
+            </div>
+
+            <div className="flex items-center justify-between p-5 bg-[#f0f7f0] rounded-2xl border border-[#e1eae1]">
+               <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                    <Eye className="w-5 h-5 text-[#1d631d]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900 leading-tight">Live on Market</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Visible to public catalog</p>
+                  </div>
+               </div>
+               <button
+                  type="button"
+                  onClick={() => setIsAvailable(!isAvailable)}
+                  className={cn(
+                    "relative w-12 h-6.5 rounded-full transition-colors",
+                    isAvailable ? 'bg-[#1d631d]' : 'bg-gray-300'
+                  )}
+               >
+                  <div className={cn("absolute top-1 left-1 bg-white w-4.5 h-4.5 rounded-full transition-transform shadow-sm", isAvailable && "translate-x-5.5")} />
+               </button>
+            </div>
           </div>
 
-          <div className="flex gap-3">
-             <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="flex-1 h-12 font-black uppercase text-[10px] tracking-widest text-gray-400 rounded-full">
-                Cancel
-             </Button>
-             <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-full bg-green-700 hover:bg-green-800 text-white font-black uppercase text-[10px] tracking-widest shadow-lg shadow-green-700/20">
-                Save Changes
-             </Button>
+          <div className="p-8 pt-4 flex items-center justify-end gap-6 bg-[#f8faf8]">
+            <button 
+              type="button" 
+              onClick={() => setOpen(false)} 
+              className="text-xs font-bold text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="px-8 h-12 rounded-xl bg-[#1d631d] hover:bg-[#164d16] text-white font-bold text-sm shadow-lg shadow-[#1d631d]/20 transition-all font-sans"
+            >
+              {isSubmitting ? 'Updating...' : 'Save Changes'}
+            </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   )
 }
+
 
 // ── Delete confirmation ───────────────────────────────────────────────
 
@@ -487,159 +570,174 @@ function AddListingDialog({
         Add Listing
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl rounded-[2.5rem] p-0 overflow-hidden" aria-describedby="add-listing-desc">
-          <div className="px-10 pt-10 pb-6 border-b border-gray-50 bg-white">
-            <h2 className="text-3xl font-black italic text-green-700 font-serif leading-none">Add Product</h2>
-            <p id="add-listing-desc" className="text-sm text-gray-500 mt-2 font-medium">
-              Update your market stall catalog with new offerings.
-            </p>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl" aria-describedby="add-listing-desc">
+        {/* Header - Hidden or integrated into the form for a cleaner look as per Image 1 */}
+        <div className="hidden">
+           <DialogTitle>Add Product</DialogTitle>
+        </div>
+
+        <form onSubmit={handleSubmit} className="bg-white overflow-y-auto max-h-[90vh] no-scrollbar">
+          {serverError && (
+            <div className="m-8 p-4 bg-red-50 text-red-600 font-bold text-xs rounded-2xl border border-red-100">
+              {serverError}
+            </div>
+          )}
+
+          <div className="p-8 space-y-6">
+            {/* Product Image Section - Top Full Width */}
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Image</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-52 rounded-[1.5rem] border-2 border-dashed border-[#e6eee6] bg-[#f8faf8] flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#f0f7f0] transition-all group relative overflow-hidden"
+              >
+                {previewUrl && (
+                  <Image src={previewUrl} alt="Preview" fill className="object-cover" />
+                )}
+                <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/30 inset-0 absolute backdrop-blur-[2px]")}>
+                  <div className={cn("w-14 h-14 rounded-full flex items-center justify-center mb-3 transition-all", previewUrl ? "bg-white/20" : "bg-[#ecf2ec]")}>
+                    <Camera className={cn("w-6 h-6", previewUrl ? "text-white" : "text-[#4a7c4a]")} />
+                  </div>
+                  <p className={cn("text-sm font-bold", previewUrl ? "text-white" : "text-gray-900")}>
+                    {file ? 'Change product photo' : 'Click to upload product photo'}
+                  </p>
+                  <p className={cn("text-xs mt-1", previewUrl ? "text-gray-200" : "text-gray-400")}>PNG, JPG or WEBP (Max. 5MB)</p>
+                </div>
+              </button>
+            </div>
+
+            {/* Form Fields Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Name</label>
+                <Input
+                  required
+                  value={productName}
+                  onChange={e => setProductName(e.target.value)}
+                  placeholder="e.g., Upland Rice"
+                  className="rounded-xl border-none bg-[#e9f0e9] focus:bg-[#e1eae1] h-12 px-5 font-bold text-sm text-gray-700 placeholder:text-gray-400 border-0 shadow-none ring-0 focus-visible:ring-0"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Category</label>
+                <div className="relative">
+                  <select
+                    required
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="h-12 w-full rounded-xl bg-[#e9f0e9] border-none focus:bg-[#e1eae1] text-sm font-bold px-5 pr-12 outline-none appearance-none transition-all text-gray-700"
+                  >
+                    <option value="" disabled>Select Category</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                  <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price</label>
+                <div className="flex h-12 rounded-xl bg-[#e9f0e9] overflow-hidden">
+                  <div className="flex items-center px-4 font-bold text-gray-500 text-sm">₱</div>
+                  <input
+                    required
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={e => setPrice(e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 bg-transparent border-none outline-none font-bold text-sm text-gray-700 min-w-0"
+                  />
+                  <div className="flex items-center p-1.5 gap-1">
+                     <button 
+                       type="button"
+                       onClick={() => setUnit('kg')}
+                       className={cn("px-3 h-full rounded-lg text-[10px] font-black uppercase transition-all", unit === 'kg' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:bg-white/50")}
+                     >
+                       per kg
+                     </button>
+                     <button 
+                       type="button"
+                       onClick={() => setUnit('unit')}
+                       className={cn("px-3 h-full rounded-lg text-[10px] font-black uppercase transition-all", unit === 'unit' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:bg-white/50")}
+                     >
+                       per unit
+                     </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Stock Quantity</label>
+                <div className="relative flex items-center h-12 rounded-xl bg-[#e9f0e9] px-5">
+                  <input
+                    required
+                    type="number"
+                    value={stockQuantity}
+                    onChange={e => setStockQuantity(e.target.value)}
+                    placeholder="e.g., 50"
+                    className="flex-1 bg-transparent border-none outline-none font-bold text-sm text-gray-700 placeholder:text-gray-400 min-w-0"
+                  />
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight ml-2">Available</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Availability Section */}
+            <div className="flex items-center justify-between p-5 bg-[#f0f7f0] rounded-2xl border border-[#e1eae1]">
+               <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#e9f0e9] flex items-center justify-center shadow-sm">
+                    <Eye className="w-5 h-5 text-[#4a7c4a]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900 leading-tight">Mark as Available</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Product will be visible to buyers immediately</p>
+                  </div>
+               </div>
+               <button
+                  type="button"
+                  onClick={() => setIsAvailable(!isAvailable)}
+                  className={cn(
+                    "relative w-12 h-6.5 rounded-full transition-colors",
+                    isAvailable ? 'bg-[#2d7a2d]' : 'bg-gray-300'
+                  )}
+               >
+                  <div className={cn("absolute top-1 left-1 bg-white w-4.5 h-4.5 rounded-full transition-transform shadow-sm", isAvailable && "translate-x-5.5")} />
+               </button>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="px-10 pb-10 space-y-8 bg-white overflow-y-auto max-h-[70vh] no-scrollbar pt-6">
-            {serverError && (
-              <div className="p-4 bg-red-50 text-red-600 font-bold text-xs rounded-2xl border border-red-100">
-                {serverError}
-              </div>
-            )}
-
-            <div className="flex flex-col md:flex-row gap-10">
-                {/* Product Image Section */}
-                <div className="space-y-4 md:w-1/2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Visual</label>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-72 rounded-[2rem] border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50/40 transition-all group relative overflow-hidden"
-                    >
-                        {previewUrl && (
-                        <Image src={previewUrl} alt="Preview" fill className="object-cover" />
-                        )}
-                        <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/30 inset-0 absolute backdrop-blur-[2px]")}>
-                        <Camera className={cn("w-8 h-8 mb-3 transition-all", previewUrl ? "text-white" : "text-gray-400 group-hover:scale-110 group-hover:text-green-700")} />
-                        <p className={cn("text-xs font-black uppercase tracking-wider", previewUrl ? "text-white" : "text-gray-900")}>
-                            {file ? 'Change Photo' : 'Upload Product Photo'}
-                        </p>
-                        {!file && <p className="text-[10px] text-gray-400 mt-1">PNG, JPG or WebP (Max 5MB)</p>}
-                        </div>
-                    </button>
-                </div>
-
-                <div className="flex-1 space-y-8">
-                     <div className="space-y-5">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Name</label>
-                            <Input
-                                required
-                                value={productName}
-                                onChange={e => setProductName(e.target.value)}
-                                placeholder="e.g., Organic Tuna"
-                                className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Category</label>
-                            <div className="relative">
-                            <select
-                                required
-                                value={categoryId}
-                                onChange={(e) => setCategoryId(e.target.value)}
-                                className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-100 focus:border-green-700 focus:bg-white text-sm font-bold px-5 pr-12 outline-none appearance-none transition-all"
-                            >
-                                <option value="" disabled>Select Category</option>
-                                {categories.map((c) => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
-                            <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price (₱)</label>
-                                <Input
-                                    required
-                                    type="number"
-                                    step="0.01"
-                                    value={price}
-                                    onChange={e => setPrice(e.target.value)}
-                                    className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Unit</label>
-                                <select 
-                                    value={unit} 
-                                    onChange={e => setUnit(e.target.value)}
-                                    className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-100 focus:border-green-700 focus:bg-white text-sm font-bold px-5 pr-12 outline-none appearance-none transition-all text-center"
-                                >
-                                    <option value="kg">KG</option>
-                                    <option value="unit">PCS</option>
-                                    <option value="bundle">Bundle</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Stock Quantity</label>
-                            <div className="relative">
-                                <Package className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input
-                                    required
-                                    type="number"
-                                    value={stockQuantity}
-                                    onChange={e => setStockQuantity(e.target.value)}
-                                    placeholder="0"
-                                    className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 pl-12 px-5 font-bold text-sm"
-                                />
-                            </div>
-                        </div>
-                     </div>
-
-                    <div className="flex items-center justify-between p-6 bg-[#f0f7f0] rounded-[2rem] border border-green-100/50">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                            <Eye className="w-5 h-5 text-green-700" />
-                            </div>
-                            <div>
-                            <p className="text-sm font-black text-green-900 leading-tight">Live on Market</p>
-                            <p className="text-[10px] text-green-600 font-bold uppercase tracking-tight mt-0.5">Visible to public</p>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => setIsAvailable(!isAvailable)}
-                            className={cn(
-                            "relative w-12 h-6.5 rounded-full transition-colors",
-                            isAvailable ? 'bg-green-700' : 'bg-gray-300'
-                            )}
-                        >
-                            <div className={cn("absolute top-1 left-1 bg-white w-4.5 h-4.5 rounded-full transition-transform shadow-sm", isAvailable && "translate-x-5.5")} />
-                        </button>
-                    </div>
-
-                    <div className="pt-4 flex gap-4">
-                        <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="flex-1 h-14 font-black uppercase text-xs tracking-widest text-gray-400 rounded-full hover:bg-gray-50">
-                            Discard
-                        </Button>
-                        <Button type="submit" disabled={isSubmitting} className="flex-1 h-14 rounded-full bg-green-700 hover:bg-green-800 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-green-700/20">
-                            {isSubmitting ? 'Processing...' : 'Add Listing'}
-                        </Button>
-                    </div>
-                </div>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          {/* Footer Actions */}
+          <div className="p-8 pt-4 flex items-center justify-end gap-6 bg-[#f8faf8]">
+            <button 
+              type="button" 
+              onClick={() => setOpen(false)} 
+              className="text-xs font-bold text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="px-8 h-12 rounded-xl bg-[#1d631d] hover:bg-[#164d16] text-white font-bold text-sm shadow-lg shadow-[#1d631d]/20 transition-all"
+            >
+              {isSubmitting ? 'Processing...' : 'List Product'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
     </>
   )
 }
@@ -763,11 +861,11 @@ export default function ProductsManager({ listings: initialListings, allProducts
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50/40 hover:bg-gray-50/40 border-b border-gray-100">
+                <TableRow className="bg-gray-50/50 hover:bg-gray-50/50 border-b border-gray-100">
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest pl-10 py-6">Product Item</TableHead>
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6">Price</TableHead>
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6">Stock</TableHead>
-                  <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6">Live</TableHead>
+                  <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6 text-center">Live</TableHead>
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest py-6">Updated</TableHead>
                   <TableHead className="font-black text-gray-400 text-[10px] uppercase tracking-widest text-right pr-10 py-6">Options</TableHead>
                 </TableRow>
@@ -775,30 +873,36 @@ export default function ProductsManager({ listings: initialListings, allProducts
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-20 text-sm text-gray-400 font-medium">
+                    <TableCell colSpan={6} className="text-center py-20 text-sm text-gray-400 font-medium font-serif italic">
                       No matching products in this category.
                     </TableCell>
                   </TableRow>
                 ) : (
                   filtered.map((listing) => (
-                    <TableRow key={listing.id} className="group hover:bg-[#f0f7f0]/40 transition-colors border-b border-gray-50 last:border-0">
+                    <TableRow key={listing.id} className="group hover:bg-[#f0f7f0]/30 transition-all duration-300 border-b border-gray-50 last:border-0">
                       <TableCell className="pl-10 py-5">
                         <div className="flex items-center gap-5">
-                          <div className="relative w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 shadow-sm">
+                          <div className="relative w-16 h-16 rounded-2xl bg-[#f8faf8] border border-[#e6eee6] overflow-hidden flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-300">
                             {listing.products?.image_url ? (
-                              <Image src={listing.products.image_url} alt={listing.products.name} fill className="object-cover" />
+                              <Image 
+                                src={listing.products.image_url} 
+                                alt={listing.products.name ?? 'product'} 
+                                fill 
+                                className="object-cover"
+                                sizes="64px"
+                              />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                <Package className="w-6 h-6 text-gray-300" />
+                              <div className="w-full h-full flex items-center justify-center bg-[#f0f4f0]">
+                                <Package className="w-6 h-6 text-[#4a7c4a] opacity-40" />
                               </div>
                             )}
                           </div>
                           <div>
-                            <p className="font-black text-gray-900 text-sm">{listing.products?.name ?? '—'}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge className="bg-[#f0f7f0] text-green-700 border-0 text-[10px] font-black uppercase tracking-tighter px-2 h-5">
+                            <p className="font-black text-gray-900 text-sm tracking-tight">{listing.products?.name ?? '—'}</p>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="inline-flex items-center bg-[#f0f7f0] text-[#1d631d] text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border border-[#e1eae1]">
                                 {listing.products?.categories?.name ?? 'Other'}
-                              </Badge>
+                              </span>
                               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
                                 {listing.products?.unit ?? 'UNIT'}
                               </span>
@@ -806,37 +910,36 @@ export default function ProductsManager({ listings: initialListings, allProducts
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-5">
                         <InlinePriceEditor
                           listingId={listing.id}
                           initialPrice={listing.price}
-                          onSuccess={() => { showToast('Price synchronized!', 'success'); router.refresh() }}
+                          onSuccess={() => { showToast('Price updated!', 'success'); router.refresh() }}
                           onError={(msg) => showToast(msg, 'error')}
                         />
                       </TableCell>
-                      <TableCell>
-                         <div className="flex items-center gap-2">
-                            <span className={cn(
-                                "text-sm font-black font-mono",
-                                listing.stock_quantity > 10 ? "text-gray-900" : "text-amber-600"
-                            )}>
-                                {listing.stock_quantity}
-                            </span>
-                            <span className="text-[10px] font-bold text-gray-400 uppercase">Available</span>
-                         </div>
+                      <TableCell className="py-5">
+                        <div className="flex flex-col">
+                           <span className="font-black text-gray-900 text-sm">{listing.stock_quantity.toLocaleString()}</span>
+                           <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">Available</span>
+                        </div>
                       </TableCell>
-                      <TableCell>
-                        <AvailabilityToggle
-                          listingId={listing.id}
-                          initial={listing.is_available}
-                          onError={(msg) => showToast(msg, 'error')}
-                        />
+                      <TableCell className="py-5 text-center">
+                        <div className="flex justify-center">
+                          <AvailabilityToggle
+                            listingId={listing.id}
+                            initial={listing.is_available}
+                            onError={(msg) => showToast(msg, 'error')}
+                          />
+                        </div>
                       </TableCell>
-                      <TableCell className="text-[11px] text-gray-400 font-bold uppercase tracking-tight whitespace-nowrap">
-                        {relTime(listing.last_updated)}
+                      <TableCell className="py-5">
+                        <div className="flex items-center gap-1.5 text-[11px] font-black text-gray-400 uppercase tracking-tight">
+                           {relTime(listing.last_updated)}
+                        </div>
                       </TableCell>
-                      <TableCell className="text-right pr-10">
-                        <div className="flex justify-end gap-1">
+                      <TableCell className="text-right pr-10 py-5">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <EditListingDialog 
                             listing={listing} 
                             onUpdated={(msg) => { showToast(msg, 'success'); router.refresh() }} 

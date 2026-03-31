@@ -13,7 +13,7 @@ import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 const navLinks = [
   { name: 'Market Prices', href: '/' },
   { name: 'Vendors', href: '/markets' },
-  { name: 'Logistics', href: '/logistics' },
+  { name: 'Price Compare', href: '/compare' },
   { name: 'About Us', href: '/about' },
 ]
 

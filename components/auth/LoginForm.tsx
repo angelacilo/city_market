@@ -66,7 +66,7 @@ export default function LoginForm() {
       <div>
         <span className="text-[10px] font-black text-green-700 uppercase tracking-[0.2em] block mb-3">Welcome back</span>
         <h1 className="text-4xl font-black italic text-gray-900 font-serif leading-tight">
-            Sign In
+          Sign In
         </h1>
         <p className="text-sm text-gray-400 mt-2 font-medium">Access your vendor portal to managing products and inquiries.</p>
       </div>
@@ -88,14 +88,14 @@ export default function LoginForm() {
           <div className="relative">
             <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
             <Input
-                {...register('email')}
-                type="email"
-                autoComplete="email"
-                placeholder="vendor@example.com"
-                className={cn(
-                    "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 pr-5 font-bold text-sm transition-all",
-                    errors.email && "border-red-300 focus:border-red-300 ring-2 ring-red-50"
-                )}
+              {...register('email')}
+              type="email"
+              autoComplete="email"
+              placeholder="vendor@example.com"
+              className={cn(
+                "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 pr-5 font-bold text-sm transition-all",
+                errors.email && "border-red-300 focus:border-red-300 ring-2 ring-red-50"
+              )}
             />
           </div>
           {errors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.email.message}</p>}
@@ -103,25 +103,26 @@ export default function LoginForm() {
 
         {/* Password */}
         <div className="space-y-2">
-           <div className="flex justify-between items-center px-1">
-             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-               Security Password
-             </label>
-             <Link href="/forgot-password" size="sm" className="text-[10px] font-black text-green-700 uppercase tracking-widest hover:underline">
-               Forgot?
-             </Link>
-           </div>
+          <div className="flex justify-between items-center px-1">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              Security Password
+
+            </label>
+            <Link href="/forgot-password" className="text-[10px] font-black text-green-700 uppercase tracking-widest hover:underline">
+              Forgot?
+            </Link>
+          </div>
           <div className="relative">
             <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
             <Input
-                {...register('password')}
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className={cn(
-                    "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 pr-12 font-bold text-sm transition-all font-mono tracking-widest",
-                    errors.password && "border-red-300 focus:border-red-300 ring-2 ring-red-50"
-                )}
+              {...register('password')}
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              className={cn(
+                "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 pr-12 font-bold text-sm transition-all font-mono tracking-widest",
+                errors.password && "border-red-300 focus:border-red-300 ring-2 ring-red-50"
+              )}
             />
             <button
               type="button"
@@ -157,10 +158,10 @@ export default function LoginForm() {
       {/* Footer */}
       <div className="pt-6 border-t border-gray-50 text-center">
         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            New vendor?{' '}
-            <Link href="/register" className="text-green-700 hover:underline ml-1">
-                 Create Merchant Account
-            </Link>
+          New vendor?{' '}
+          <Link href="/register" className="text-green-700 hover:underline ml-1">
+            Create Merchant Account
+          </Link>
         </p>
       </div>
     </div>

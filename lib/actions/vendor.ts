@@ -279,12 +279,14 @@ export async function seedInitialCatalog() {
 
   // 1. Categories
   const categories = [
-    { name: 'Rice & grains', icon: 'Wheat' },
+    { name: 'Rice and Grains', icon: 'Wheat' },
     { name: 'Meat',          icon: 'Beef' },
     { name: 'Seafood',       icon: 'Fish' },
     { name: 'Vegetables',    icon: 'Leaf' },
     { name: 'Fruits',        icon: 'Apple' },
-    { name: 'Dry goods',     icon: 'PackageIcon' },
+    { name: 'Dry Goods',     icon: 'PackageIcon' },
+    { name: 'Condiments',    icon: 'Droplets' },
+    { name: 'Others',        icon: 'MoreHorizontal' },
   ]
 
   const { data: catData, error: catError } = await supabase
