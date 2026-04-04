@@ -107,27 +107,27 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
         <Card className="rounded-[2.5rem] bg-white border-transparent shadow-2xl overflow-hidden p-8 sm:p-16 space-y-12">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12">
             <div className="space-y-6 flex-1">
-              <div className="inline-flex items-center gap-2 text-green-600 font-bold text-xs uppercase tracking-widest italic">
+              <div className="inline-flex items-center gap-2 text-green-600 font-bold text-xs uppercase tracking-widest">
                  <Store className="w-4 h-4" />
                  Market Details
               </div>
               
               <div className="space-y-4">
-                <h1 className="text-5xl font-black text-gray-900 uppercase tracking-tight italic sm:text-7xl">
+                <h1 className="text-5xl font-black text-gray-900 uppercase tracking-tight sm:text-7xl">
                   {market.name}
                 </h1>
                 
                 <div className="flex flex-wrap gap-4 items-center sm:gap-6">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-50 text-gray-400 font-bold uppercase tracking-widest text-[10px] italic">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-50 text-gray-400 font-bold uppercase tracking-widest text-[10px]">
                     <MapPin className="w-4 h-4 text-green-600" />
                     {market.barangay}, {market.address || 'Butuan City'}
                   </div>
                   <div className="flex items-center gap-4">
-                    <Badge className="bg-green-600/10 text-green-700 border-green-100 px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest italic flex items-center gap-1.5">
+                    <Badge className="bg-green-600/10 text-green-700 border-green-100 px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5">
                        <Users className="w-3 h-3" />
                        {vendorsCount} Vendors
                     </Badge>
-                    <Badge className="bg-green-600/10 text-green-700 border-green-100 px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest italic flex items-center gap-1.5">
+                    <Badge className="bg-green-600/10 text-green-700 border-green-100 px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest flex items-center gap-1.5">
                        <ShoppingBag className="w-3 h-3" />
                        {productsCount} Price Listings
                     </Badge>
@@ -136,8 +136,8 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
               </div>
 
               {market.description && (
-                <div className="p-10 rounded-[2rem] bg-gray-50 border border-gray-50 italic group group-hover:bg-white transition-all shadow-inner">
-                  <p className="text-lg text-gray-500 font-medium leading-relaxed italic text-justify">
+                <div className="p-10 rounded-[2rem] bg-gray-50 border border-gray-50 group group-hover:bg-white transition-all shadow-inner">
+                  <p className="text-lg text-gray-500 font-medium leading-relaxed text-justify">
                     &quot;{market.description}&quot;
                   </p>
                 </div>
@@ -146,7 +146,7 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
 
             <div className="flex flex-col sm:flex-row lg:flex-col gap-4 w-full lg:w-72 shrink-0">
                <Link href={`/compare?market=${market.id}`} className="w-full">
-                  <Button className="w-full h-16 rounded-2xl bg-gray-900 hover:bg-black text-white font-black uppercase text-xs tracking-widest italic transition-all shadow-xl flex items-center justify-center gap-3">
+                  <Button className="w-full h-16 rounded-2xl bg-gray-900 hover:bg-black text-white font-black uppercase text-xs tracking-widest transition-all shadow-xl flex items-center justify-center gap-3">
                     Compare prices
                     <History className="w-4 h-4" />
                   </Button>
@@ -154,40 +154,13 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
                <Link href="#supplies-section" className="w-full">
                  <Button 
                   variant="outline"
-                  className="w-full h-16 rounded-2xl border-2 border-gray-900 bg-white text-gray-900 hover:bg-gray-100 font-black uppercase text-xs tracking-widest italic transition-all shadow-xl flex items-center justify-center gap-3"
+                  className="w-full h-16 rounded-2xl border-2 border-gray-900 bg-white text-gray-900 hover:bg-gray-100 font-black uppercase text-xs tracking-widest transition-all shadow-xl flex items-center justify-center gap-3"
                  >
                    View supplies
                    <ArrowDown className="w-4 h-4 animate-bounce" />
                  </Button>
                </Link>
             </div>
-          </div>
-
-          {/* Vendors Section */}
-          <div className="pt-12 border-t border-gray-50">
-             <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest italic flex items-center gap-2">
-                   <Store className="w-4 h-4 text-green-600" />
-                   Registered Stalls
-                </h3>
-             </div>
-             {vendors.length === 0 ? (
-               <p className="text-xs text-gray-400 italic">No vendors registered in this market yet.</p>
-             ) : (
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 {vendors.map((v: any) => (
-                   <Link href={`/stalls/${v.id}`} key={v.id} className="block transition-transform hover:-translate-y-1">
-                     <div className="p-4 rounded-2xl bg-white shadow-sm border border-gray-100 hover:border-green-300 flex flex-col gap-2 transition-colors relative group h-full">
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm font-black text-gray-900 group-hover:text-green-700 transition-colors">{v.business_name}</span>
-                         {v.stall_number && <Badge variant="outline" className="text-[10px] uppercase font-bold text-gray-500 bg-gray-50">Stall {v.stall_number}</Badge>}
-                       </div>
-                       <div className="text-xs font-bold text-gray-500 flex items-center gap-1.5 mt-auto pt-2"><Users className="w-3 h-3 text-gray-400 group-hover:text-green-500 transition-colors"/> Owner: {v.owner_name || 'N/A'}</div>
-                     </div>
-                   </Link>
-                 ))}
-               </div>
-             )}
           </div>
 
           {/* Section Divider */}

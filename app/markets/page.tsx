@@ -31,18 +31,30 @@ export default async function MarketsPage() {
       image_url,
       is_active,
       vendors_count: vendors(count),
-      products_count: price_listings(count)
+      products_count: price_listings(count),
+      price_listings (
+        products (
+          name
+        )
+      )
     `)
     .eq('is_active', true)
     .order('name')
 
-  const markets = (marketsData || []).map((m: any) => ({
-    id: m.id,
-    name: m.name,
-    vendors_count: m.vendors_count?.[0]?.count || 0,
-    products_count: m.products_count?.[0]?.count || 0,
-    image_url: m.image_url,
-  }))
+  const markets = (marketsData || []).map((m: any) => {
+    const productNames = m.price_listings
+      ? Array.from(new Set(m.price_listings.map((l: any) => l.products?.name).filter(Boolean)))
+      : []
+    
+    return {
+      id: m.id,
+      name: m.name,
+      vendors_count: m.vendors_count?.[0]?.count || 0,
+      products_count: m.products_count?.[0]?.count || 0,
+      image_url: m.image_url,
+      product_names: productNames as string[],
+    }
+  })
 
   return (
     <div className="min-h-screen bg-[#f0f7f0]">
@@ -59,7 +71,7 @@ export default async function MarketsPage() {
             
             <h1 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight leading-none uppercase">
               <span className="block text-gray-900 font-sans">MARKETS IN</span>
-              <span className="block text-green-700 font-serif italic">BUTUAN CITY</span>
+              <span className="block text-green-700 font-sans">BUTUAN CITY</span>
             </h1>
 
             <div className="max-w-sm space-y-2">
@@ -75,7 +87,7 @@ export default async function MarketsPage() {
           {/* Right Column - Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:flex md:flex-row gap-4 h-fit">
             <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
-              <div className="text-4xl font-black text-green-700 font-serif">
+              <div className="text-4xl font-black text-green-700 font-sans">
                 {marketsCount || 0}
               </div>
               <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
@@ -84,7 +96,7 @@ export default async function MarketsPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
-              <div className="text-4xl font-black text-green-700 font-serif">
+              <div className="text-4xl font-black text-green-700 font-sans">
                 {vendorsCount || 0}
               </div>
               <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
@@ -93,7 +105,7 @@ export default async function MarketsPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
-              <div className="text-4xl font-black text-green-700 font-serif">
+              <div className="text-4xl font-black text-green-700 font-sans">
                 {productsCount || 0}
               </div>
               <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">

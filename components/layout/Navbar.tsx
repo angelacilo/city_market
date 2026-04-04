@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
+import { ThemeToggle } from './ThemeToggle'
 
 const navLinks = [
   { name: 'Market Prices', href: '/' },
@@ -34,10 +35,10 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 h-16 bg-[#f5faf5] border-none shadow-none">
+    <header className="sticky top-0 z-50 h-16 bg-[#f5faf5] dark:bg-[#0a140a]/90 backdrop-blur-md border-none shadow-none transition-colors">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-8">
         {/* Brand Name */}
-        <Link href="/" className="font-serif text-xl font-bold text-green-800">
+        <Link href="/" className="font-serif text-xl font-bold text-green-800 dark:text-green-500">
           Butuan City Market
         </Link>
 
@@ -68,13 +69,14 @@ export default function Navbar() {
             <Search className="absolute left-4 top-1/2 h-[14px] w-[14px] -translate-y-1/2 text-gray-500" />
             <Input
               type="text"
-              placeholder="Search markets..."
+              placeholder="Search products or markets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-48 rounded-full border border-gray-200 bg-white px-9 py-1.5 text-sm text-gray-700 placeholder:text-gray-500 focus-visible:ring-green-700"
+              className="w-48 rounded-full border border-gray-100 dark:border-green-900/30 bg-white dark:bg-[#1a2c1a] px-9 py-1.5 text-sm text-gray-700 dark:text-gray-200 placeholder:text-gray-500 focus-visible:ring-green-700"
             />
           </form>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button
               asChild
               className="rounded-full bg-green-700 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-green-800"
@@ -84,7 +86,7 @@ export default function Navbar() {
             <Button
               asChild
               variant="ghost"
-              className="rounded-full px-5 py-2 text-sm font-medium text-green-700 hover:text-green-800 hover:bg-green-50"
+              className="rounded-full px-5 py-2 text-sm font-medium text-green-700 hover:text-green-800 hover:bg-green-50 dark:hover:bg-green-900/10"
             >
               <Link href="/login">Login</Link>
             </Button>
@@ -108,7 +110,7 @@ export default function Navbar() {
                   <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                   <Input
                     type="text"
-                    placeholder="Search markets..."
+                    placeholder="Search products or markets..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full rounded-full border border-gray-200 bg-white px-10 py-2.5 text-sm"

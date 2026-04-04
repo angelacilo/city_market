@@ -4,12 +4,13 @@ import { useState, useMemo } from 'react'
 import MarketsFilterBar from './MarketsFilterBar'
 import MarketCard from './MarketCard'
 
-interface Market {
+  interface Market {
   id: string
   name: string
   vendors_count: number
   products_count: number
   image_url?: string | null
+  product_names?: string[]
 }
 
 interface MarketsPageClientProps {
@@ -21,8 +22,12 @@ export default function MarketsPageClient({ initialMarkets }: MarketsPageClientP
   const [category, setCategory] = useState('All')
 
   const filteredMarkets = useMemo(() => {
+    const term = search.toLowerCase().trim()
     return initialMarkets.filter((market) => {
-      const matchesSearch = market.name.toLowerCase().includes(search.toLowerCase())
+      const matchesSearch = 
+        market.name.toLowerCase().includes(term) ||
+        (market.product_names || []).some(pn => pn.toLowerCase().includes(term))
+      
       // Note: Real category filtering would requires market-category mapping.
       // For now, we perform search.
       return matchesSearch

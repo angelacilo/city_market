@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { MessageSquare, Phone, ArrowLeft, Check, User } from 'lucide-react'
 import { markInquiryRead } from '@/lib/actions/vendor'
 import { cn } from '@/lib/utils'
+import InquiryChat from '../shared/InquiryChat'
 
 interface Inquiry {
   id: string
@@ -187,42 +188,34 @@ export default function InquiriesManager({ inquiries: initialInquiries, marketNa
                 </div>
              </div>
 
-             {/* Message Body */}
-             <div className="flex-1 overflow-y-auto p-12 space-y-12 no-scrollbar">
-                <div className="flex flex-col gap-8 max-w-2xl">
-                    <div className="bg-[#f0f7f0] rounded-[2rem] rounded-tl-none p-10 relative">
-                        <p className="text-[13px] text-green-900 font-medium leading-relaxed">
-                            {selected.message}
+             {/* Message Body - Chat Interface */}
+             <div className="flex-1 overflow-hidden bg-gray-50/30">
+                <InquiryChat 
+                  inquiryId={selected.id}
+                  role="vendor"
+                  buyerName={selected.buyer_name}
+                  vendorName="You"
+                />
+             </div>
+
+             {/* Footer with product context */}
+             <div className="p-6 bg-white border-t border-gray-50 flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100">
+                        <MessageSquare className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Product</p>
+                        <p className="text-sm font-black text-gray-900 leading-none">
+                            {selected.price_listings?.products?.name ?? 'General'}
                         </p>
                     </div>
-
-                    <div className="flex items-center gap-4 border-t border-gray-50 pt-10">
-                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 italic font-serif font-black text-gray-400">
-                            P
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Inquiring About</p>
-                            <p className="text-sm font-black text-gray-900 leading-none">
-                                {selected.price_listings?.products?.name ?? '—'}
-                            </p>
-                        </div>
-                        <div className="ml-auto text-right">
-                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Your Price</p>
-                             <p className="text-sm font-black text-green-700 font-serif italic">
-                                ₱{Number(selected.price_listings?.price || 0).toFixed(2)}
-                             </p>
-                        </div>
-                    </div>
-                    
-                    <div className="bg-gray-50 rounded-[2rem] p-10">
-                        <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Contact Information</h5>
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-green-700 shadow-sm">
-                                <Phone className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-black text-gray-900 font-mono tracking-wider">{selected.buyer_contact}</span>
-                        </div>
-                    </div>
+                </div>
+                <div className="ml-auto text-right">
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Price</p>
+                     <p className="text-sm font-black text-green-700">
+                        ₱{Number(selected.price_listings?.price || 0).toFixed(2)}
+                     </p>
                 </div>
              </div>
           </div>

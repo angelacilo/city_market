@@ -221,12 +221,21 @@ function AvailabilityToggle({
 
 function EditListingDialog({
   listing,
+  categories,
   onUpdated,
 }: {
   listing: Listing
+  categories: { id: string; name: string; icon: string | null }[]
   onUpdated: (msg: string) => void
 }) {
   const [open, setOpen] = useState(false)
+  
+  // Product info
+  const [productName, setProductName] = useState(listing.products?.name || '')
+  const [categoryId, setCategoryId] = useState(listing.products?.category_id || '')
+  const [unit, setUnit] = useState(listing.products?.unit || 'kg')
+  
+  // Listing info
   const [price, setPrice] = useState(listing.price.toString())
   const [stockQuantity, setStockQuantity] = useState(listing.stock_quantity.toString())
   const [isAvailable, setIsAvailable] = useState(listing.is_available)
@@ -275,6 +284,11 @@ function EditListingDialog({
       price: parseFloat(price),
       is_available: isAvailable,
       stock_quantity: parseInt(stockQuantity) || 0,
+      product_id: listing.product_id,
+      name: productName.trim(),
+      category_id: categoryId,
+      unit: unit,
+      image_url: updatedImageUrl || undefined,
     })
     setIsSubmitting(false)
     if (result.success) {
@@ -296,8 +310,35 @@ function EditListingDialog({
           <div className="p-8 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-black text-gray-900 tracking-tight">Edit Product</h2>
-                <p className="text-xs text-gray-400 font-medium">Update listing details for {listing.products?.name}</p>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Edit Listing</h2>
+                <p className="text-xs text-gray-400 font-medium">Full update for your stall product</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Name</label>
+                <Input
+                  required
+                  value={productName}
+                  onChange={e => setProductName(e.target.value)}
+                  className="rounded-xl border-none bg-[#e9f0e9] focus:bg-[#e1eae1] h-12 px-5 font-bold text-sm text-gray-700 shadow-none ring-0 focus-visible:ring-0"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Category</label>
+                <select
+                  required
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full h-12 rounded-xl border-none bg-[#e9f0e9] focus:bg-[#e1eae1] px-5 font-bold text-sm text-gray-700 outline-none ring-0 focus-visible:ring-0 appearance-none cursor-pointer"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' viewBox='0 0 24 24' stroke='%231d631d' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center' }}
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -335,15 +376,22 @@ function EditListingDialog({
 
             <div className="grid grid-cols-2 gap-4">
                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price (₱)</label>
-                  <Input
-                    required
-                    type="number"
-                    step="0.01"
-                    value={price}
-                    onChange={e => setPrice(e.target.value)}
-                    className="rounded-xl border-none bg-[#e9f0e9] focus:bg-[#e1eae1] h-12 px-5 font-bold text-sm text-gray-700 shadow-none ring-0 focus-visible:ring-0"
-                  />
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price</label>
+                  <div className="flex items-center h-12 rounded-xl border-none bg-[#e9f0e9] focus:bg-[#e1eae1] overflow-hidden px-5">
+                    <span className="text-sm font-bold text-gray-400 mr-2">₱</span>
+                    <input
+                      required
+                      type="number"
+                      step="0.01"
+                      value={price}
+                      onChange={e => setPrice(e.target.value)}
+                      className="flex-1 bg-transparent border-none outline-none font-bold text-sm text-gray-700 min-w-[50px]"
+                    />
+                    <div className="flex items-center ml-2 border-l border-[#d1dbd1] pl-2 gap-1.5">
+                       <button type="button" onClick={() => setUnit('kg')} className={cn("text-[10px] font-black uppercase transition-all", unit === 'kg' ? "text-[#1d631d]" : "text-gray-400")}>kg</button>
+                       <button type="button" onClick={() => setUnit('unit')} className={cn("text-[10px] font-black uppercase transition-all", unit === 'unit' ? "text-[#1d631d]" : "text-gray-400")}>unit</button>
+                    </div>
+                  </div>
                </div>
                <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Stock</label>
@@ -437,7 +485,7 @@ function DeleteDialog({
       </button>
       <DialogContent className="max-w-sm rounded-[2rem] p-8" aria-describedby="delete-dialog-desc">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black italic text-gray-900 font-serif mb-2">Remove Listing?</DialogTitle>
+          <DialogTitle className="text-2xl font-black text-gray-900 mb-2">Remove Listing?</DialogTitle>
           <DialogDescription id="delete-dialog-desc" className="text-gray-500 text-sm leading-relaxed">
             This will permanently remove <span className="font-bold text-gray-700">{productName}</span> from your public stall.
           </DialogDescription>
@@ -545,6 +593,11 @@ function AddListingDialog({
       image_url: existingProduct ? undefined : uploadedImageUrl,
     } as any)
 
+    // If the product already exists but had no image, update it with the uploaded one
+    if (existingProduct && uploadedImageUrl && !existingProduct.image_url) {
+      await updateProductImage(existingProduct.id, uploadedImageUrl)
+    }
+
     setIsSubmitting(false)
 
     if (result?.error) {
@@ -571,23 +624,24 @@ function AddListingDialog({
       </Button>
 
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl" aria-describedby="add-listing-desc">
-        {/* Header - Hidden or integrated into the form for a cleaner look as per Image 1 */}
-        <div className="hidden">
-           <DialogTitle>Add Product</DialogTitle>
+      <DialogContent className="max-w-lg rounded-2xl p-0 overflow-hidden border border-gray-100 shadow-2xl" aria-describedby="add-listing-desc">
+        {/* Header with visible title */}
+        <div className="px-6 pt-6 pb-0">
+           <DialogTitle className="text-lg font-bold text-gray-900">Add New Product to Your Stall</DialogTitle>
+           <DialogDescription id="add-listing-desc" className="sr-only">Fill out the form below to add a new product listing.</DialogDescription>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white overflow-y-auto max-h-[90vh] no-scrollbar">
+        <form onSubmit={handleSubmit} className="bg-white overflow-y-auto max-h-[85vh]">
           {serverError && (
-            <div className="m-8 p-4 bg-red-50 text-red-600 font-bold text-xs rounded-2xl border border-red-100">
+            <div className="mx-6 mt-4 p-3 bg-red-50 text-red-600 font-semibold text-xs rounded-xl border border-red-100">
               {serverError}
             </div>
           )}
 
-          <div className="p-8 space-y-6">
-            {/* Product Image Section - Top Full Width */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Image</label>
+          <div className="px-6 py-5 space-y-5">
+            {/* Product Image Section */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block">Product Image</label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -598,79 +652,81 @@ function AddListingDialog({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-52 rounded-[1.5rem] border-2 border-dashed border-[#e6eee6] bg-[#f8faf8] flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#f0f7f0] transition-all group relative overflow-hidden"
+                className="w-full h-40 rounded-xl border-2 border-dashed border-green-200 bg-green-50/30 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-50 transition-all group relative overflow-hidden"
               >
                 {previewUrl && (
                   <Image src={previewUrl} alt="Preview" fill className="object-cover" />
                 )}
-                <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/30 inset-0 absolute backdrop-blur-[2px]")}>
-                  <div className={cn("w-14 h-14 rounded-full flex items-center justify-center mb-3 transition-all", previewUrl ? "bg-white/20" : "bg-[#ecf2ec]")}>
-                    <Camera className={cn("w-6 h-6", previewUrl ? "text-white" : "text-[#4a7c4a]")} />
+                <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/40 inset-0 absolute backdrop-blur-sm")}>
+                  <div className={cn("w-12 h-12 rounded-full flex items-center justify-center mb-2", previewUrl ? "bg-white/20" : "bg-green-100")}>
+                    <Camera className={cn("w-5 h-5", previewUrl ? "text-white" : "text-green-700")} />
                   </div>
-                  <p className={cn("text-sm font-bold", previewUrl ? "text-white" : "text-gray-900")}>
+                  <p className={cn("text-sm font-semibold", previewUrl ? "text-white" : "text-gray-700")}>
                     {file ? 'Change product photo' : 'Click to upload product photo'}
                   </p>
-                  <p className={cn("text-xs mt-1", previewUrl ? "text-gray-200" : "text-gray-400")}>PNG, JPG or WEBP (Max. 5MB)</p>
+                  <p className={cn("text-xs mt-0.5", previewUrl ? "text-gray-200" : "text-gray-400")}>PNG, JPG or WEBP (Max. 5MB)</p>
                 </div>
               </button>
             </div>
 
-            {/* Form Fields Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Product Name</label>
+            {/* 2-column: Product Name + Category */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block">Product Name</label>
                 <Input
                   required
                   value={productName}
                   onChange={e => setProductName(e.target.value)}
                   placeholder="e.g., Upland Rice"
-                  className="rounded-xl border-none bg-[#e9f0e9] focus:bg-[#e1eae1] h-12 px-5 font-bold text-sm text-gray-700 placeholder:text-gray-400 border-0 shadow-none ring-0 focus-visible:ring-0"
+                  className="rounded-lg border border-gray-200 bg-gray-50 h-11 px-4 font-medium text-sm text-gray-800 placeholder:text-gray-400 focus-visible:ring-green-600"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Category</label>
-                <div className="relative">
-                  <select
-                    required
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="h-12 w-full rounded-xl bg-[#e9f0e9] border-none focus:bg-[#e1eae1] text-sm font-bold px-5 pr-12 outline-none appearance-none transition-all text-gray-700"
-                  >
-                    <option value="" disabled>Select Category</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                  <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block">Category</label>
+                <select
+                  required
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full h-11 rounded-lg border border-gray-200 bg-gray-50 text-sm font-medium px-4 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-600 appearance-none cursor-pointer"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+                >
+                  <option value="" disabled>Select Category</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Price</label>
-                <div className="flex h-12 rounded-xl bg-[#e9f0e9] overflow-hidden">
-                  <div className="flex items-center px-4 font-bold text-gray-500 text-sm">₱</div>
+            {/* 2-column: Price + Stock Quantity */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block">Price</label>
+                <div className="flex items-center h-11 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
+                  <div className="flex items-center pl-3 pr-1 font-semibold text-gray-500 text-sm shrink-0">₱</div>
                   <input
                     required
                     type="number"
                     step="0.01"
+                    min="0.01"
                     value={price}
                     onChange={e => setPrice(e.target.value)}
                     placeholder="0.00"
-                    className="flex-1 bg-transparent border-none outline-none font-bold text-sm text-gray-700 min-w-0"
+                    className="flex-1 h-full bg-transparent border-none outline-none font-semibold text-sm text-gray-800 min-w-[50px] placeholder:text-gray-400"
                   />
-                  <div className="flex items-center p-1.5 gap-1">
+                  <div className="flex items-center pr-1 gap-0.5 shrink-0">
                      <button 
                        type="button"
                        onClick={() => setUnit('kg')}
-                       className={cn("px-3 h-full rounded-lg text-[10px] font-black uppercase transition-all", unit === 'kg' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:bg-white/50")}
+                       className={cn("px-2 py-1 rounded text-[10px] font-bold transition-all", unit === 'kg' ? "bg-white text-gray-900 shadow-sm border border-gray-200" : "text-gray-400 hover:text-gray-600")}
                      >
                        per kg
                      </button>
                      <button 
                        type="button"
                        onClick={() => setUnit('unit')}
-                       className={cn("px-3 h-full rounded-lg text-[10px] font-black uppercase transition-all", unit === 'unit' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:bg-white/50")}
+                       className={cn("px-2 py-1 rounded text-[10px] font-bold transition-all", unit === 'unit' ? "bg-white text-gray-900 shadow-sm border border-gray-200" : "text-gray-400 hover:text-gray-600")}
                      >
                        per unit
                      </button>
@@ -678,31 +734,31 @@ function AddListingDialog({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Stock Quantity</label>
-                <div className="relative flex items-center h-12 rounded-xl bg-[#e9f0e9] px-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block">Stock Quantity</label>
+                <div className="flex items-center h-11 rounded-lg border border-gray-200 bg-gray-50 px-4">
                   <input
                     required
                     type="number"
                     value={stockQuantity}
                     onChange={e => setStockQuantity(e.target.value)}
                     placeholder="e.g., 50"
-                    className="flex-1 bg-transparent border-none outline-none font-bold text-sm text-gray-700 placeholder:text-gray-400 min-w-0"
+                    className="flex-1 bg-transparent border-none outline-none font-medium text-sm text-gray-800 placeholder:text-gray-400 min-w-0"
                   />
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight ml-2">Available</span>
+                  <span className="text-xs font-semibold text-gray-400 ml-2">Available</span>
                 </div>
               </div>
             </div>
 
-            {/* Availability Section */}
-            <div className="flex items-center justify-between p-5 bg-[#f0f7f0] rounded-2xl border border-[#e1eae1]">
-               <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#e9f0e9] flex items-center justify-center shadow-sm">
-                    <Eye className="w-5 h-5 text-[#4a7c4a]" />
+            {/* Availability Toggle */}
+            <div className="flex items-center justify-between p-4 bg-green-50/60 rounded-xl border border-green-100">
+               <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-green-700" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900 leading-tight">Mark as Available</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Product will be visible to buyers immediately</p>
+                    <p className="text-sm font-semibold text-gray-900 leading-tight">Mark as Available</p>
+                    <p className="text-xs text-gray-500">Product will be visible to buyers immediately</p>
                   </div>
                </div>
                <button
@@ -710,7 +766,7 @@ function AddListingDialog({
                   onClick={() => setIsAvailable(!isAvailable)}
                   className={cn(
                     "relative w-12 h-6.5 rounded-full transition-colors",
-                    isAvailable ? 'bg-[#2d7a2d]' : 'bg-gray-300'
+                    isAvailable ? 'bg-green-600' : 'bg-gray-300'
                   )}
                >
                   <div className={cn("absolute top-1 left-1 bg-white w-4.5 h-4.5 rounded-full transition-transform shadow-sm", isAvailable && "translate-x-5.5")} />
@@ -719,18 +775,19 @@ function AddListingDialog({
           </div>
 
           {/* Footer Actions */}
-          <div className="p-8 pt-4 flex items-center justify-end gap-6 bg-[#f8faf8]">
-            <button 
-              type="button" 
+          <div className="px-6 py-4 flex items-center justify-end gap-4 border-t border-gray-100 bg-white">
+            <Button 
+              type="button"
+              variant="ghost"
               onClick={() => setOpen(false)} 
-              className="text-xs font-bold text-gray-500 hover:text-gray-700 transition-colors"
+              className="h-10 px-5 text-sm font-medium text-gray-500 hover:text-gray-700"
             >
               Cancel
-            </button>
+            </Button>
             <Button 
               type="submit" 
               disabled={isSubmitting} 
-              className="px-8 h-12 rounded-xl bg-[#1d631d] hover:bg-[#164d16] text-white font-bold text-sm shadow-lg shadow-[#1d631d]/20 transition-all"
+              className="h-10 px-6 rounded-lg bg-green-700 hover:bg-green-800 text-white font-semibold text-sm"
             >
               {isSubmitting ? 'Processing...' : 'List Product'}
             </Button>
@@ -873,7 +930,7 @@ export default function ProductsManager({ listings: initialListings, allProducts
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-20 text-sm text-gray-400 font-medium font-serif italic">
+                    <TableCell colSpan={6} className="text-center py-20 text-sm text-gray-400 font-medium font-sans uppercase tracking-widest">
                       No matching products in this category.
                     </TableCell>
                   </TableRow>
@@ -911,12 +968,9 @@ export default function ProductsManager({ listings: initialListings, allProducts
                         </div>
                       </TableCell>
                       <TableCell className="py-5">
-                        <InlinePriceEditor
-                          listingId={listing.id}
-                          initialPrice={listing.price}
-                          onSuccess={() => { showToast('Price updated!', 'success'); router.refresh() }}
-                          onError={(msg) => showToast(msg, 'error')}
-                        />
+                         <span className="font-bold text-green-700 font-sans">
+                           ₱{Number(listing.price).toFixed(2)}
+                         </span>
                       </TableCell>
                       <TableCell className="py-5">
                         <div className="flex flex-col">
@@ -942,6 +996,7 @@ export default function ProductsManager({ listings: initialListings, allProducts
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <EditListingDialog 
                             listing={listing} 
+                            categories={categories}
                             onUpdated={(msg) => { showToast(msg, 'success'); router.refresh() }} 
                           />
                           <DeleteDialog

@@ -138,11 +138,32 @@ export async function updateListing(
     price: number
     is_available: boolean
     stock_quantity: number
+    product_id: string
+    name?: string
+    category_id?: string
+    unit?: string
+    image_url?: string
   }
 ) {
   try {
     const supabase = await createClient()
     const now = new Date().toISOString()
+
+    // 1. Update master product info if provided
+    if (data.name || data.category_id || data.unit || data.image_url) {
+      const updateData: any = {}
+      if (data.name) updateData.name = data.name
+      if (data.category_id) updateData.category_id = data.category_id
+      if (data.unit) updateData.unit = data.unit
+      if (data.image_url) updateData.image_url = data.image_url
+
+      const { error: prodErr } = await supabase
+        .from('products')
+        .update(updateData)
+        .eq('id', data.product_id)
+
+      if (prodErr) return { error: `Failed to update product details: ${prodErr.message}` }
+    }
 
     const { data: currentListing } = await supabase
       .from('price_listings')
@@ -150,6 +171,7 @@ export async function updateListing(
       .eq('id', listingId)
       .single()
 
+    // 2. Update the listing itself
     const { error } = await supabase
       .from('price_listings')
       .update({
@@ -174,6 +196,7 @@ export async function updateListing(
     revalidatePath('/vendor/products')
     revalidatePath('/vendor/prices')
     revalidatePath('/vendor/dashboard')
+    revalidatePath('/stalls', 'layout') // Revalidate all stall pages
     return { success: true }
   } catch (e: any) {
     return { error: e.message || 'Failed to update listing.' }
@@ -238,6 +261,8 @@ export async function updateVendorProfile(
     owner_name?: string
     stall_number?: string
     contact_number?: string
+    opening_time?: string
+    closing_time?: string
   }
 ) {
   const supabase = await createClient()
@@ -249,6 +274,8 @@ export async function updateVendorProfile(
       owner_name: data.owner_name || null,
       stall_number: data.stall_number || null,
       contact_number: data.contact_number || null,
+      opening_time: data.opening_time || null,
+      closing_time: data.closing_time || null,
     })
     .eq('id', vendorId)
 
@@ -256,6 +283,9 @@ export async function updateVendorProfile(
 
   revalidatePath('/vendor/profile')
   revalidatePath('/vendor/dashboard')
+  revalidatePath(`/stalls/${vendorId}`)
+  revalidatePath('/stalls', 'layout')
+  revalidatePath('/markets', 'layout')
   return { success: true }
 }
 

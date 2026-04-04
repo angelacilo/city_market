@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -15,7 +16,9 @@ import {
   Loader2,
   SendHorizontal,
   Check,
+  MessageCircle,
 } from 'lucide-react'
+import InquiryChat from '../shared/InquiryChat'
 
 // ── Schema ────────────────────────────────────────────────────────────
 
@@ -64,7 +67,7 @@ export default function InquiryForm({
   onSuccess,
 }: InquiryFormProps) {
   const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [inquiryId, setInquiryId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   const {
@@ -97,14 +100,14 @@ export default function InquiryForm({
     setSubmitting(true)
 
     const supabase = createClient()
-    const { error: supabaseError } = await supabase.from('inquiries').insert({
+    const { data: insertData, error: supabaseError } = await supabase.from('inquiries').insert({
       vendor_id: vendorId,
       listing_id: listingId,
       buyer_name: data.buyerName.trim(),
       buyer_contact: data.buyerContact.trim(),
       message: data.message.trim(),
       is_read: false,
-    })
+    }).select('id').single()
 
     setSubmitting(false)
 
@@ -113,54 +116,44 @@ export default function InquiryForm({
       return
     }
 
-    recordInquirySent()
-    setSubmitted(true)
-    onSuccess?.()
+    if (insertData && insertData.id) {
+       setInquiryId(insertData.id)
+       recordInquirySent()
+    } else {
+       setError('Failed to establish connection. Please try again.')
+    }
   }
 
-  // ── Success view ─────────────────────────────────────────────────
-  if (submitted) {
+  // ── Success/Chat view ─────────────────────────────────────────────
+  if (inquiryId) {
     const contact = getValues('buyerContact')
-    const tips = [
-      'The vendor typically responds within a few hours.',
-      'Make sure your phone is on and accepting calls or messages.',
-      'You can also visit the vendor directly at their stall.',
-    ]
-
+    const name = getValues('buyerName')
+    
     return (
-      <div className="flex flex-col items-center text-center py-2 space-y-4">
-        {/* Animated checkmark */}
-        <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center animate-pulse">
-          <Check className="w-8 h-8 text-white" strokeWidth={3} />
+      <div className="flex flex-col h-full -mx-6 -mb-6">
+        <div className="px-6 py-4 bg-green-50 border-b border-green-100 flex items-center justify-between">
+           <div>
+              <p className="text-[10px] font-black text-green-700 uppercase tracking-widest leading-none">Status</p>
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight mt-1">Inquiry Sent & Connected</h3>
+           </div>
+           <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-[9px] font-black text-green-700 uppercase tracking-widest">Real-time</span>
+           </div>
+        </div>
+        
+        <div className="flex-1 overflow-hidden">
+           <InquiryChat 
+             inquiryId={inquiryId} 
+             role="buyer" 
+             buyerName={name}
+             vendorName={vendorName}
+           />
         </div>
 
-        <h3 className="text-lg font-black text-gray-900">Inquiry sent!</h3>
-
-        <p className="text-sm text-gray-500 leading-relaxed max-w-xs">
-          Your message has been sent to{' '}
-          <span className="font-bold text-gray-700">{vendorName}</span> at{' '}
-          <span className="font-bold text-gray-700">{marketName}</span>. They will
-          contact you at{' '}
-          <span className="font-bold text-green-700">{contact}</span> as soon as
-          possible.
-        </p>
-
-        {/* Tips box */}
-        <div className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 text-left space-y-2">
-          {tips.map((tip, i) => (
-            <div key={i} className="flex items-start gap-2.5">
-              <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-gray-500 leading-relaxed">{tip}</p>
-            </div>
-          ))}
+        <div className="p-4 bg-gray-50 border-t border-gray-100 italic text-[9px] text-gray-400 font-bold text-center">
+           Vendors may also contact you via phone: {contact}
         </div>
-
-        <Button
-          onClick={() => onSuccess?.()}
-          className="w-full h-11 bg-green-600 hover:bg-green-700 text-white font-black text-sm"
-        >
-          Done
-        </Button>
       </div>
     )
   }
@@ -169,104 +162,103 @@ export default function InquiryForm({
   return (
     <div>
       {/* Product context strip */}
-      <div className="bg-green-50 rounded-xl p-3 mb-4">
-        <div className="flex items-start justify-between gap-2 flex-wrap">
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+      <div className="bg-[#f0f9f4] rounded-2xl p-6 mb-6 border border-[#e1eae1]">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-[10px] font-black text-[#1d631d] uppercase tracking-widest opacity-60">
               You are inquiring about:
             </p>
-            <p className="text-sm font-black text-green-700 leading-tight">{productName}</p>
+            <p className="text-xl font-black text-[#1d631d] leading-none mb-2">{productName}</p>
+            <div className="flex flex-wrap gap-4 pt-1">
+              <span className="flex items-center gap-1.5 text-[11px] text-gray-500 font-bold">
+                <Store className="w-3.5 h-3.5 text-[#1d631d] opacity-50" />
+                {vendorName}
+              </span>
+              <span className="flex items-center gap-1.5 text-[11px] text-gray-500 font-bold">
+                <MapPin className="w-3.5 h-3.5 text-[#1d631d] opacity-50" />
+                {marketName}
+              </span>
+            </div>
           </div>
-          <p className="text-sm font-black text-gray-900 text-right">
-            ₱{price.toFixed(2)}{' '}
-            <span className="text-xs font-medium text-gray-400">per {unit}</span>
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3 mt-2">
-          <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
-            <Store className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-            {vendorName}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
-            <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-            {marketName}
-          </span>
+          <div className="text-right shrink-0">
+             <div className="text-xl font-black text-gray-900 leading-none">
+               ₱{price.toFixed(2)}
+             </div>
+             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">per {unit}</p>
+          </div>
         </div>
       </div>
 
-      <Separator className="mb-4" />
-
-      {/* Error banner */}
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-xs font-bold text-red-600 leading-relaxed">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Buyer name */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">
-            Your name <span className="text-red-500">*</span>
+        <div className="space-y-2">
+          <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
+            Your Name <span className="text-red-500">*</span>
           </label>
           <Input
             {...register('buyerName')}
             placeholder="e.g. Juan dela Cruz"
-            className={`h-11 text-sm ${errors.buyerName ? 'border-red-400 focus-visible:border-red-400' : ''}`}
+            className={cn("h-12 text-sm rounded-xl border-gray-100 bg-gray-50/50 px-5 font-bold focus:bg-white transition-all", errors.buyerName && "border-red-400 focus-visible:border-red-400")}
           />
           {errors.buyerName && (
-            <p className="text-xs text-red-500">{errors.buyerName.message}</p>
+            <p className="text-[10px] text-red-500 font-bold ml-1">{errors.buyerName.message}</p>
           )}
         </div>
 
         {/* Mobile number */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">
-            Mobile number <span className="text-red-500">*</span>
+        <div className="space-y-2">
+          <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
+            Mobile Number <span className="text-red-500">*</span>
           </label>
-          <p className="text-[10px] text-gray-400 -mt-0.5">Vendors will use this to contact you back.</p>
+          <p className="text-[9px] text-gray-400 font-bold -mt-0.5 ml-1">Vendors will use this to contact you back.</p>
           <Input
             {...register('buyerContact')}
             type="tel"
             placeholder="e.g. 09171234567"
             maxLength={12}
-            className={`h-11 text-sm ${errors.buyerContact ? 'border-red-400 focus-visible:border-red-400' : ''}`}
+            className={cn("h-12 text-sm rounded-xl border-gray-100 bg-gray-50/50 px-5 font-bold focus:bg-white transition-all", errors.buyerContact && "border-red-400 focus-visible:border-red-400")}
           />
           {errors.buyerContact && (
-            <p className="text-xs text-red-500">{errors.buyerContact.message}</p>
+            <p className="text-[10px] text-red-500 font-bold ml-1">{errors.buyerContact.message}</p>
           )}
         </div>
 
         {/* Message */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-600 uppercase tracking-widest">
-            Your message <span className="text-red-500">*</span>
+        <div className="space-y-2">
+          <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
+            Your Message <span className="text-red-500">*</span>
           </label>
           <textarea
             {...register('message')}
             rows={4}
             maxLength={500}
             placeholder={`e.g. Magkano ang ${productName} ngayon? Available pa ba? Kailan kayo bukas?`}
-            className={`w-full min-h-[100px] rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y ${errors.message ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
+            className={cn("w-full min-h-[120px] rounded-2xl border border-gray-100 bg-gray-50/50 px-5 py-4 text-sm font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1d631d]/20 transition-all resize-none", errors.message && "border-red-400 focus:ring-red-400")}
           />
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 px-1">
             {errors.message ? (
-              <p className="text-xs text-red-500 flex-1">{errors.message.message}</p>
+              <p className="text-[10px] text-red-500 font-bold">{errors.message.message}</p>
             ) : (
               <span />
             )}
-            <p className={`text-xs flex-shrink-0 ${charCount >= 480 ? 'text-amber-500 font-bold' : 'text-gray-400'}`}>
+            <p className={cn("text-[10px] font-black tracking-widest", charCount >= 480 ? 'text-amber-500' : 'text-gray-300')}>
               {charCount} / 500
             </p>
           </div>
         </div>
 
         {/* Buttons */}
-        <div className="flex flex-col xs:flex-row gap-3 pt-1">
+        <div className="flex flex-col sm:flex-row gap-4 pt-2">
           <Button
             type="button"
             variant="outline"
-            className="flex-1 h-11"
+            className="flex-1 h-12 rounded-full font-black uppercase text-xs tracking-widest border-gray-200"
             onClick={() => onSuccess?.()}
           >
             Cancel
@@ -274,19 +266,14 @@ export default function InquiryForm({
           <Button
             type="submit"
             disabled={submitting || !isValid}
-            className="flex-1 h-12 bg-[#76c893] hover:bg-[#52b69a] text-white font-black gap-2 disabled:opacity-50 rounded-xl"
+            className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-black uppercase text-xs tracking-widest gap-2 disabled:opacity-50 rounded-full shadow-lg shadow-green-700/10"
           >
             {submitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Sending...
-              </>
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <>
-                <SendHorizontal className="w-4 h-4" />
-                Send inquiry
-              </>
+              <SendHorizontal className="w-4 h-4" />
             )}
+            Send inquiry
           </Button>
         </div>
       </form>

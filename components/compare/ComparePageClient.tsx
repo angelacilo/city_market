@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ComparisonListing, ProductWithCategory } from '@/lib/queries/compare'
@@ -9,24 +9,18 @@ import PriceTrendChart from '@/components/compare/PriceTrendChart'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
 import { Separator } from '@/components/ui/separator'
 
 import {
   Loader2,
-  BarChart2,
   PackageOpen,
-  TrendingDown,
-  TrendingUp,
   Store,
-  List,
-  Table2,
-  LayoutGrid,
   Sparkles,
-  DoorOpen,
   CheckCircle2,
+  Search,
+  X,
+  MapPin,
+  Check,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -39,8 +33,6 @@ interface ComparePageClientProps {
   initialListings: ComparisonListing[]
   initialProductId?: string | null
 }
-
-type ViewMode = 'table' | 'card'
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                              */
@@ -60,6 +52,173 @@ function groupByCategory(products: ProductWithCategory[]): Record<string, Produc
 }
 
 
+/* ------------------------------------------------------------------ */
+/* Product Search Bar Component                                         */
+/* ------------------------------------------------------------------ */
+
+function ProductSearchBar({
+  products,
+  productGroups,
+  sortedCategories,
+  selectedProductId,
+  onSelect,
+  onClear,
+  loading,
+}: {
+  products: ProductWithCategory[]
+  productGroups: Record<string, ProductWithCategory[]>
+  sortedCategories: string[]
+  selectedProductId: string | null
+  onSelect: (id: string) => void
+  onClear: () => void
+  loading: boolean
+}) {
+  const [query, setQuery] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const selectedProduct = selectedProductId
+    ? products.find((p) => p.id === selectedProductId)
+    : null
+
+  // Filter products by search query
+  const filteredGroups = useMemo(() => {
+    if (!query.trim()) return productGroups
+    const q = query.toLowerCase()
+    const result: Record<string, ProductWithCategory[]> = {}
+    for (const cat of sortedCategories) {
+      const filtered = (productGroups[cat] || []).filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          cat.toLowerCase().includes(q)
+      )
+      if (filtered.length > 0) result[cat] = filtered
+    }
+    return result
+  }, [query, productGroups, sortedCategories])
+
+  const filteredCategories = Object.keys(filteredGroups).sort()
+  const totalResults = Object.values(filteredGroups).reduce((s, arr) => s + arr.length, 0)
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  function handleSelect(id: string) {
+    onSelect(id)
+    setQuery('')
+    setIsOpen(false)
+  }
+
+  function handleClear() {
+    onClear()
+    setQuery('')
+    setIsOpen(false)
+  }
+
+  return (
+    <div ref={containerRef} className="relative flex-1">
+      {/* If a product is selected, show it as a chip */}
+      {selectedProduct && !isOpen ? (
+        <div className="flex items-center h-12 rounded-xl border border-green-300 bg-green-50 px-4 gap-2">
+          <Search className="w-4 h-4 text-green-600 flex-shrink-0" />
+          <span className="text-sm font-semibold text-green-800 truncate flex-1">
+            {selectedProduct.name}
+            <span className="text-green-600/60 font-normal ml-1">({selectedProduct.unit})</span>
+          </span>
+          {loading ? (
+            <Loader2 className="w-4 h-4 text-green-600 animate-spin flex-shrink-0" />
+          ) : (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="flex-shrink-0 w-5 h-5 rounded-full bg-green-200 hover:bg-green-300 flex items-center justify-center transition-colors"
+              aria-label="Clear selection"
+            >
+              <X className="w-3 h-3 text-green-800" />
+            </button>
+          )}
+        </div>
+      ) : (
+        /* Search input */
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setIsOpen(true)
+            }}
+            onFocus={() => setIsOpen(true)}
+            placeholder="Search for a product (e.g., Apple, Rice)"
+            className="w-full h-12 pl-11 pr-10 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => { setQuery(''); inputRef.current?.focus() }}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+            >
+              <X className="w-3 h-3 text-gray-500" />
+            </button>
+          )}
+          {loading && (
+            <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600 animate-spin" />
+          )}
+        </div>
+      )}
+
+      {/* Dropdown results */}
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-xl z-50 max-h-72 overflow-y-auto">
+          {totalResults === 0 ? (
+            <div className="px-4 py-6 text-center">
+              <PackageOpen className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-gray-500">No products found</p>
+              <p className="text-xs text-gray-400 mt-1">Try a different search term</p>
+            </div>
+          ) : (
+            filteredCategories.map((cat) => (
+              <div key={cat}>
+                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-gray-50 sticky top-0 border-b border-gray-100">
+                  {cat}
+                </div>
+                {filteredGroups[cat].map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handleSelect(p.id)}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-green-50 transition-colors flex items-center gap-2 ${
+                      p.id === selectedProductId
+                        ? 'bg-green-50 text-green-800 font-bold'
+                        : 'text-gray-700 font-medium'
+                    }`}
+                  >
+                    <span className="flex-1">{p.name}</span>
+                    <span className="text-xs text-gray-400">({p.unit})</span>
+                    {p.id === selectedProductId && (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /* Main Component                                                        */
@@ -80,8 +239,7 @@ export default function ComparePageClient({
   const [listings, setListings] = useState<ComparisonListing[]>(initialListings)
   const [loading, setLoading] = useState(false)
   const [activeMarketFilter, setActiveMarketFilter] = useState<string>('all')
-  const [activeAvailability, setActiveAvailability] = useState<string>('all')
-  const [viewMode, setViewMode] = useState<ViewMode>('table')
+  const [inStockOnly, setInStockOnly] = useState(true)
 
   /* ---- Fetch listings when product changes ---- */
   const fetchListings = useCallback(async (productId: string) => {
@@ -107,7 +265,6 @@ export default function ComparePageClient({
       setListings([])
       return
     }
-    // Skip initial fetch if we already have initial listings for this product
     if (initialListings.length > 0 && selectedProductId === initialProductId) {
       return
     }
@@ -118,7 +275,7 @@ export default function ComparePageClient({
   function handleProductSelect(productId: string) {
     setSelectedProductId(productId)
     setActiveMarketFilter('all')
-    setActiveAvailability('all')
+    setInStockOnly(true)
     router.push(`/compare?product=${productId}`, { scroll: false } as any)
   }
 
@@ -126,12 +283,12 @@ export default function ComparePageClient({
     setSelectedProductId(null)
     setListings([])
     setActiveMarketFilter('all')
-    setActiveAvailability('all')
+    setInStockOnly(true)
     router.push('/compare', { scroll: false } as any)
   }
 
-  /* ---- Derive unique markets from listings ---- */
-  const uniqueMarkets = useMemo(() => {
+  /* ---- Derive unique markets from ALL listings (not filtered) ---- */
+  const allMarkets = useMemo(() => {
     const names = new Set(listings.map((l) => l.markets?.name).filter(Boolean) as string[])
     return Array.from(names).sort()
   }, [listings])
@@ -140,12 +297,12 @@ export default function ComparePageClient({
   const filteredListings = useMemo(() => {
     return listings.filter((l) => {
       if (activeMarketFilter !== 'all' && l.markets?.name !== activeMarketFilter) return false
-      if (activeAvailability === 'available' && !l.is_available) return false
+      if (inStockOnly && !l.is_available) return false
       return true
     })
-  }, [listings, activeMarketFilter, activeAvailability])
+  }, [listings, activeMarketFilter, inStockOnly])
 
-  /* ---- Compute summary stats from filtered listings ---- */
+  /* ---- Compute summary stats ---- */
   const stats = useMemo(() => {
     if (filteredListings.length === 0) return null
     const prices = filteredListings.map((l) => l.price)
@@ -157,124 +314,91 @@ export default function ComparePageClient({
     }
   }, [filteredListings])
 
-  /* ---- Identify best / worst rows ---- */
   const lowestPrice = stats?.lowestPrice ?? null
-  const highestPrice = stats?.highestPrice ?? null
 
   /* ---- Product groups ---- */
   const productGroups = useMemo(() => groupByCategory(initialProducts), [initialProducts])
   const sortedCategories = Object.keys(productGroups).sort()
 
-  /* ---- Popular quick-select products ---- */
-  const quickSelectNames = ['Rice', 'Pork', 'Chicken', 'Bangus', 'Tilapia', 'Onion', 'Garlic', 'Eggs']
-
-  function handleQuickSelect(name: string) {
-    const found = initialProducts.find(
-      (p) => p.name.toLowerCase() === name.toLowerCase()
-    )
-    if (found) handleProductSelect(found.id)
-  }
-
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-8">
+    <div className="min-h-screen bg-[#fafcfa] pb-20 md:pb-8">
       {/* ============================================================ */}
-      {/* Zone 1: Product Selector Panel                               */}
+      {/* Hero Header                                                    */}
       {/* ============================================================ */}
-      <div className="bg-white border-b border-gray-100 shadow-sm sticky top-14 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-            {/* Label */}
-            <div className="flex-shrink-0">
-              <p className="text-sm font-black text-gray-900 uppercase tracking-widest">
-                Select a product to compare
-              </p>
-              <p className="text-xs text-gray-400 font-medium mt-0.5">
-                See prices from all vendors across every Butuan market.
-              </p>
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 pb-8">
+          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-2">
+            Compare Prices Across<br />Markets
+          </h1>
+          <p className="text-gray-500 text-sm font-medium max-w-lg">
+            Find the best deals on fresh produce and essential goods in Butuan City.
+          </p>
+        </div>
+
+        {/* Search Controls Bar */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-8">
+          <div className="flex flex-col sm:flex-row items-stretch gap-3">
+            {/* Product Search */}
+            <div className="flex-1">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">
+                Product Search
+              </label>
+              <ProductSearchBar
+                products={initialProducts}
+                productGroups={productGroups}
+                sortedCategories={sortedCategories}
+                selectedProductId={selectedProductId}
+                onSelect={handleProductSelect}
+                onClear={handleClearProduct}
+                loading={loading}
+              />
             </div>
 
-            {/* Controls */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 lg:justify-end">
-              {/* Product selector */}
-              <div className="relative flex items-center gap-2 flex-1 sm:max-w-xs">
-                <Select
-                  value={selectedProductId ?? ''}
-                  onValueChange={handleProductSelect}
-                >
-                  <SelectTrigger
-                    id="product-selector"
-                    className="h-11 flex-1 font-semibold border-gray-200 focus:ring-green-500 min-w-0"
-                  >
-                    <SelectValue placeholder="Choose a product..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-72">
-                    {sortedCategories.map((cat) => (
-                      <div key={cat}>
-                        <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 sticky top-0">
-                          {cat}
-                        </div>
-                        {productGroups[cat].map((p) => (
-                          <SelectItem key={p.id} value={p.id} className="pl-5">
-                            {p.name}{' '}
-                            <span className="text-gray-400 text-xs">({p.unit})</span>
-                          </SelectItem>
-                        ))}
-                      </div>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {loading && (
-                  <Loader2 className="w-4 h-4 text-green-600 animate-spin flex-shrink-0" />
-                )}
-              </div>
-
-              {/* Market filter */}
-              <Select
-                value={activeMarketFilter}
-                onValueChange={setActiveMarketFilter}
-              >
-                <SelectTrigger
-                  id="market-filter"
-                  className="h-11 min-w-[160px] font-semibold border-gray-200 focus:ring-green-500"
-                >
-                  <Store className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-                  <SelectValue placeholder="All markets" />
+            {/* Location dropdown */}
+            <div className="sm:w-44">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">
+                Location
+              </label>
+              <Select value={activeMarketFilter} onValueChange={setActiveMarketFilter}>
+                <SelectTrigger className="h-12 rounded-xl border-gray-200 font-medium text-sm">
+                  <SelectValue placeholder="All Markets" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All markets</SelectItem>
-                  {uniqueMarkets.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
+                  <SelectItem value="all">All Markets</SelectItem>
+                  {allMarkets.map((m) => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
 
-              {/* Availability pills */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveAvailability('available')}
-                  className={`h-11 px-4 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${
-                    activeAvailability === 'available'
-                      ? 'bg-green-600 text-white border-green-600'
-                      : 'bg-white text-gray-500 border-gray-200 hover:border-green-300 hover:text-green-700'
+            {/* In Stock + Compare btn */}
+            <div className="flex items-end gap-3">
+              <label className="flex items-center gap-2 h-12 px-3 cursor-pointer select-none">
+                <div
+                  onClick={() => setInStockOnly(!inStockOnly)}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all cursor-pointer ${
+                    inStockOnly
+                      ? 'bg-green-700 border-green-700'
+                      : 'bg-white border-gray-300'
                   }`}
                 >
-                  In stock only
-                </button>
-                <button
-                  onClick={() => setActiveAvailability('all')}
-                  className={`h-11 px-4 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${
-                    activeAvailability === 'all'
-                      ? 'bg-green-600 text-white border-green-600'
-                      : 'bg-white text-gray-500 border-gray-200 hover:border-green-300 hover:text-green-700'
-                  }`}
-                >
-                  Show all
-                </button>
-              </div>
+                  {inStockOnly && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                </div>
+                <span className="text-xs font-semibold text-gray-600 whitespace-nowrap leading-none">
+                  In<br />Stock<br />Only
+                </span>
+              </label>
+              <Button
+                className="h-12 px-6 rounded-xl bg-green-700 hover:bg-green-800 text-white font-bold text-sm uppercase tracking-wide"
+                onClick={() => {
+                  if (selectedProductId) fetchListings(selectedProductId)
+                }}
+              >
+                Compare
+              </Button>
             </div>
           </div>
         </div>
@@ -283,91 +407,46 @@ export default function ComparePageClient({
       {/* ============================================================ */}
       {/* Main Content Area                                             */}
       {/* ============================================================ */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
 
         {/* ============================================================ */}
         {/* Empty State — No product selected                            */}
         {/* ============================================================ */}
         {!selectedProductId && !loading && (
           <div className="flex flex-col items-center justify-center text-center py-20 px-4">
-            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6 border-2 border-dashed border-green-200">
-              <BarChart2 className="w-10 h-10 text-green-600" />
+            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-5 border border-green-100">
+              <Search className="w-7 h-7 text-green-600" />
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-3 uppercase tracking-tight">
-              Compare prices across Butuan markets
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              Search for a product to compare prices
             </h2>
-            <p className="text-gray-500 max-w-lg mx-auto font-medium leading-relaxed mb-6 text-sm">
-              Select any product from the dropdown above to instantly see which market offers the
-              best price today. All prices are updated by vendors in real time so you always see
-              accurate information before you go shopping.
+            <p className="text-gray-400 max-w-md mx-auto text-sm font-medium leading-relaxed">
+              Use the search bar above to find any product and instantly see pricing across all Butuan markets.
             </p>
-
-            {/* Feature pills */}
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
-              {['Live vendor prices', 'All 6 Butuan markets', 'Free to use'].map((feat) => (
-                <Badge
-                  key={feat}
-                  variant="outline"
-                  className="text-green-700 border-green-300 font-bold px-3 py-1"
-                >
-                  {feat}
-                </Badge>
-              ))}
-            </div>
-
-            {/* Quick-select buttons */}
-            <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-              {quickSelectNames.map((name) => (
-                <Button
-                  key={name}
-                  variant="outline"
-                  className="h-11 px-5 text-sm font-bold hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition-all"
-                  onClick={() => handleQuickSelect(name)}
-                >
-                  {name}
-                </Button>
-              ))}
-            </div>
           </div>
         )}
 
-        {/* ============================================================ */}
-        {/* Loading skeleton while fetching                               */}
-        {/* ============================================================ */}
+        {/* Loading */}
         {loading && (
-          <div className="space-y-4 animate-pulse">
-            <div className="h-20 bg-green-50 rounded-2xl border border-green-100" />
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-gray-50">
-                  <div className="h-4 bg-gray-100 rounded w-6" />
-                  <div className="h-4 bg-gray-100 rounded w-32" />
-                  <div className="h-4 bg-gray-100 rounded w-28" />
-                  <div className="h-4 bg-gray-100 rounded w-16" />
-                  <div className="h-4 bg-gray-100 rounded w-16 ml-auto" />
-                </div>
-              ))}
-            </div>
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-green-600 animate-spin mb-4" />
+            <p className="text-sm font-medium text-gray-500">Looking up prices across all markets…</p>
           </div>
         )}
 
-        {/* ============================================================ */}
-        {/* Results: has product but zero listings                        */}
-        {/* ============================================================ */}
+        {/* No listings found */}
         {selectedProductId && !loading && listings.length === 0 && (
           <div className="flex flex-col items-center justify-center text-center py-20">
-            <PackageOpen className="w-16 h-16 text-gray-300 mb-6" />
-            <h2 className="text-xl font-black text-gray-900 mb-3 uppercase tracking-tight">
+            <PackageOpen className="w-14 h-14 text-gray-300 mb-5" />
+            <h2 className="text-lg font-bold text-gray-900 mb-2">
               No listings found for this product
             </h2>
-            <p className="text-gray-400 max-w-md mx-auto text-sm font-medium leading-relaxed mb-8">
-              None of the vendors in Butuan City markets are currently listing this product. Try
-              selecting a different product or check back later as vendors update their listings
-              regularly.
+            <p className="text-gray-400 max-w-md mx-auto text-sm font-medium leading-relaxed mb-6">
+              None of the vendors are currently listing this product. Try a different one.
             </p>
             <Button
               variant="outline"
-              className="h-11 px-6 font-black uppercase text-xs tracking-widest border-gray-200 hover:border-green-300 hover:text-green-700 transition-all"
+              className="h-10 px-5 font-semibold text-sm border-gray-200 hover:border-green-300 hover:text-green-700"
               onClick={handleClearProduct}
             >
               Clear selection
@@ -376,362 +455,125 @@ export default function ComparePageClient({
         )}
 
         {/* ============================================================ */}
-        {/* Results: has listings                                          */}
+        {/* Results                                                       */}
         {/* ============================================================ */}
         {selectedProductId && !loading && listings.length > 0 && (
           <>
-            {/* ========================================================= */}
-            {/* Zone 2: Summary strip                                       */}
-            {/* ========================================================= */}
+            {/* Summary strip */}
             {stats && (
-              <div className="bg-green-50 border border-green-100 rounded-2xl p-4 mb-6">
-                <div className="flex flex-wrap items-center gap-3 mb-3">
-                  {/* Chip: total listings */}
-                  <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-green-100 shadow-sm">
-                    <List className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs font-black text-gray-700">
-                      {stats.totalListings} listing{stats.totalListings !== 1 && 's'}
-                    </span>
-                  </div>
-
-                  {/* Chip: markets */}
-                  <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-green-100 shadow-sm">
-                    <Store className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-xs font-black text-gray-700">
-                      {stats.uniqueMarkets} market{stats.uniqueMarkets !== 1 && 's'}
-                    </span>
-                  </div>
-
-                  {/* Chip: best price */}
-                  <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-green-100 shadow-sm">
-                    <TrendingDown className="w-3.5 h-3.5 text-green-600" />
-                    <span className="text-xs font-black text-green-700">
-                      Best price: {formatPeso(stats.lowestPrice)}
-                    </span>
-                  </div>
-
-                  {/* Chip: most expensive */}
-                  <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-green-100 shadow-sm">
-                    <TrendingUp className="w-3.5 h-3.5 text-red-500" />
-                    <span className="text-xs font-black text-red-600">
-                      Most expensive: {formatPeso(stats.highestPrice)}
-                    </span>
-                  </div>
-
-                  {/* View toggle */}
-                  <div className="flex items-center gap-1 ml-auto bg-white rounded-xl border border-green-100 p-1 shadow-sm">
-                    <button
-                      onClick={() => setViewMode('table')}
-                      aria-label="Table view"
-                      className={`h-8 w-8 rounded-lg flex items-center justify-center transition-all ${
-                        viewMode === 'table'
-                          ? 'bg-green-600 text-white shadow-sm'
-                          : 'text-gray-400 hover:text-green-600'
-                      }`}
-                    >
-                      <Table2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('card')}
-                      aria-label="Card view"
-                      className={`h-8 w-8 rounded-lg flex items-center justify-center transition-all ${
-                        viewMode === 'card'
-                          ? 'bg-green-600 text-white shadow-sm'
-                          : 'text-gray-400 hover:text-green-600'
-                      }`}
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                    </button>
-                  </div>
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-2 text-xs font-bold text-gray-500 uppercase tracking-wider mb-6 pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Results:</span>
+                  <span className="text-gray-900">{stats.totalListings} Listings</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Coverage:</span>
+                  <span className="text-gray-900">{stats.uniqueMarkets} Markets</span>
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <span className="text-gray-400">Best Price:</span>
+                  <Badge className="bg-green-700 text-white font-bold text-xs px-2.5 py-0.5 rounded-md">
+                    {formatPeso(stats.lowestPrice)}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Most Expensive:</span>
+                  <Badge variant="outline" className="text-gray-600 border-gray-300 font-bold text-xs px-2.5 py-0.5 rounded-md">
+                    {formatPeso(stats.highestPrice)}
+                  </Badge>
                 </div>
               </div>
             )}
 
-            {/* Filtered empty state */}
+            {/* Filtered empty */}
             {filteredListings.length === 0 && (
-              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                <PackageOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm font-bold text-gray-500">
-                  No listings match your filters.
-                </p>
+              <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+                <PackageOpen className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm font-semibold text-gray-500">No listings match your filters.</p>
                 <Button
                   variant="ghost"
-                  className="mt-3 text-green-600 text-xs font-black uppercase tracking-widest h-9"
-                  onClick={() => {
-                    setActiveMarketFilter('all')
-                    setActiveAvailability('all')
-                  }}
+                  className="mt-3 text-green-600 text-xs font-bold uppercase h-9"
+                  onClick={() => { setActiveMarketFilter('all'); setInStockOnly(false) }}
                 >
                   Reset filters
                 </Button>
               </div>
             )}
 
-            {/* ========================================================= */}
-            {/* Zone 3a: Table view                                         */}
-            {/* ========================================================= */}
-            {viewMode === 'table' && filteredListings.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50 hover:bg-gray-50">
-                        <TableHead className="w-12 font-black text-gray-500 text-xs uppercase tracking-widest">
-                          #
-                        </TableHead>
-                        <TableHead className="hidden md:table-cell font-black text-gray-500 text-xs uppercase tracking-widest">
-                          Market
-                        </TableHead>
-                        <TableHead className="hidden md:table-cell font-black text-gray-500 text-xs uppercase tracking-widest">
-                          Vendor
-                        </TableHead>
-                        <TableHead className="font-black text-gray-500 text-xs uppercase tracking-widest">
-                          Price
-                        </TableHead>
-                        <TableHead className="font-black text-gray-500 text-xs uppercase tracking-widest">
-                          Stock
-                        </TableHead>
-                        <TableHead className="font-black text-gray-500 text-xs uppercase tracking-widest text-right">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredListings.map((listing, idx) => {
-                        const isBest = listing.price === lowestPrice
-                        const isWorst = listing.price === highestPrice && filteredListings.length > 1
-
-                        return (
-                          <TableRow
-                            key={listing.id}
-                            className={
-                              isBest
-                                ? 'bg-green-50/60 hover:bg-green-50'
-                                : isWorst
-                                ? 'bg-red-50/40 hover:bg-red-50/60'
-                                : 'hover:bg-gray-50'
-                            }
-                          >
-                            {/* Rank */}
-                            <TableCell className="font-black text-gray-400 text-sm w-12">
-                              {idx + 1}
-                            </TableCell>
-
-                            {/* Market — desktop only */}
-                            <TableCell className="hidden md:table-cell">
-                              <p className="font-bold text-sm text-gray-900">
-                                {listing.markets?.name ?? '—'}
-                              </p>
-                              <p className="text-xs text-gray-400 font-medium">
-                                {listing.markets?.barangay ?? ''}
-                              </p>
-                            </TableCell>
-
-                            {/* Vendor — desktop only */}
-                            <TableCell className="hidden md:table-cell">
-                              <p className="font-bold text-sm text-gray-900">
-                                {listing.vendors?.business_name ?? '—'}
-                              </p>
-                              <p className="text-xs text-gray-400 font-medium">
-                                {listing.vendors?.stall_number
-                                  ? `Stall ${listing.vendors.stall_number}`
-                                  : ''}
-                              </p>
-                            </TableCell>
-
-                            {/* Price (mobile includes market+vendor info) */}
-                            <TableCell>
-                              <p className="text-lg font-black text-gray-900">
-                                {formatPeso(listing.price)}
-                              </p>
-                              <p className="text-xs text-gray-400 font-medium">
-                                per {listing.products?.unit ?? 'unit'}
-                              </p>
-                              {/* Mobile-only location info */}
-                              <div className="md:hidden mt-1">
-                                <p className="text-xs font-bold text-gray-700">
-                                  {listing.markets?.name}
-                                </p>
-                                <p className="text-xs text-gray-400">
-                                  {listing.vendors?.business_name}
-                                  {listing.vendors?.stall_number
-                                    ? ` · Stall ${listing.vendors.stall_number}`
-                                    : ''}
-                                </p>
-                              </div>
-                              {/* Badges */}
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {isBest && (
-                                  <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0.5 font-black uppercase tracking-wide flex items-center gap-1">
-                                    <Sparkles className="w-2.5 h-2.5" />
-                                    Best deal
-                                  </Badge>
-                                )}
-                                {isWorst && (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-red-500 border-red-300 text-[10px] px-1.5 py-0.5 font-black uppercase tracking-wide"
-                                  >
-                                    Most expensive
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-
-                            {/* Availability */}
-                            <TableCell>
-                              {listing.is_available ? (
-                                <Badge className="bg-green-600 text-white font-bold text-[10px] uppercase tracking-wide">
-                                  In stock
-                                </Badge>
-                              ) : (
-                                <Badge
-                                  variant="outline"
-                                  className="text-red-500 border-red-300 font-bold text-[10px] uppercase tracking-wide"
-                                >
-                                  Out of stock
-                                </Badge>
-                              )}
-                            </TableCell>
-
-                            {/* Actions */}
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Button
-                                  asChild
-                                  size="sm"
-                                  className="h-11 bg-green-600 hover:bg-green-700 text-white text-xs font-bold"
-                                >
-                                  <Link href={`/markets/${listing.market_id}`}>
-                                    Go to market
-                                  </Link>
-                                </Button>
-                                <InquiryTrigger
-                                  vendorId={listing.vendor_id}
-                                  listingId={listing.id}
-                                  productName={listing.products?.name ?? ''}
-                                  vendorName={listing.vendors?.business_name ?? ''}
-                                  marketName={listing.markets?.name ?? ''}
-                                  price={listing.price}
-                                  unit={listing.products?.unit ?? 'unit'}
-                                  triggerLabel="Ask vendor"
-                                  triggerVariant="outline"
-                                  triggerSize="sm"
-                                />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            )}
-
-            {/* ========================================================= */}
-            {/* Zone 3b: Card grid view                                     */}
-            {/* ========================================================= */}
-            {viewMode === 'card' && filteredListings.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Cards */}
+            {filteredListings.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {filteredListings.map((listing) => {
                   const isBest = listing.price === lowestPrice
-                  const isWorst = listing.price === highestPrice && filteredListings.length > 1
-
                   return (
                     <div
                       key={listing.id}
-                      className={`relative bg-white rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${
+                      className={`relative bg-white rounded-2xl overflow-hidden transition-all hover:shadow-md ${
                         isBest
-                          ? 'border-2 border-green-500'
-                          : isWorst
-                          ? 'border border-red-300'
-                          : 'border border-gray-100'
+                          ? 'border-2 border-green-600 shadow-sm'
+                          : 'border border-gray-100 shadow-sm'
                       }`}
                     >
-                      {/* Best deal ribbon */}
-                      {isBest && (
-                        <div
-                          className="absolute top-3 right-[-22px] rotate-45 bg-green-600 text-white text-[9px] font-black uppercase tracking-widest px-8 py-0.5 z-10 shadow"
-                        >
-                          Best
-                        </div>
-                      )}
-
-                      <div className="p-5">
-                        {/* Market */}
-                        <div className="mb-3">
-                          <p className="font-black text-sm text-gray-900 uppercase tracking-tight">
-                            {listing.markets?.name ?? '—'}
-                          </p>
-                          <p className="text-xs text-gray-400 font-medium mt-0.5">
-                            {listing.markets?.barangay ?? ''}
-                          </p>
-                        </div>
-
-                        {/* Price — hero element */}
-                        <p className={`text-3xl font-extrabold ${isBest ? 'text-green-700' : 'text-gray-900'}`}>
-                          {formatPeso(listing.price)}
-                        </p>
-                        <p className="text-xs text-gray-400 font-medium mt-0.5 mb-4">
-                          per {listing.products?.unit ?? 'unit'}
-                        </p>
-
-                        {/* Badges for best / worst */}
-                        <div className="flex gap-1 mb-4">
-                          {isBest && (
-                            <Badge className="bg-green-600 text-white text-[10px] px-2 py-0.5 font-black uppercase tracking-wide flex items-center gap-1">
-                              <Sparkles className="w-2.5 h-2.5" />
-                              Best deal
-                            </Badge>
-                          )}
-                          {isWorst && (
-                            <Badge
-                              variant="outline"
-                              className="text-red-500 border-red-300 text-[10px] px-2 py-0.5 font-black uppercase tracking-wide"
-                            >
-                              Most expensive
-                            </Badge>
-                          )}
+                      <div className="p-6">
+                        {/* Market name + price */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="text-base font-black text-gray-900 uppercase tracking-tight">
+                              {listing.markets?.name ?? '—'}
+                            </h3>
+                            <p className="text-xs text-gray-400 font-medium flex items-center gap-1 mt-0.5">
+                              <MapPin className="w-3 h-3" />
+                              {listing.markets?.barangay ? `Brgy. ${listing.markets.barangay}` : 'Butuan City'}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            {isBest && (
+                              <Badge className="bg-green-600 text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wide mb-1">
+                                Best Deal
+                              </Badge>
+                            )}
+                            <p className={`text-2xl font-black tracking-tight ${isBest ? 'text-green-700' : 'text-gray-900'}`}>
+                              {formatPeso(listing.price)}
+                            </p>
+                            <p className="text-xs text-gray-400 font-medium uppercase">
+                              per {listing.products?.unit ?? 'unit'}
+                            </p>
+                          </div>
                         </div>
 
                         {/* Vendor info */}
-                        <p className="font-bold text-sm text-gray-800">
-                          {listing.vendors?.business_name ?? '—'}
-                        </p>
-                        {listing.vendors?.stall_number && (
-                          <p className="text-xs text-gray-400 font-medium flex items-center gap-1 mt-0.5 mb-3">
-                            <DoorOpen className="w-3 h-3" />
-                            Stall {listing.vendors.stall_number}
-                          </p>
-                        )}
+                        <div className="flex items-center gap-2 mb-3">
+                          <Store className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-sm font-semibold text-gray-700">
+                            {listing.vendors?.business_name ?? '—'}
+                          </span>
+                          {listing.vendors?.stall_number && (
+                            <>
+                              <span className="text-gray-300">|</span>
+                              <span className="text-xs text-gray-400 font-medium">
+                                Stall {listing.vendors.stall_number}
+                              </span>
+                            </>
+                          )}
+                        </div>
 
                         {/* Availability */}
-                        {listing.is_available ? (
-                          <Badge className="bg-green-600 text-white font-bold text-[10px] uppercase tracking-wide flex items-center gap-1 w-fit mb-4">
-                            <CheckCircle2 className="w-3 h-3" />
-                            In stock
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="text-red-500 border-red-300 font-bold text-[10px] uppercase tracking-wide w-fit mb-4"
-                          >
-                            Out of stock
-                          </Badge>
+                        {listing.is_available && (
+                          <div className="flex items-center gap-1.5 mb-4">
+                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                            <span className="text-xs font-semibold text-green-700 uppercase">In Stock</span>
+                          </div>
                         )}
-
-                        <Separator className="mb-4" />
 
                         {/* Action buttons */}
                         <div className="flex items-center gap-2">
                           <Button
                             asChild
                             size="sm"
-                            className="h-11 flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold"
+                            className="h-10 flex-1 bg-green-700 hover:bg-green-800 text-white text-xs font-bold uppercase tracking-wide rounded-lg"
                           >
                             <Link href={`/markets/${listing.market_id}`}>
-                              Go to market
+                              Go to Market
                             </Link>
                           </Button>
                           <InquiryTrigger
@@ -742,7 +584,7 @@ export default function ComparePageClient({
                             marketName={listing.markets?.name ?? ''}
                             price={listing.price}
                             unit={listing.products?.unit ?? 'unit'}
-                            triggerLabel="Ask vendor"
+                            triggerLabel="Ask Vendor"
                             triggerVariant="outline"
                             triggerSize="sm"
                           />
@@ -754,9 +596,7 @@ export default function ComparePageClient({
               </div>
             )}
 
-            {/* ========================================================= */}
-            {/* Zone 4: Price Trend Chart                                   */}
-            {/* ========================================================= */}
+            {/* Price Trend Chart */}
             {selectedProductId && (
               <PriceTrendChart productId={selectedProductId} />
             )}

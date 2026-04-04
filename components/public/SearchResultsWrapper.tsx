@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import SearchFilters, { FilterState } from './SearchFilters'
 import SearchResultsGrid from './SearchResultsGrid'
 
@@ -52,7 +52,7 @@ export default function SearchResultsWrapper({
 
   const [filteredListings, setFilteredListings] = useState<SearchListing[]>(initialListings)
 
-  const handleFilterChange = (newFilters: FilterState) => {
+  const handleFilterChange = useCallback((newFilters: FilterState) => {
     setFilters(newFilters)
 
     let results = [...initialListings]
@@ -82,7 +82,7 @@ export default function SearchResultsWrapper({
     }
 
     setFilteredListings(results)
-  }
+  }, [initialListings])
 
   // Calculate dynamic stats for the summary strip
   const currentLowestPrice = filteredListings.length > 0

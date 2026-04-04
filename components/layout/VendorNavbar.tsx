@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Store, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { ThemeToggle } from './ThemeToggle'
 
 const vendorLinks = [
   { name: 'Overview', href: '/vendor/dashboard' },
@@ -58,6 +59,7 @@ export default function VendorNavbar({ businessName }: VendorNavbarProps) {
 
         {/* Vendor Info and Sign Out */}
         <div className="hidden items-center gap-6 md:flex">
+          <ThemeToggle />
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Store className="h-4 w-4 text-green-700" />
             {businessName}

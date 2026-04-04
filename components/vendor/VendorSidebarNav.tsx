@@ -43,7 +43,6 @@ interface Props {
 const mainNavItems = [
   { name: 'Overview', href: '/vendor/dashboard', icon: LayoutDashboard },
   { name: 'My Products', href: '/vendor/products', icon: Package },
-  { name: 'Update Prices', href: '/vendor/prices', icon: Tag },
   { name: 'Inquiries', href: '/vendor/inquiries', icon: MessageSquare },
 ]
 const accountNavItems = [

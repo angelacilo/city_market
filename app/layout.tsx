@@ -24,22 +24,26 @@ export const metadata: Metadata = {
     "Browse all Public Markets in Butuan City, search for products, compare prices, and connect with vendors online.",
 };
 
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white text-gray-900 font-sans`}
+        className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white dark:bg-[#0a140a] text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300`}
       >
-        <ConditionalNavbar />
-        <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
-          {children}
-        </main>
-        <BottomNav />
-        <Footer />
+        <ThemeProvider>
+          <ConditionalNavbar />
+          <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
+            {children}
+          </main>
+          <BottomNav />
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

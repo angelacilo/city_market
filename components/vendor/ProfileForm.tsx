@@ -21,6 +21,8 @@ const profileSchema = z.object({
     .string()
     .regex(/^09\d{9}$/, 'Must be a valid Philippine mobile number (e.g. 09123456789)')
     .or(z.literal('')),
+  opening_time: z.string().optional().or(z.literal('')),
+  closing_time: z.string().optional().or(z.literal('')),
 })
 
 type ProfileFormValues = z.infer<typeof profileSchema>
@@ -32,6 +34,8 @@ interface Props {
     owner_name: string
     stall_number: string
     contact_number: string
+    opening_time: string
+    closing_time: string
   }
   marketName: string
 }
@@ -144,6 +148,25 @@ export default function ProfileForm({ vendorId, initialData, marketName }: Props
                     />
                 </div>
                 {errors.contact_number && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.contact_number.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Opening Time</label>
+                    <Input
+                      {...register('opening_time')}
+                      type="time"
+                      className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm"
+                    />
+                 </div>
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Closing Time</label>
+                    <Input
+                      {...register('closing_time')}
+                      type="time"
+                      className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-5 font-bold text-sm"
+                    />
+                 </div>
               </div>
 
               {/* Immutable Market Info */}

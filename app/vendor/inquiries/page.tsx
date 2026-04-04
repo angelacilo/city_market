@@ -28,7 +28,7 @@ export default async function VendorInquiriesPage() {
       )
     `)
     .eq('vendor_id', vendor.id)
-    .order('created_at', { ascending: false })
+    .order('last_message_at', { ascending: false })
 
   const unreadCount = inquiries?.filter(i => !i.is_read).length || 0
 

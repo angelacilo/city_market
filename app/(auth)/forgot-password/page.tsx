@@ -1,10 +1,11 @@
-import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm'
+import ForgotPasswordFlow from '@/components/auth/ForgotPasswordFlow'
 
 export const metadata = {
-  title: 'Forgot Password — Butuan Market IS',
-  description: 'Reset your vendor account password.',
+  title: 'Reset Password - Butuan Market IS',
+  description:
+    'Verify your identity with a code sent to your email to reset your vendor account password.',
 }
 
 export default function ForgotPasswordPage() {
-  return <ForgotPasswordForm />
+  return <ForgotPasswordFlow />
 }

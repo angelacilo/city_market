@@ -11,7 +11,7 @@ export default async function VendorProfilePage() {
 
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('id, business_name, owner_name, stall_number, contact_number, markets(name)')
+    .select('id, business_name, owner_name, stall_number, contact_number, opening_time, closing_time, markets(name)')
     .eq('user_id', user.id)
     .single()
 
@@ -38,6 +38,8 @@ export default async function VendorProfilePage() {
           owner_name: vendor.owner_name ?? '',
           stall_number: vendor.stall_number ?? '',
           contact_number: vendor.contact_number ?? '',
+          opening_time: vendor.opening_time ?? '',
+          closing_time: vendor.closing_time ?? '',
         }}
         marketName={(vendor.markets as any)?.name ?? '—'}
       />
