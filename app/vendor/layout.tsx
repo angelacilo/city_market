@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Clock, Home, CheckCircle } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import VendorNavbar from '@/components/layout/VendorNavbar'
@@ -67,7 +67,7 @@ export default async function VendorLayout({ children }: { children: React.React
             <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mb-6">
               <Clock className="w-12 h-12 text-amber-600" />
             </div>
-            <h1 className="text-3xl font-black italic text-amber-600 font-serif mb-4">
+            <h1 className="text-3xl font-black text-amber-600 font-serif mb-4">
               Pending Approval
             </h1>
             <p className="text-sm text-gray-500 leading-relaxed mb-8">

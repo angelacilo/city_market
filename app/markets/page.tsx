@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import MarketsPageClient from '@/components/public/MarketsPageClient'
 
 export const metadata: Metadata = {
-  title: 'Public Markets | BCMIS',
+  title: 'Public Markets | Butuan City Market',
   description: 'Browse all public markets in Butuan City and their available supplies.',
 }
 

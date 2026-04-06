@@ -1,4 +1,4 @@
-export const metadata = { title: 'Logistics | BCMIS' }
+export const metadata = { title: 'Logistics | Butuan City Market' }
 
 export default function LogisticsPage() {
   return (

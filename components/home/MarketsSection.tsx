@@ -41,7 +41,7 @@ export default function MarketsSection({
         <div className="text-center">
           <h2 className="text-gray-900">
             <span className="block text-3xl font-normal font-sans">Explore Local</span>
-            <span className="block text-3xl font-bold italic font-serif">Markets</span>
+            <span className="block text-3xl font-bold font-serif">Markets</span>
           </h2>
           <p className="mt-3 text-sm text-gray-500 max-w-xl mx-auto">
             Compare prices and availability across Butuan&apos;s major public and commercial trading hubs.

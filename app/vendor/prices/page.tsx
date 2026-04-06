@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PricesManager from '@/components/vendor/PricesManager'
 
-export const metadata = { title: 'Update Prices — Vendor Dashboard | BCMIS' }
+export const metadata = { title: 'Update Prices — Vendor Dashboard | Butuan City Market' }
 
 export default async function VendorPricesPage() {
   const supabase = await createClient()
@@ -29,7 +29,7 @@ export default async function VendorPricesPage() {
         <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
           Update
         </span>
-        <h1 className="text-4xl font-black italic text-green-700 font-serif leading-none">
+        <h1 className="text-4xl font-black text-green-700 font-serif leading-none">
           Prices
         </h1>
         <p className="text-sm text-gray-400 mt-2 font-medium">

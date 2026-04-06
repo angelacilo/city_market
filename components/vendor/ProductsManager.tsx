@@ -129,7 +129,7 @@ function InlinePriceEditor({
     return (
       <button
         onClick={() => setEditing(true)}
-        className="group flex items-center gap-1.5 text-sm font-bold text-green-700 hover:text-green-800 transition-all font-serif italic"
+        className="group flex items-center gap-1.5 text-sm font-bold text-green-700 hover:text-green-800 transition-all font-serif"
       >
         ₱{Number(initialPrice).toFixed(2)}
         <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" />
@@ -886,7 +886,7 @@ export default function ProductsManager({ listings: initialListings, allProducts
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
               <Package className="w-10 h-10 text-gray-200" />
             </div>
-            <h3 className="text-xl font-black italic text-gray-900 font-serif mb-2">Inventory is Empty</h3>
+            <h3 className="text-xl font-black text-gray-900 font-serif mb-2">Inventory is Empty</h3>
             <p className="text-sm text-gray-400 max-w-xs mb-10 leading-relaxed font-medium">Add your first product listing to start selling to the Butuan community.</p>
 
             <div className="flex flex-col gap-4">

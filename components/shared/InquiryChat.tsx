@@ -1,97 +1,142 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Send, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { sendMessage } from '@/lib/actions/messenger'
 
 interface Message {
   id: string
-  inquiry_id: string
-  sender_role: 'buyer' | 'vendor'
+  conversation_id?: string
+  inquiry_id?: string
+  sender_type?: 'buyer' | 'vendor' // New
+  sender_role?: 'buyer' | 'vendor' // Old
   content: string
   created_at: string
 }
 
 interface InquiryChatProps {
-  inquiryId: string
+  conversationId?: string
+  inquiryId?: string
   role: 'buyer' | 'vendor'
   buyerName?: string
   vendorName?: string
 }
 
-export default function InquiryChat({ inquiryId, role, buyerName = 'Buyer', vendorName = 'Vendor' }: InquiryChatProps) {
+export default function InquiryChat({ 
+  conversationId, 
+  inquiryId, 
+  role, 
+  buyerName = 'Buyer', 
+  vendorName = 'Vendor' 
+}: InquiryChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     async function fetchMessages() {
-      // First, get the initial message from the inquiry table
-      const { data: inquiryData } = await supabase
-        .from('inquiries')
-        .select('message, created_at')
-        .eq('id', inquiryId)
-        .single()
-
-      // Then get follow-up messages
-      const { data: threadData, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('inquiry_id', inquiryId)
-        .order('created_at', { ascending: true })
-
-      let allMessages: Message[] = []
+      setLoading(true)
       
-      if (inquiryData) {
-        allMessages.push({
-          id: 'initial',
-          inquiry_id: inquiryId,
-          sender_role: 'buyer',
-          content: inquiryData.message,
-          created_at: inquiryData.created_at
-        })
-      }
+      if (conversationId) {
+        // NEW SYSTEM
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('conversation_id', conversationId)
+          .order('created_at', { ascending: true })
 
-      if (!error && threadData) {
-        allMessages = [...allMessages, ...threadData]
+        if (!error && data) {
+          setMessages(data)
+        }
+      } else if (inquiryId) {
+        // OLD SYSTEM (Backward Compatibility)
+        const { data: inquiryData } = await supabase
+          .from('inquiries')
+          .select('message, created_at')
+          .eq('id', inquiryId)
+          .single()
+
+        const { data: threadData, error } = await supabase
+          .from('inquiry_messages')
+          .select('*')
+          .eq('inquiry_id', inquiryId)
+          .order('created_at', { ascending: true })
+
+        let allMessages: Message[] = []
+        if (inquiryData) {
+          allMessages.push({
+            id: 'initial',
+            inquiry_id: inquiryId,
+            sender_role: 'buyer',
+            content: inquiryData.message,
+            created_at: inquiryData.created_at
+          })
+        }
+        if (!error && threadData) {
+          allMessages = [...allMessages, ...threadData]
+        }
+        setMessages(allMessages)
       }
-      
-      setMessages(allMessages)
       setLoading(false)
     }
 
     fetchMessages()
 
-    const channel = supabase
-      .channel(`inquiry:${inquiryId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `inquiry_id=eq.${inquiryId}`,
-        },
-        (payload) => {
-          const newMsg = payload.new as Message
-          setMessages((prev) => {
-            if (prev.find((m) => m.id === newMsg.id)) return prev
-            return [...prev, newMsg]
-          })
-        }
-      )
-      .subscribe()
+    // Real-time subscription
+    let channel: any
+    if (conversationId) {
+      channel = supabase
+        .channel(`chat:${conversationId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            const newMsg = payload.new as Message
+            setMessages((prev) => {
+              if (prev.find((m) => m.id === newMsg.id)) return prev
+              return [...prev, newMsg]
+            })
+          }
+        )
+        .subscribe()
+    } else if (inquiryId) {
+      channel = supabase
+        .channel(`inquiry:${inquiryId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'inquiry_messages',
+            filter: `inquiry_id=eq.${inquiryId}`,
+          },
+          (payload) => {
+            const newMsg = payload.new as Message
+            setMessages((prev) => {
+              if (prev.find((m) => m.id === newMsg.id)) return prev
+              return [...prev, newMsg]
+            })
+          }
+        )
+        .subscribe()
+    }
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) supabase.removeChannel(channel)
     }
-  }, [inquiryId])
+  }, [conversationId, inquiryId, supabase])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -104,15 +149,29 @@ export default function InquiryChat({ inquiryId, role, buyerName = 'Buyer', vend
     if (!newMessage.trim() || sending) return
 
     setSending(true)
-    const { error } = await supabase.from('messages').insert({
-      inquiry_id: inquiryId,
-      sender_role: role,
-      content: newMessage.trim(),
-    })
-
-    if (!error) {
-      setNewMessage('')
+    
+    if (conversationId) {
+      // Use Server Action for tracking and updating conversation meta
+      const result = await sendMessage({
+        conversationId,
+        senderType: role,
+        content: newMessage.trim()
+      })
+      if (!result.error) {
+        setNewMessage('')
+      }
+    } else if (inquiryId) {
+      // Old direct insert
+      const { error } = await supabase.from('inquiry_messages').insert({
+        inquiry_id: inquiryId,
+        sender_role: role,
+        content: newMessage.trim(),
+      })
+      if (!error) {
+        setNewMessage('')
+      }
     }
+    
     setSending(false)
   }
 
@@ -131,27 +190,32 @@ export default function InquiryChat({ inquiryId, role, buyerName = 'Buyer', vend
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar min-h-[350px]"
       >
-        {messages.map((m) => (
-          <div 
-            key={m.id}
-            className={cn(
-              "flex flex-col max-w-[85%] transition-all",
-              m.sender_role === role ? "ml-auto items-end" : "items-start"
-            )}
-          >
-            <div className={cn(
-              "px-5 py-3 rounded-2xl text-sm font-medium leading-relaxed shadow-sm",
-              m.sender_role === role 
-                ? "bg-[#1d631d] text-white rounded-tr-none" 
-                : "bg-gray-100 text-gray-800 rounded-tl-none border border-gray-50"
-            )}>
-              {m.content}
+        {messages.map((m) => {
+          const isMe = (m.sender_type || m.sender_role) === role
+          const senderName = (m.sender_type || m.sender_role) === 'vendor' ? vendorName : buyerName
+
+          return (
+            <div 
+              key={m.id}
+              className={cn(
+                "flex flex-col max-w-[85%] transition-all",
+                isMe ? "ml-auto items-end" : "items-start"
+              )}
+            >
+              <div className={cn(
+                "px-5 py-3 rounded-2xl text-sm font-medium leading-relaxed shadow-sm",
+                isMe 
+                  ? "bg-[#1d631d] text-white rounded-tr-none" 
+                  : "bg-gray-100 text-gray-800 rounded-tl-none border border-gray-50"
+              )}>
+                {m.content}
+              </div>
+              <span className="text-[9px] font-black text-gray-400 mt-1 uppercase tracking-widest pl-1 pr-1">
+                {senderName} • {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </div>
-            <span className="text-[9px] font-black text-gray-400 mt-1 uppercase tracking-widest pl-1 pr-1">
-              {m.sender_role === 'vendor' ? vendorName : buyerName} • {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Input area */}

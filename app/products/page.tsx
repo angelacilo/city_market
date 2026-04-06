@@ -92,11 +92,11 @@ export default async function ProductsPage({
             >
               <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-colors" />
             </Link>
-            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight italic">
+            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
               {categoryName ?? 'All Products'}
             </h1>
           </div>
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest italic text-right pl-4">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest text-right pl-4">
             {typedListings.length} listings
             {marketCount > 0 ? ` across ${marketCount} markets` : ''}
           </span>
@@ -117,10 +117,10 @@ export default async function ProductsPage({
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
             <ChevronLeft className="w-10 h-10 text-gray-400" />
           </div>
-          <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight italic">
+          <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">
             No {categoryName?.toLowerCase() || ''} products available
           </h2>
-          <p className="text-gray-500 text-sm font-medium italic">
+          <p className="text-gray-500 text-sm font-medium">
             None of the vendors are currently listing products in this category. Check back later.
           </p>
           <div className="flex flex-wrap justify-center gap-2">
@@ -128,7 +128,7 @@ export default async function ProductsPage({
               <Link key={slug} href={`/products?category=${slug}`}>
                 <Badge
                   variant="outline"
-                  className={`px-4 py-1.5 rounded-full font-bold uppercase text-[10px] tracking-widest italic cursor-pointer transition-colors ${
+                  className={`px-4 py-1.5 rounded-full font-bold uppercase text-[10px] tracking-widest cursor-pointer transition-colors ${
                     slug === category
                       ? 'bg-green-600 text-white border-green-600'
                       : 'border-green-200 text-green-700 bg-green-50/50 hover:bg-green-600 hover:text-white'

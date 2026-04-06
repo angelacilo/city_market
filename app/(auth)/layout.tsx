@@ -28,13 +28,13 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
             <ShoppingBasket className="w-7 h-7 text-white" />
           </div>
           <div>
-            <p className="text-gray-900 font-serif italic font-black text-2xl leading-none">BCMIS</p>
+            <p className="text-gray-900 font-serif font-black text-2xl leading-none">Butuan City Market</p>
             <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-1">Vendor Portal</p>
           </div>
         </div>
 
         {/* Headline */}
-        <h1 className="text-5xl font-black text-gray-900 leading-[1.1] mb-6 font-serif italic">
+        <h1 className="text-5xl font-black text-gray-900 leading-[1.1] mb-6 font-serif">
           Empowering Butuan&apos;s <span className="text-green-700 underline decoration-green-100 underline-offset-8">Local Markets.</span>
         </h1>
 

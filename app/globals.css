@@ -131,9 +131,8 @@
   }
 }
 
-.font-playfair-italic {
+.font-playfair {
   font-family: var(--font-playfair), ui-serif, Georgia, serif;
-  font-style: italic;
 }
 
 .ticker-scroll {

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Store, Facebook, Twitter, Mail, Phone, MapPin } from 'lucide-react'
+import { Store, Globe, Share2, Mail, Phone, MapPin } from 'lucide-react'
 
 export function Footer() {
   return (
@@ -12,17 +12,17 @@ export function Footer() {
               <div className="bg-green-600 p-1.5 rounded-lg">
                 <Store className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900 tracking-tight">BCMIS</span>
+              <span className="text-2xl font-bold text-gray-900 tracking-tight">Butuan City Market</span>
             </Link>
             <p className="text-gray-600 leading-relaxed text-sm">
-              Butuan City Market Information System (BCMIS). Providing real-time price comparisons and market updates for local residents of Butuan City.
+              The Butuan City Market Information System brings real-time price comparisons and market updates to the residents of Butuan City.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-green-600 hover:border-green-600 transition-all shadow-sm">
-                <Facebook className="w-5 h-5" />
+                <Globe className="w-5 h-5" />
               </a>
               <a href="#" className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-green-600 hover:border-green-600 transition-all shadow-sm">
-                <Twitter className="w-5 h-5" />
+                <Share2 className="w-5 h-5" />
               </a>
               <a href="#" className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-green-600 hover:border-green-600 transition-all shadow-sm">
                 <Mail className="w-5 h-5" />
@@ -66,7 +66,7 @@ export function Footer() {
               </li>
               <li className="flex items-center">
                 <Mail className="w-5 h-5 text-green-600 mr-3 shrink-0" />
-                <span className="text-sm text-gray-600">contact@bcmis-butuan.gov.ph</span>
+                <span className="text-sm text-gray-600">contact@butuancitymarket.gov.ph</span>
               </li>
             </ul>
           </div>
@@ -74,7 +74,7 @@ export function Footer() {
 
         <div className="border-t border-gray-200 pt-8 mt-8 text-center sm:flex sm:justify-between items-center px-4 sm:px-0">
           <p className="text-sm text-gray-500">© {new Date().getFullYear()} Butuan City Market Information System. All rights reserved.</p>
-          <p className="text-xs text-gray-400 mt-4 sm:mt-0 italic group hover:text-gray-500 cursor-default transition-colors">
+          <p className="text-xs text-gray-400 mt-4 sm:mt-0 group hover:text-gray-500 cursor-default transition-colors">
             Designed for the welfare of Butuanon Buyers and Sellers.
           </p>
         </div>

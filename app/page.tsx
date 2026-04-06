@@ -65,10 +65,10 @@ export default async function LandingPage() {
   const { data: tickerHistories } =
     tickerIds.length > 0
       ? await supabase
-          .from('price_history')
-          .select('listing_id, price, recorded_at')
-          .in('listing_id', tickerIds)
-          .order('recorded_at', { ascending: false })
+        .from('price_history')
+        .select('listing_id, price, recorded_at')
+        .in('listing_id', tickerIds)
+        .order('recorded_at', { ascending: false })
       : { data: [] as { listing_id: string; price: number; recorded_at: string }[] }
 
   const groupedHistory = new Map<string, { price: number; recorded_at: string }[]>()
@@ -120,10 +120,42 @@ export default async function LandingPage() {
   void productCount
   void categoriesData
 
+  // Fetch popular products for Hero tags
+  const { data: popularData } = await supabase
+    .from('price_listings')
+    .select('products(name)')
+    .limit(10)
+  
+  const popularTags = Array.from(new Set((popularData || [])
+    .map(p => {
+      const product = Array.isArray(p.products) ? p.products[0] : p.products
+      return product?.name
+    })
+    .filter(Boolean)))
+    .slice(0, 4) as string[]
+
+  // Calculate real-time insight from system data
+  let insight: { type: 'down' | 'up'; product: string; change: string; reason: string } | undefined
+  const itemsWithChange = tickerItems.filter(item => item.changePct !== null)
+  if (itemsWithChange.length > 0) {
+    const biggestChange = itemsWithChange.reduce((prev, current) => 
+      (Math.abs(current.changePct!) > Math.abs(prev.changePct!)) ? current : prev
+    )
+    insight = {
+      type: (biggestChange.changePct! < 0) ? 'down' : 'up',
+      product: biggestChange.name,
+      change: `${Math.abs(biggestChange.changePct!)}%`,
+      reason: `System analysis shows a ${biggestChange.changePct! < 0 ? 'notable price drop' : 'slight increase'} for ${biggestChange.name} in the latest market updates.`
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <Hero />
-      <LivePriceTicker items={tickerItems} />
+      <Hero 
+        tickerItems={tickerItems.map(t => ({ name: t.name, price: t.price, unit: t.unit, change: t.changePct }))} 
+        popularTags={popularTags.length > 0 ? popularTags : undefined}
+        insight={insight}
+      />
       <CategoriesSection />
       <MarketsSection
         markets={markets}
@@ -134,9 +166,9 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-gray-900">
-                <span className="block text-3xl font-normal font-sans">Price</span>
-                <span className="block text-3xl font-bold italic font-serif">Snapshot</span>
+              <h2 className="text-gray-900 leading-tight">
+                <span className="block text-4xl font-black text-gray-900">Price</span>
+                <span className="block text-4xl font-serif italic font-medium text-green-700">Snapshot</span>
               </h2>
               <p className="mt-2 text-sm text-gray-500">
                 Lowest listed prices right now — updated from live vendor listings.
@@ -144,7 +176,7 @@ export default async function LandingPage() {
             </div>
             <Link
               href="/compare"
-              className="text-sm font-medium text-green-700 hover:text-green-800 shrink-0"
+              className="text-[#1b6b3e] font-black uppercase tracking-widest text-[10px] border-b-2 border-[#1b6b3e] pb-1 hover:text-green-800 transition-colors"
             >
               Full comparisons →
             </Link>
@@ -156,3 +188,4 @@ export default async function LandingPage() {
     </div>
   )
 }
+

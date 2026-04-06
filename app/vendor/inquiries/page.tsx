@@ -1,55 +1,46 @@
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import InquiriesManager from '@/components/vendor/InquiriesManager'
-
-export const metadata = { title: 'Inquiries — Vendor Dashboard | BCMIS' }
-
+ 
 export default async function VendorInquiriesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+ 
   if (!user) redirect('/login')
-
+ 
+  // Fetch vendor id
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('id, markets(name)')
+    .select('id, user_id')
     .eq('user_id', user.id)
     .single()
-
-  if (!vendor) redirect('/register')
-
-  const { data: inquiries } = await supabase
-    .from('inquiries')
+ 
+  if (!vendor) redirect('/login')
+ 
+  // Initial fetch of conversations for the vendor
+  const { data: conversations } = await supabase
+    .from('conversations')
     .select(`
-      id, buyer_name, buyer_contact, message, created_at, is_read,
-      listing_id,
-      price_listings (
-        id, price,
-        products ( name, unit )
-      )
+      *,
+      buyer_profiles:buyer_id(id, full_name, contact_number, barangay)
     `)
     .eq('vendor_id', vendor.id)
     .order('last_message_at', { ascending: false })
-
-  const unreadCount = inquiries?.filter(i => !i.is_read).length || 0
-
+ 
   return (
-    <div className="space-y-8">
-      <div>
-        <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
-          Customer
-        </span>
-        <h1 className="text-4xl font-black italic text-green-700 font-serif leading-none">
-          Inquiries
-        </h1>
-        <p className="text-sm text-gray-400 mt-2">
-          {unreadCount} unread message{unreadCount !== 1 ? 's' : ''}
-        </p>
-      </div>
-
-      <InquiriesManager
-        inquiries={(inquiries as any[]) ?? []}
-        marketName={(vendor.markets as any)?.name ?? ''}
-      />
+    <div className="min-h-screen bg-gray-50/30 p-6 md:p-10">
+       <div className="max-w-7xl mx-auto space-y-10">
+          <div className="flex flex-col gap-2">
+             <div className="flex items-center gap-3">
+                <div className="w-1.5 h-6 bg-[#1b6b3e] rounded-full" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1b6b3e]">Vendor Hub</span>
+             </div>
+             <h1 className="text-4xl font-black text-gray-900 tracking-tight leading-tight">Messages <span className="font-serif italic font-medium">& Inquiries</span></h1>
+             <p className="text-sm font-medium text-gray-500 max-w-lg">Respond to buyer inquiries and manage your stall conversations in real-time.</p>
+          </div>
+ 
+          <InquiriesManager initialConversations={conversations || []} vendorId={vendor.id} />
+       </div>
     </div>
   )
 }

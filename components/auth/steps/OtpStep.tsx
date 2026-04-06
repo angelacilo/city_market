@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ShieldCheck, ChevronLeft, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'

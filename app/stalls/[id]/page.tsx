@@ -1,9 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Phone, Store, ChevronLeft } from 'lucide-react'
+import { MapPin, Phone, Store, ChevronLeft, Clock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import SupplyListings from '@/components/public/SupplyListings'
+import LiveStatusBadge from '@/components/public/LiveStatusBadge'
+import { format, parse } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +25,8 @@ export default async function StallProfilePage({ params }: { params: Promise<{ i
       stall_number,
       is_approved,
       market_id,
+      opening_time,
+      closing_time,
       markets ( id, name, barangay )
     `)
     .eq('id', id)
@@ -30,6 +35,29 @@ export default async function StallProfilePage({ params }: { params: Promise<{ i
   // Ensure stall exists and is approved before displaying it publicly
   if (error || !vendor || !vendor.is_approved) {
     notFound()
+  }
+ 
+  // Calculate if open
+  const now = new Date()
+  const currentTime = now.getHours() * 60 + now.getMinutes()
+  
+  const parseTime = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':').map(Number)
+    return hours * 60 + minutes
+  }
+ 
+  const isOpen = vendor.opening_time && vendor.closing_time 
+    ? (currentTime >= parseTime(vendor.opening_time) && currentTime <= parseTime(vendor.closing_time))
+    : true // Default to true if not set
+ 
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return '--:--'
+    try {
+      const date = parse(timeStr, 'HH:mm:ss', new Date())
+      return format(date, 'hh:mm a')
+    } catch {
+       return timeStr
+    }
   }
 
   // Fetch specifically this stall's live prices to render the grid
@@ -73,6 +101,9 @@ export default async function StallProfilePage({ params }: { params: Promise<{ i
                  {(vendor.markets as any)?.name || 'Local Market'}
                </Badge>
             </div>
+            <div className="flex flex-col gap-4 mt-2">
+               <LiveStatusBadge openingTime={vendor.opening_time} closingTime={vendor.closing_time} />
+            </div>
             
             <div className="mt-4 flex flex-col gap-2 border-l-2 border-green-100 pl-4 py-1">
                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -89,10 +120,10 @@ export default async function StallProfilePage({ params }: { params: Promise<{ i
 
         {/* Current Supplies Listings block */}
         <div className="mt-8 bg-white rounded-[2rem] border border-gray-100 p-8 sm:p-12 shadow-sm relative overflow-hidden">
-           <h2 className="text-lg font-black text-gray-900 tracking-tighter uppercase italic mb-8 border-b border-gray-100 pb-4">Available Products</h2>
+           <h2 className="text-lg font-black text-gray-900 tracking-tighter uppercase mb-8 border-b border-gray-100 pb-4">Available Products</h2>
            <SupplyListings initialListings={listings || []} marketName={(vendor.markets as any)?.name || 'Market'} />
            {(!listings || listings.length === 0) && (
-              <p className="text-xs text-gray-400 italic font-medium py-8 text-center bg-gray-50 rounded-xl">This stall hasn't listed any active products yet. Check back soon.</p>
+              <p className="text-xs text-gray-400 font-medium py-8 text-center bg-gray-50 rounded-xl">This stall hasn't listed any active products yet. Check back soon.</p>
            )}
         </div>
       </div>

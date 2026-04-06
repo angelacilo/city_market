@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Package, MessageSquare, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
-export const metadata = { title: 'Overview — Vendor Dashboard | BCMIS' }
+export const metadata = { title: 'Overview — Vendor Dashboard | Butuan City Market' }
 
 export default async function VendorDashboardPage() {
   const supabase = await createClient()
@@ -58,7 +58,7 @@ export default async function VendorDashboardPage() {
           <h2 className="text-2xl font-normal text-gray-600 font-sans leading-none">
             Welcome back,
           </h2>
-          <h1 className="text-4xl font-black italic text-green-700 font-serif mt-1">
+          <h1 className="text-4xl font-black text-green-700 font-serif mt-1">
             {vendor.business_name}
           </h1>
           <p className="text-sm text-gray-500 mt-3 font-medium">
@@ -147,7 +147,7 @@ export default async function VendorDashboardPage() {
 
       {/* HELP SECTION */}
       <section className="bg-white/50 border border-gray-100 rounded-2xl p-8 backdrop-blur-sm">
-        <h3 className="text-lg font-bold text-gray-900 mb-2 font-serif italic">Getting Started</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-2 font-serif">Getting Started</h3>
         <p className="text-sm text-gray-600 max-w-2xl leading-relaxed">
           Welcome to your new vendor dashboard. From here you can manage all your market listings, 
           update prices in real-time, and chat with potential buyers. Keep your stock information 

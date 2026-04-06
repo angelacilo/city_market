@@ -20,7 +20,7 @@ export default function AboutPage() {
             <span className="text-5xl font-black text-gray-900 font-sans">
               About{' '}
             </span>
-            <span className="text-5xl font-black italic text-green-700 font-serif">
+            <span className="text-5xl font-black text-green-700 font-serif">
               Butuan Market IS
             </span>
           </h1>
@@ -47,7 +47,7 @@ export default function AboutPage() {
               <span className="block text-3xl font-black text-gray-900 font-sans">
                 Empowering
               </span>
-              <span className="block text-3xl font-black italic text-green-700 font-serif">
+              <span className="block text-3xl font-black text-green-700 font-serif">
                 every shopper and vendor
               </span>
             </h2>
@@ -56,7 +56,7 @@ export default function AboutPage() {
             <p className="text-base leading-relaxed text-gray-600">
               We believe every buyer deserves to know where the best prices are
               before they leave their home. And every vendor deserves a platform
-              to be discovered by thousands of daily shoppers. BCMIS bridges
+              to be discovered by thousands of daily shoppers. Butuan City Market bridges
               this gap by maintaining a live, verified, and publicly accessible
               database of prices, supplies, and vendor information across all
               six public markets in Butuan City.
@@ -182,7 +182,7 @@ export default function AboutPage() {
           <p className="text-xs font-bold uppercase tracking-widest text-green-300">
             Get In Touch
           </p>
-          <h2 className="mt-4 font-serif text-3xl font-black italic text-white">
+          <h2 className="mt-4 font-serif text-3xl font-black text-white">
             Questions or concerns?
           </h2>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-green-200">

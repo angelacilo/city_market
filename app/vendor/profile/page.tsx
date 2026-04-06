@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ProfileForm from '@/components/vendor/ProfileForm'
 
-export const metadata = { title: 'My Profile — Vendor Dashboard | BCMIS' }
+export const metadata = { title: 'My Profile — Vendor Dashboard | Butuan City Market' }
 
 export default async function VendorProfilePage() {
   const supabase = await createClient()
@@ -23,7 +23,7 @@ export default async function VendorProfilePage() {
         <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
           My
         </span>
-        <h1 className="text-4xl font-black italic text-green-700 font-serif leading-none">
+        <h1 className="text-4xl font-black text-green-700 font-serif leading-none">
           Profile
         </h1>
         <p className="text-sm text-gray-400 mt-2 font-medium">

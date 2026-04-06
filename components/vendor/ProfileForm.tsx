@@ -71,7 +71,7 @@ export default function ProfileForm({ vendorId, initialData, marketName }: Props
       {saved && (
         <div className="flex items-center gap-4 bg-[#f0f7f0] border border-green-100/50 rounded-2xl px-6 py-4 shadow-sm animate-in fade-in slide-in-from-top-2">
            <CheckCircle2 className="w-5 h-5 text-green-700" />
-           <p className="text-sm font-black text-green-900 font-serif italic">Your profile has been synchronized successfully.</p>
+           <p className="text-sm font-black text-green-900 font-serif">Your profile has been synchronized successfully.</p>
         </div>
       )}
 
@@ -86,7 +86,7 @@ export default function ProfileForm({ vendorId, initialData, marketName }: Props
         <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10 space-y-8">
            <div className="flex items-center gap-3 border-b border-gray-50 pb-6 mb-2">
                 <Store className="w-5 h-5 text-green-700" />
-                <h3 className="text-xl font-black italic text-gray-900 font-serif leading-none">Business Profile</h3>
+                <h3 className="text-xl font-black text-gray-900 font-serif leading-none">Business Profile</h3>
            </div>
 
            <div className="space-y-6">
@@ -121,7 +121,7 @@ export default function ProfileForm({ vendorId, initialData, marketName }: Props
         <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10 space-y-8">
            <div className="flex items-center gap-3 border-b border-gray-50 pb-6 mb-2">
                 <MapPin className="w-5 h-5 text-green-700" />
-                <h3 className="text-xl font-black italic text-gray-900 font-serif leading-none">Location & Contact</h3>
+                <h3 className="text-xl font-black text-gray-900 font-serif leading-none">Location & Contact</h3>
            </div>
 
            <div className="space-y-6">
@@ -174,7 +174,7 @@ export default function ProfileForm({ vendorId, initialData, marketName }: Props
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block pl-1">Assigned Market</label>
                 <div className="flex items-center gap-3 h-12 px-5 bg-gray-100/50 border border-gray-200 rounded-2xl cursor-not-allowed">
                   <Lock className="w-3.5 h-3.5 text-gray-400" />
-                  <span className="text-sm font-black text-gray-500 font-serif italic">{marketName}</span>
+                  <span className="text-sm font-black text-gray-500 font-serif">{marketName}</span>
                 </div>
               </div>
            </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
@@ -31,13 +31,13 @@ export default function SearchFilters({ markets, onFilterChange }: SearchFilters
         {/* Sort Order Selector */}
         <div className="w-full sm:w-auto">
           <Select value={sortStr} onValueChange={setSortStr}>
-            <SelectTrigger className="w-full sm:w-[200px] h-11 rounded-full border-gray-200 bg-gray-50 focus:ring-green-600 font-bold text-xs uppercase tracking-widest italic text-gray-700">
+            <SelectTrigger className="w-full sm:w-[200px] h-11 rounded-full border-gray-200 bg-gray-50 focus:ring-green-600 font-bold text-xs uppercase tracking-widest text-gray-700">
               <SelectValue placeholder="Sort order" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border-gray-100">
-              <SelectItem value="price-low" className="font-bold text-xs uppercase tracking-widest italic">Price: Low to High</SelectItem>
-              <SelectItem value="price-high" className="font-bold text-xs uppercase tracking-widest italic">Price: High to Low</SelectItem>
-              <SelectItem value="market-az" className="font-bold text-xs uppercase tracking-widest italic">Market Name A-Z</SelectItem>
+              <SelectItem value="price-low" className="font-bold text-xs uppercase tracking-widest">Price: Low to High</SelectItem>
+              <SelectItem value="price-high" className="font-bold text-xs uppercase tracking-widest">Price: High to Low</SelectItem>
+              <SelectItem value="market-az" className="font-bold text-xs uppercase tracking-widest">Market Name A-Z</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -45,13 +45,13 @@ export default function SearchFilters({ markets, onFilterChange }: SearchFilters
         {/* Market Filter */}
         <div className="w-full sm:w-auto">
           <Select value={market} onValueChange={setMarket}>
-            <SelectTrigger className="w-full sm:w-[240px] h-11 rounded-full border-gray-200 bg-gray-50 focus:ring-green-600 font-bold text-xs uppercase tracking-widest italic text-gray-700">
+            <SelectTrigger className="w-full sm:w-[240px] h-11 rounded-full border-gray-200 bg-gray-50 focus:ring-green-600 font-bold text-xs uppercase tracking-widest text-gray-700">
               <SelectValue placeholder="Select market" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border-gray-100">
-              <SelectItem value="all" className="font-bold text-xs uppercase tracking-widest italic">All markets</SelectItem>
+              <SelectItem value="all" className="font-bold text-xs uppercase tracking-widest">All markets</SelectItem>
               {markets.map((m) => (
-                <SelectItem key={m} value={m} className="font-bold text-xs uppercase tracking-widest italic">{m}</SelectItem>
+                <SelectItem key={m} value={m} className="font-bold text-xs uppercase tracking-widest">{m}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -61,7 +61,7 @@ export default function SearchFilters({ markets, onFilterChange }: SearchFilters
         <div className="flex w-full sm:w-auto overflow-x-auto gap-2 sm:ml-auto no-scrollbar pb-1 sm:pb-0">
            <Badge 
              variant={availability === 'in-stock' ? 'default' : 'outline'}
-             className={`cursor-pointer whitespace-nowrap h-11 px-6 rounded-full font-bold text-xs uppercase tracking-widest italic transition-all ${
+             className={`cursor-pointer whitespace-nowrap h-11 px-6 rounded-full font-bold text-xs uppercase tracking-widest transition-all ${
                availability === 'in-stock' 
                  ? 'bg-green-600 hover:bg-green-700 text-white border-transparent' 
                  : 'bg-white hover:bg-gray-50 text-gray-400 border-gray-200'
@@ -72,7 +72,7 @@ export default function SearchFilters({ markets, onFilterChange }: SearchFilters
            </Badge>
            <Badge 
              variant={availability === 'all' ? 'default' : 'outline'}
-             className={`cursor-pointer whitespace-nowrap h-11 px-6 rounded-full font-bold text-xs uppercase tracking-widest italic transition-all ${
+             className={`cursor-pointer whitespace-nowrap h-11 px-6 rounded-full font-bold text-xs uppercase tracking-widest transition-all ${
                availability === 'all' 
                  ? 'bg-green-600 hover:bg-green-700 text-white border-transparent' 
                  : 'bg-white hover:bg-gray-50 text-gray-400 border-gray-200'

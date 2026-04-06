@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ShoppingCart, TrendingUp, Info } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,7 +16,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ 
-  id, 
   name, 
   price, 
   unit, 
@@ -66,7 +64,7 @@ export function ProductCard({
               <span className="text-gray-700 font-bold">#{stall_number}</span>
            </div>
            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-400 font-medium italic">Updated:</span>
+              <span className="text-gray-400 font-medium">Updated:</span>
               <span className="text-gray-500 font-medium">{new Date(last_updated).toLocaleDateString()}</span>
            </div>
         </div>

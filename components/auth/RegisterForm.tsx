@@ -1,12 +1,23 @@
 'use client'
-
-import { useState, useRef } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+ 
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Input } from '@/components/ui/input'
+import { 
+  Loader2, 
+  Store, 
+  MapPin, 
+  ShoppingBag, 
+  User, 
+  Mail, 
+  Lock, 
+  CheckCircle2, 
+  Eye, 
+  EyeOff,
+  ArrowRight,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -14,327 +25,386 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Eye, EyeOff, UserPlus, Loader2, AlertCircle,
-  Building2, User, MapPin, DoorOpen, Phone, Info, Mail, Lock
-} from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-
-// ── Schema ────────────────────────────────────────────────────────────
-
-const registerSchema = z
-  .object({
-    email: z.string().email('Please enter a valid email address'),
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters with one uppercase letter and one number')
-      .refine((v) => /[A-Z]/.test(v), {
-        message: 'Password must be at least 8 characters with one uppercase letter and one number',
-      })
-      .refine((v) => /[0-9]/.test(v), {
-        message: 'Password must be at least 8 characters with one uppercase letter and one number',
-      }),
-    confirmPassword: z.string(),
-    businessName: z
-      .string()
-      .min(3, 'Please enter your business or stall name.')
-      .max(80, 'Please enter your business or stall name.'),
-    ownerName: z
-      .string()
-      .min(2, "Please enter the stall owner's full name.")
-      .max(100, "Please enter the stall owner's full name."),
-    marketId: z.string().min(1, 'Please select the market where your stall is located.'),
-    stallNumber: z.string().max(20).optional(),
-    contactNumber: z
-      .string()
-      .regex(/^09\d{9}$/, 'Please enter a valid Philippine mobile number starting with 09.'),
-    agreeToTerms: z
-      .boolean()
-      .refine((v) => v === true, { message: 'You must agree to the terms to continue.' }),
-  })
-  .superRefine((data, ctx) => {
-    if (data.password !== data.confirmPassword) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Passwords do not match',
-        path: ['confirmPassword'],
-      })
-    }
-  })
-
-type RegisterFormValues = z.infer<typeof registerSchema>
-
-function mapSupabaseError(errorMsg: string): string {
-  const msg = errorMsg.toLowerCase()
-  if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit') || msg.includes('429')) {
-    return 'Too many attempts. Please wait a few minutes and try again.'
-  }
-  if (msg.includes('user already registered') || msg.includes('already been registered')) {
-    return 'An account with this email already exists. Try signing in instead.'
-  }
-  return 'Something went wrong. Please try again in a moment.'
+import { toast } from 'sonner'
+ 
+interface RegisterFormProps {
+  markets: any[]
 }
-
-interface Props {
-  markets: { id: string; name: string }[]
-}
-
-export default function RegisterForm({ markets }: Props) {
+ 
+export default function RegisterForm({ markets }: RegisterFormProps) {
   const router = useRouter()
-  const [submitting, setSubmitting] = useState(false)
-  const [authError, setAuthError] = useState('')
+  const searchParams = useSearchParams()
+  const initialRole = (searchParams.get('type') === 'vendor' ? 'vendor' : 'buyer') as 'buyer' | 'vendor'
+  
+  const [selectedRole, setSelectedRole] = useState<'buyer' | 'vendor'>(initialRole)
+  const [loading, setLoading] = useState(false)
+  const [registrationComplete, setRegistrationComplete] = useState(false)
+  
+  // Buyer state
+  const [buyerData, setBuyerData] = useState({
+     fullName: '',
+     email: '',
+     password: '',
+     confirmPassword: '',
+  })
+ 
+  // Vendor state
+  const [vendorData, setVendorData] = useState({
+     email: '',
+     password: '',
+     confirmPassword: '',
+     businessName: '',
+     ownerName: '',
+     marketId: '',
+     stallNumber: '',
+     contactNumber: '',
+  })
+ 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const lastSubmitTime = useRef<number>(0)
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    mode: 'onChange',
-    defaultValues: {
-      email: '', password: '', confirmPassword: '',
-      businessName: '', ownerName: '', marketId: '',
-      stallNumber: '', contactNumber: '', agreeToTerms: false
-    },
-  })
-
-  async function onSubmit(data: RegisterFormValues) {
-    const now = Date.now()
-    if (now - lastSubmitTime.current < 10000) return
-    lastSubmitTime.current = now
-
-    setSubmitting(true)
-    setAuthError('')
-    const supabase = createClient()
-
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: { data: { name: data.ownerName } },
-    })
-
-    if (signUpError) {
-      setSubmitting(false)
-      setAuthError(mapSupabaseError(signUpError.message))
-      return
+ 
+  const supabase = createClient()
+ 
+  const handleBuyerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (buyerData.password !== buyerData.confirmPassword) {
+       toast.error('Passwords do not match')
+       return
     }
-
-    if (!authData.user) {
-      setSubmitting(false)
-      setAuthError('Something went wrong. Please try again.')
-      return
+    setLoading(true)
+ 
+    try {
+       // 1. Sign Up
+       const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: buyerData.email,
+          password: buyerData.password,
+          options: {
+             data: { full_name: buyerData.fullName }
+          }
+       })
+ 
+       if (authError) throw authError
+ 
+       // 2. Insert into buyer_profiles
+       if (authData.user) {
+          const { error: profileError } = await supabase
+             .from('buyer_profiles')
+             .insert({
+                user_id: authData.user.id,
+                full_name: buyerData.fullName
+             })
+          
+          if (profileError) throw profileError
+       }
+ 
+       // 3. Fix auto-login bug: sign out immediately
+       await supabase.auth.signOut()
+       
+       setRegistrationComplete(true)
+    } catch (error: any) {
+       console.error(error)
+       toast.error(error.message || 'Registration failed')
+    } finally {
+       setLoading(false)
     }
-
-    const { error: vendorError } = await supabase.from('vendors').insert({
-      user_id: authData.user.id,
-      market_id: data.marketId,
-      business_name: data.businessName.trim(),
-      owner_name: data.ownerName.trim(),
-      stall_number: data.stallNumber?.trim() || undefined,
-      contact_number: data.contactNumber.trim(),
-      is_approved: true,
-      is_active: true,
-    })
-
-    if (vendorError) {
-      setSubmitting(false)
-      setAuthError('Account created but stall details failed to save.')
-      return
-    }
-
-    router.push('/vendor/dashboard')
-    router.refresh()
   }
-
-  return (
-    <div className="space-y-10 max-h-[80vh] overflow-y-auto no-scrollbar pr-2">
-      {/* Header */}
-      <div>
-        <span className="text-[10px] font-black text-green-700 uppercase tracking-[0.2em] block mb-3">Get Started</span>
-        <h1 className="text-4xl font-black italic text-gray-900 font-serif leading-tight">
-            Register Stall
-        </h1>
-        <p className="text-sm text-gray-400 mt-2 font-medium">Join the BCMIS vendor community today.</p>
-      </div>
-
-      {/* Info banner */}
-      <div className="flex items-start gap-4 bg-[#f0f7f0] border border-green-100/50 rounded-2xl px-6 py-4 shadow-sm">
-        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5">
-            <Info className="w-4 h-4 text-green-700" />
-        </div>
-        <p className="text-[11px] text-green-800 font-bold leading-relaxed">
-            Stall verification typically takes 24 hours. Once registered, you can immediately begin listing products for your public stall.
-        </p>
-      </div>
-
-      {/* Error alert */}
-      {authError && (
-        <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-2xl px-5 py-4">
-          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs font-bold text-red-600">{authError}</p>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 pb-4">
-        
-        {/* Account Details */}
-        <div className="space-y-5">
-           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Security Credentials</p>
+ 
+  const handleVendorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (vendorData.password !== vendorData.confirmPassword) {
+       toast.error('Passwords do not match')
+       return
+    }
+    setLoading(true)
+ 
+    try {
+       // 1. Sign Up
+       const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: vendorData.email,
+          password: vendorData.password,
+          options: {
+             data: { role: 'vendor', full_name: vendorData.ownerName }
+          }
+       })
+ 
+       if (authError) throw authError
+ 
+       // 2. Create Vendor record (pending approval)
+       if (authData.user) {
+          const { error: vendorError } = await supabase
+             .from('vendors')
+             .insert({
+                user_id: authData.user.id,
+                business_name: vendorData.businessName,
+                owner_name: vendorData.ownerName,
+                market_id: vendorData.marketId,
+                stall_number: vendorData.stallNumber,
+                contact_number: vendorData.contactNumber,
+                is_approved: false
+             })
+          
+          if (vendorError) throw vendorError
+       }
+ 
+       // 3. Fix auto-login bug: sign out immediately
+       await supabase.auth.signOut()
+       
+       setRegistrationComplete(true)
+    } catch (error: any) {
+       console.error(error)
+       toast.error(error.message || 'Registration failed')
+    } finally {
+       setLoading(false)
+    }
+  }
+ 
+  if (registrationComplete) {
+     return (
+        <div className="w-full max-w-sm flex flex-col items-center text-center py-20 px-6 bg-white rounded-[3rem] border border-gray-50 shadow-2xl animate-in zoom-in duration-500">
+           <div className="w-24 h-24 bg-green-50 rounded-[2.5rem] flex items-center justify-center mb-10 border border-green-100 shadow-sm">
+              <CheckCircle2 className="w-10 h-10 text-[#1b6b3e]" />
+           </div>
            
-           <div className="space-y-2">
-             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Email Address</label>
-             <div className="relative">
-                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                <Input
-                    {...register('email')}
-                    className={cn(
-                        "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 font-bold text-sm",
-                        errors.email && "border-red-300"
-                    )}
-                />
-             </div>
-             {errors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.email.message}</p>}
+           <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight leading-none italic font-serif">
+              {selectedRole === 'buyer' ? 'Account created!' : 'Registration submitted!'}
+           </h2>
+           <p className="text-gray-500 font-medium text-sm leading-relaxed mb-12 max-w-[280px]">
+              {selectedRole === 'buyer' 
+                 ? 'Your buyer account has been created successfully. Please sign in with your email and password to start browsing and inquiring about market products.' 
+                 : 'Your vendor account is pending approval by the market administrator. Once approved you can sign in and start managing your stall listings.'}
+           </p>
+ 
+           <div className="w-full space-y-4">
+              <Button 
+                 onClick={() => router.push('/login')}
+                 className="w-full h-14 rounded-2xl bg-[#1b6b3e] hover:bg-[#155430] text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+              >
+                 <span>Go to sign in</span>
+                 <ArrowRight className="w-4 h-4" />
+              </Button>
            </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Password</label>
-                    <div className="relative">
-                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                        <Input
-                            {...register('password')}
-                            type={showPassword ? 'text' : 'password'}
-                            className={cn(
-                                "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 pr-12 font-bold text-sm font-mono tracking-widest",
-                                errors.password && "border-red-300"
-                            )}
-                        />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-green-700">
-                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                    </div>
-                </div>
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Confirm</label>
-                    <div className="relative">
-                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                        <Input
-                            {...register('confirmPassword')}
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            className={cn(
-                                "rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 pr-12 font-bold text-sm font-mono tracking-widest",
-                                errors.confirmPassword && "border-red-300"
-                            )}
-                        />
-                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-green-700">
-                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                    </div>
-                </div>
-           </div>
-           {errors.password && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.password.message}</p>}
-           {!errors.password && errors.confirmPassword && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.confirmPassword.message}</p>}
-        </div>
-
-        {/* Stall Details */}
-        <div className="space-y-5 pt-4">
-           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Stall information</p>
-
-           <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Business Name</label>
-              <div className="relative">
-                <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                <Input
-                    {...register('businessName')}
-                    placeholder="Santos Fresh Produce"
-                    className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 font-bold text-sm"
-                />
-              </div>
-           </div>
-
-           <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Owner Full Name</label>
-              <div className="relative">
-                <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                <Input
-                    {...register('ownerName')}
-                    className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 font-bold text-sm"
-                />
-              </div>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Market Location</label>
-                    <Select onValueChange={(v) => setValue('marketId', v, { shouldValidate: true })}>
-                        <SelectTrigger className="rounded-2xl border-gray-100 bg-gray-50/50 h-14 pl-5 pr-5 font-bold text-sm">
-                             <SelectValue placeholder="Select Market" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl p-2 border-gray-100 shadow-xl">
-                            {markets.map(m => <SelectItem key={m.id} value={m.id} className="rounded-xl font-bold py-3">{m.name}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Stall ID (Optional)</label>
-                    <Input
-                        {...register('stallNumber')}
-                        className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 px-5 font-bold text-sm"
-                    />
-                </div>
-           </div>
-
-           <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Mobile Number</label>
-              <div className="relative">
-                <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                <Input
-                    {...register('contactNumber')}
-                    placeholder="09XXXXXXXXX"
-                    className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-14 pl-12 font-bold text-sm font-mono tracking-widest"
-                />
-              </div>
+ 
+           <div className="mt-10 pt-10 border-t border-gray-50 w-full">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                 System identity verified. <br /> Security protocols active.
+              </p>
            </div>
         </div>
-
-        {/* Terms */}
-        <label className="flex items-start gap-4 cursor-pointer p-4 bg-gray-50/50 rounded-2xl border border-dotted border-gray-200">
-           <input type="checkbox" {...register('agreeToTerms')} className="w-5 h-5 rounded-lg border-gray-300 text-green-700 mt-0.5" />
-           <span className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase tracking-tighter">
-                I agree to the <span className="text-green-700 underline">Merchant Terms of Service</span> & <span className="text-green-700 underline">Privacy Policy</span>. I confirm all provided data is accurate.
-           </span>
-        </label>
-
-        {/* Submit */}
-        <Button
-          type="submit"
-          disabled={submitting}
-          className="w-full h-14 rounded-full bg-green-700 hover:bg-green-800 text-white font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-green-700/20 gap-3"
-        >
-          {submitting ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+     )
+  }
+ 
+  return (
+    <div className="w-full max-w-sm">
+       <div className="bg-white rounded-[3rem] border border-gray-50 shadow-2xl p-10 overflow-hidden relative">
+          
+          <div className="flex flex-col items-center mb-12 text-center">
+             <div className="w-12 h-1.5 bg-[#1b6b3e] rounded-full mb-8" />
+             <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">Create Account</h2>
+             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Select your system identity</p>
+          </div>
+ 
+          {/* Pill Toggle */}
+          <div className="bg-gray-100/100 rounded-[2rem] p-1.5 flex mb-12 shadow-sm">
+             <button
+                type="button"
+                onClick={() => setSelectedRole('buyer')}
+                className={`flex-1 h-12 rounded-full text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 ${
+                   selectedRole === 'buyer' ? 'bg-[#1b6b3e] text-white shadow-lg shadow-green-900/10' : 'text-gray-400 hover:text-gray-900'
+                }`}
+             >
+                <ShoppingBag className={`w-3.5 h-3.5 ${selectedRole === 'buyer' ? '' : 'opacity-40'}`} />
+                Buyer
+             </button>
+             <button
+                type="button"
+                onClick={() => setSelectedRole('vendor')}
+                className={`flex-1 h-12 rounded-full text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 ${
+                   selectedRole === 'vendor' ? 'bg-[#1b6b3e] text-white shadow-lg shadow-green-900/10' : 'text-gray-400 hover:text-gray-900'
+                }`}
+             >
+                <Store className={`w-3.5 h-3.5 ${selectedRole === 'vendor' ? '' : 'opacity-40'}`} />
+                Vendor
+             </button>
+          </div>
+ 
+          {selectedRole === 'buyer' ? (
+             /* BUYER FORM */
+             <form onSubmit={handleBuyerSubmit} className="space-y-6">
+                <div className="space-y-4">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Full Name</label>
+                      <div className="relative group">
+                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-[#1b6b3e] transition-colors" />
+                         <Input 
+                            required 
+                            placeholder="Juan dela Cruz"
+                            className="h-14 pl-12 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                            value={buyerData.fullName}
+                            onChange={e => setBuyerData(prev => ({ ...prev, fullName: e.target.value }))}
+                         />
+                      </div>
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Email Address</label>
+                      <div className="relative group">
+                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-[#1b6b3e] transition-colors" />
+                         <Input 
+                            required 
+                            type="email"
+                            placeholder="juan@email.com"
+                            className="h-14 pl-12 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                            value={buyerData.email}
+                            onChange={e => setBuyerData(prev => ({ ...prev, email: e.target.value }))}
+                         />
+                      </div>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Password</label>
+                         <div className="relative group">
+                            <Input 
+                               required 
+                               type={showPassword ? 'text' : 'password'}
+                               className="h-14 px-6 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                               value={buyerData.password}
+                               onChange={e => setBuyerData(prev => ({ ...prev, password: e.target.value }))}
+                            />
+                            <button 
+                               type="button" 
+                               onClick={() => setShowPassword(!showPassword)}
+                               className="absolute right-4 top-1/2 -translate-y-1/2 opacity-30 hover:opacity-100 transition-opacity"
+                            >
+                               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                         </div>
+                      </div>
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Confirm</label>
+                         <div className="relative group">
+                            <Input 
+                               required 
+                               type={showConfirmPassword ? 'text' : 'password'}
+                               className="h-14 px-6 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                               value={buyerData.confirmPassword}
+                               onChange={e => setBuyerData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            />
+                            <button 
+                               type="button" 
+                               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                               className="absolute right-4 top-1/2 -translate-y-1/2 opacity-30 hover:opacity-100 transition-opacity"
+                            >
+                               {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+ 
+                <Button
+                   type="submit"
+                   disabled={loading}
+                   className="w-full h-14 rounded-2xl bg-[#1b6b3e] hover:bg-[#155430] text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-[0.98]"
+                >
+                   {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Create Account'}
+                </Button>
+             </form>
           ) : (
-            <><UserPlus className="w-4 h-4" /> Create Merchant Account</>
+             /* VENDOR FORM */
+             <form onSubmit={handleVendorSubmit} className="space-y-6">
+                <div className="space-y-4">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Business Name</label>
+                      <Input 
+                         required 
+                         placeholder="Stall ni Mang Juan"
+                         className="h-14 px-6 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                         value={vendorData.businessName}
+                         onChange={e => setVendorData(prev => ({ ...prev, businessName: e.target.value }))}
+                      />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Market Location</label>
+                      <Select 
+                         onValueChange={v => setVendorData(prev => ({ ...prev, marketId: v }))}
+                         required
+                      >
+                         <SelectTrigger className="h-14 px-6 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-[#1b6b3e]/20 transition-all font-medium">
+                            <SelectValue placeholder="Select Market" />
+                         </SelectTrigger>
+                         <SelectContent className="rounded-2xl border-gray-100 shadow-2xl">
+                            {markets.map(m => (
+                               <SelectItem key={m.id} value={m.id} className="rounded-xl">{m.name}</SelectItem>
+                            ))}
+                         </SelectContent>
+                      </Select>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Email</label>
+                         <Input 
+                            required 
+                            type="email"
+                            placeholder="vendor@email.com"
+                            className="h-14 px-6 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                            value={vendorData.email}
+                            onChange={e => setVendorData(prev => ({ ...prev, email: e.target.value }))}
+                         />
+                      </div>
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Contact</label>
+                         <Input 
+                            required 
+                            placeholder="0912..."
+                            className="h-14 px-6 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                            value={vendorData.contactNumber}
+                            onChange={e => setVendorData(prev => ({ ...prev, contactNumber: e.target.value }))}
+                         />
+                      </div>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Password</label>
+                         <Input 
+                            required 
+                            type="password"
+                            className="h-14 px-6 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                            value={vendorData.password}
+                            onChange={e => setVendorData(prev => ({ ...prev, password: e.target.value }))}
+                         />
+                      </div>
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Confirm</label>
+                         <Input 
+                            required 
+                            type="password"
+                            className="h-14 px-6 rounded-2xl bg-gray-50 border-none focus-visible:ring-2 focus-visible:ring-[#1b6b3e]/20 transition-all font-medium"
+                            value={vendorData.confirmPassword}
+                            onChange={e => setVendorData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                         />
+                      </div>
+                   </div>
+                </div>
+ 
+                <Button
+                   type="submit"
+                   disabled={loading}
+                   className="w-full h-14 rounded-2xl bg-[#1b6b3e] hover:bg-[#155430] text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-[0.98]"
+                >
+                   {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Register Stall'}
+                </Button>
+             </form>
           )}
-        </Button>
-      </form>
-
-      {/* Footer */}
-      <div className="pt-6 border-t border-gray-50 text-center">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            Already registered?{' '}
-            <Link href="/login" className="text-green-700 hover:underline ml-1">
-                 Sign In To Portal
-            </Link>
-        </p>
-      </div>
+ 
+          <div className="mt-10 mb-2 pt-8 border-t border-gray-50 text-center">
+             <button 
+                type="button" 
+                onClick={() => router.push('/login')}
+                className="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-[#1b6b3e] transition-colors"
+             >
+                Already have an account? <span className="text-[#1b6b3e]">Login</span>
+             </button>
+          </div>
+       </div>
     </div>
   )
 }

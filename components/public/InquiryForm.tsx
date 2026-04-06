@@ -1,62 +1,43 @@
 'use client'
-
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+ 
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { checkInquiryRateLimit, recordInquirySent } from '@/lib/utils/rateLimit'
+import { startConversation } from '@/lib/actions/messenger'
 import {
-  Store,
-  MapPin,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { 
+  MessageCircle, 
+  Store, 
+  MapPin, 
+  ShoppingBag, 
   Loader2,
-  SendHorizontal,
-  Check,
-  MessageCircle,
+  CheckCircle2,
+  ArrowRight
 } from 'lucide-react'
-import InquiryChat from '../shared/InquiryChat'
-
-// ── Schema ────────────────────────────────────────────────────────────
-
-const inquirySchema = z.object({
-  buyerName: z
-    .string()
-    .min(2, 'Please enter your full name.')
-    .max(100, 'Please enter your full name.'),
-  buyerContact: z
-    .string()
-    .regex(
-      /^(09\d{9}|639\d{9})$/,
-      'Please enter a valid Philippine mobile number starting with 09.'
-    ),
-  message: z
-    .string()
-    .min(10, 'Please write a message of at least 10 characters.')
-    .max(500, 'Message cannot exceed 500 characters.'),
-})
-
-type InquiryFormValues = z.infer<typeof inquirySchema>
-
-// ── Props ─────────────────────────────────────────────────────────────
-
-export interface InquiryFormProps {
+import { toast } from 'sonner'
+ 
+interface InquiryFormProps {
+  isOpen: boolean
+  onClose: () => void
   vendorId: string
-  listingId: string
+  listingId: string | null
   productName: string
   vendorName: string
   marketName: string
-  price: number
-  unit: string
-  onSuccess?: () => void
+  price: number | null
+  unit: string | null
 }
-
-// ── Component ─────────────────────────────────────────────────────────
-
+ 
 export default function InquiryForm({
+  isOpen,
+  onClose,
   vendorId,
   listingId,
   productName,
@@ -64,219 +45,185 @@ export default function InquiryForm({
   marketName,
   price,
   unit,
-  onSuccess,
 }: InquiryFormProps) {
-  const [submitting, setSubmitting] = useState(false)
-  const [inquiryId, setInquiryId] = useState<string | null>(null)
-  const [error, setError] = useState('')
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    getValues,
-    formState: { errors, isValid },
-  } = useForm<InquiryFormValues>({
-    resolver: zodResolver(inquirySchema),
-    mode: 'onChange',
-    defaultValues: { buyerName: '', buyerContact: '', message: '' },
-  })
-
-  const messageValue = watch('message') ?? ''
-  const charCount = messageValue.length
-
-  async function onSubmit(data: InquiryFormValues) {
-    setError('')
-
-    // Rate limit check
-    const limit = checkInquiryRateLimit()
-    if (!limit.allowed) {
-      setError(
-        `You have sent too many inquiries recently. Please wait ${limit.remainingMinutes} minute${limit.remainingMinutes === 1 ? '' : 's'} before sending another message.`
-      )
-      return
+  const router = useRouter()
+  const supabase = createClient()
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [existingConversationId, setExistingConversationId] = useState<string | null>(null)
+  const [isCheckingConversation, setIsCheckingConversation] = useState(true)
+ 
+  // 1. Check for existing conversation on mount
+  useEffect(() => {
+    if (!isOpen) return
+ 
+    async function checkExisting() {
+      setIsCheckingConversation(true)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setIsCheckingConversation(false)
+        return
+      }
+ 
+      const { data } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('buyer_id', user.id)
+        .eq('listing_id', listingId)
+        .eq('vendor_id', vendorId)
+        .single()
+ 
+      if (data) {
+        setExistingConversationId(data.id)
+      }
+      setIsCheckingConversation(false)
     }
-
-    setSubmitting(true)
-
-    const supabase = createClient()
-    const { data: insertData, error: supabaseError } = await supabase.from('inquiries').insert({
-      vendor_id: vendorId,
-      listing_id: listingId,
-      buyer_name: data.buyerName.trim(),
-      buyer_contact: data.buyerContact.trim(),
-      message: data.message.trim(),
-      is_read: false,
-    }).select('id').single()
-
-    setSubmitting(false)
-
-    if (supabaseError) {
-      setError('Something went wrong. Please check your connection and try again.')
-      return
-    }
-
-    if (insertData && insertData.id) {
-       setInquiryId(insertData.id)
-       recordInquirySent()
-    } else {
-       setError('Failed to establish connection. Please try again.')
+ 
+    checkExisting()
+  }, [isOpen, listingId, vendorId, supabase])
+ 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!message.trim()) return
+    setLoading(true)
+ 
+    try {
+      const convId = await startConversation({
+        vendorId,
+        listingId,
+        productName,
+        vendorName,
+        marketName,
+        price,
+        unit,
+        firstMessage: message,
+      })
+ 
+      toast.success('Conversation started successfully!')
+      onClose()
+      router.push(`/user/messages?conversation=${convId}`)
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to start conversation. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
-
-  // ── Success/Chat view ─────────────────────────────────────────────
-  if (inquiryId) {
-    const contact = getValues('buyerContact')
-    const name = getValues('buyerName')
-    
+ 
+  // If conversation already exists, show redirect state
+  if (!isCheckingConversation && existingConversationId) {
     return (
-      <div className="flex flex-col h-full -mx-6 -mb-6">
-        <div className="px-6 py-4 bg-green-50 border-b border-green-100 flex items-center justify-between">
-           <div>
-              <p className="text-[10px] font-black text-green-700 uppercase tracking-widest leading-none">Status</p>
-              <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight mt-1">Inquiry Sent & Connected</h3>
-           </div>
-           <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-[9px] font-black text-green-700 uppercase tracking-widest">Real-time</span>
-           </div>
-        </div>
-        
-        <div className="flex-1 overflow-hidden">
-           <InquiryChat 
-             inquiryId={inquiryId} 
-             role="buyer" 
-             buyerName={name}
-             vendorName={vendorName}
-           />
-        </div>
-
-        <div className="p-4 bg-gray-50 border-t border-gray-100 italic text-[9px] text-gray-400 font-bold text-center">
-           Vendors may also contact you via phone: {contact}
-        </div>
-      </div>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-md rounded-[2.5rem] p-10 border-gray-100 shadow-2xl">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-20 h-20 bg-[#1b6b3e]/5 rounded-[2rem] flex items-center justify-center mb-8 border border-[#1b6b3e]/10 shadow-sm animate-pulse">
+               <MessageCircle className="w-10 h-10 text-[#1b6b3e]" />
+            </div>
+            
+            <DialogTitle className="text-2xl font-black text-gray-900 mb-4 tracking-tight">
+               Existing Chat found
+            </DialogTitle>
+            <p className="text-gray-500 font-medium text-sm leading-relaxed mb-10 max-w-[280px]">
+               You already have an open conversation about this product. Redirecting you to continue your chat...
+            </p>
+ 
+            <Button 
+               onClick={() => {
+                 onClose()
+                 router.push(`/user/messages?conversation=${existingConversationId}`)
+               }}
+               className="w-full h-14 rounded-2xl bg-[#1b6b3e] hover:bg-[#155430] text-white font-black text-sm uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+            >
+               <span>Continue Chat</span>
+               <ArrowRight className="w-5 h-5" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     )
   }
-
-  // ── Form view ────────────────────────────────────────────────────
+ 
   return (
-    <div>
-      {/* Product context strip */}
-      <div className="bg-[#f0f9f4] rounded-2xl p-6 mb-6 border border-[#e1eae1]">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-[10px] font-black text-[#1d631d] uppercase tracking-widest opacity-60">
-              You are inquiring about:
-            </p>
-            <p className="text-xl font-black text-[#1d631d] leading-none mb-2">{productName}</p>
-            <div className="flex flex-wrap gap-4 pt-1">
-              <span className="flex items-center gap-1.5 text-[11px] text-gray-500 font-bold">
-                <Store className="w-3.5 h-3.5 text-[#1d631d] opacity-50" />
-                {vendorName}
-              </span>
-              <span className="flex items-center gap-1.5 text-[11px] text-gray-500 font-bold">
-                <MapPin className="w-3.5 h-3.5 text-[#1d631d] opacity-50" />
-                {marketName}
-              </span>
-            </div>
-          </div>
-          <div className="text-right shrink-0">
-             <div className="text-xl font-black text-gray-900 leading-none">
-               ₱{price.toFixed(2)}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-10 pb-6 bg-[#1b6b3e] text-white">
+          <div className="flex items-center gap-4 mb-6">
+             <div className="p-3 bg-white/10 rounded-2xl">
+                <ShoppingBag className="w-6 h-6" />
              </div>
-             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">per {unit}</p>
+             <DialogTitle className="text-2xl font-black tracking-tight">Contact Vendor</DialogTitle>
           </div>
-        </div>
-      </div>
-
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Buyer name */}
-        <div className="space-y-2">
-          <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
-            Your Name <span className="text-red-500">*</span>
-          </label>
-          <Input
-            {...register('buyerName')}
-            placeholder="e.g. Juan dela Cruz"
-            className={cn("h-12 text-sm rounded-xl border-gray-100 bg-gray-50/50 px-5 font-bold focus:bg-white transition-all", errors.buyerName && "border-red-400 focus-visible:border-red-400")}
-          />
-          {errors.buyerName && (
-            <p className="text-[10px] text-red-500 font-bold ml-1">{errors.buyerName.message}</p>
+          
+          <div className="bg-black/10 rounded-3xl p-5 border border-white/5 space-y-3">
+             <div className="flex items-start justify-between">
+                <div>
+                   <p className="text-[9px] font-black uppercase tracking-widest text-white/50 mb-1">Product Details</p>
+                   <h4 className="text-base font-black uppercase tracking-tight">{productName}</h4>
+                </div>
+                <div className="text-right">
+                   <p className="text-[9px] font-black uppercase tracking-widest text-white/50 mb-1">Best Price</p>
+                   <p className="text-xl font-black">₱{price?.toFixed(2)} <span className="text-[10px] font-medium opacity-50">/ {unit}</span></p>
+                </div>
+             </div>
+             <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/5">
+                <div className="flex items-center gap-2">
+                   <Store className="w-3.5 h-3.5 text-white/40" />
+                   <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 truncate">{vendorName}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <MapPin className="w-3.5 h-3.5 text-white/40" />
+                   <span className="text-[10px] font-bold uppercase tracking-widest opacity-80 truncate">{marketName}</span>
+                </div>
+             </div>
+          </div>
+        </DialogHeader>
+ 
+        <div className="p-8 bg-white">
+          {isCheckingConversation ? (
+            <div className="py-20 flex flex-col items-center justify-center">
+               <Loader2 className="w-10 h-10 text-[#1b6b3e] animate-spin mb-6" />
+               <p className="text-xs font-black text-gray-400 uppercase tracking-widest animate-pulse">Scanning server hubs…</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] block ml-1">
+                  Your Message
+                </label>
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="e.g. Magkano ang bigas karon? Available pa ba? Kailan po kayo bukas?"
+                  className="min-h-[140px] rounded-2xl bg-gray-50 border-none text-sm font-medium p-6 focus:ring-2 focus:ring-[#1b6b3e]/10 placeholder:text-gray-400 transition-all resize-none"
+                  required
+                />
+              </div>
+ 
+              <Button
+                type="submit"
+                disabled={loading || !message.trim()}
+                className="w-full h-14 rounded-2xl bg-[#1b6b3e] hover:bg-[#155430] text-white font-black text-sm uppercase tracking-widest shadow-lg shadow-green-900/10 flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Transmitting…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Start conversation</span>
+                    <MessageCircle className="w-5 h-5" />
+                  </>
+                )}
+              </Button>
+ 
+              <p className="text-[10px] text-center font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
+                By starting a conversation, your contact details <br /> will be visible to the vendor for verification.
+              </p>
+            </form>
           )}
         </div>
-
-        {/* Mobile number */}
-        <div className="space-y-2">
-          <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
-            Mobile Number <span className="text-red-500">*</span>
-          </label>
-          <p className="text-[9px] text-gray-400 font-bold -mt-0.5 ml-1">Vendors will use this to contact you back.</p>
-          <Input
-            {...register('buyerContact')}
-            type="tel"
-            placeholder="e.g. 09171234567"
-            maxLength={12}
-            className={cn("h-12 text-sm rounded-xl border-gray-100 bg-gray-50/50 px-5 font-bold focus:bg-white transition-all", errors.buyerContact && "border-red-400 focus-visible:border-red-400")}
-          />
-          {errors.buyerContact && (
-            <p className="text-[10px] text-red-500 font-bold ml-1">{errors.buyerContact.message}</p>
-          )}
-        </div>
-
-        {/* Message */}
-        <div className="space-y-2">
-          <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
-            Your Message <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            {...register('message')}
-            rows={4}
-            maxLength={500}
-            placeholder={`e.g. Magkano ang ${productName} ngayon? Available pa ba? Kailan kayo bukas?`}
-            className={cn("w-full min-h-[120px] rounded-2xl border border-gray-100 bg-gray-50/50 px-5 py-4 text-sm font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1d631d]/20 transition-all resize-none", errors.message && "border-red-400 focus:ring-red-400")}
-          />
-          <div className="flex items-center justify-between gap-2 px-1">
-            {errors.message ? (
-              <p className="text-[10px] text-red-500 font-bold">{errors.message.message}</p>
-            ) : (
-              <span />
-            )}
-            <p className={cn("text-[10px] font-black tracking-widest", charCount >= 480 ? 'text-amber-500' : 'text-gray-300')}>
-              {charCount} / 500
-            </p>
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="flex-1 h-12 rounded-full font-black uppercase text-xs tracking-widest border-gray-200"
-            onClick={() => onSuccess?.()}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={submitting || !isValid}
-            className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white font-black uppercase text-xs tracking-widest gap-2 disabled:opacity-50 rounded-full shadow-lg shadow-green-700/10"
-          >
-            {submitting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <SendHorizontal className="w-4 h-4" />
-            )}
-            Send inquiry
-          </Button>
-        </div>
-      </form>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

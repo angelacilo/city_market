@@ -30,7 +30,7 @@ export default function CategoriesSection() {
           <div>
             <h2 className="text-gray-900">
               <span className="block text-3xl font-normal font-sans">Essential</span>
-              <span className="block text-3xl font-bold italic font-serif">Categories</span>
+              <span className="block text-3xl font-bold font-serif">Categories</span>
             </h2>
             <p className="mt-3 text-sm text-gray-500 max-w-xl">
               Direct access to the most monitored commodities in Butuan City&apos;s local markets.

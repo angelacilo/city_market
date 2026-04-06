@@ -24,6 +24,36 @@ export interface PriceSnapshot {
   markets: { name: string } | null
 }
 
+export interface Conversation {
+  id: string
+  buyer_id: string
+  vendor_id: string
+  listing_id: string | null
+  product_name: string
+  vendor_name: string
+  market_name: string
+  price: number | null
+  unit: string | null
+  status: 'open' | 'closed'
+  created_at: string
+  last_message_at: string
+  buyer_unread_count: number
+  vendor_unread_count: number
+  buyer_profiles?: {
+    full_name: string
+  } | null
+}
+
+export interface Message {
+  id: string
+  conversation_id: string
+  sender_id: string
+  sender_type: 'buyer' | 'vendor'
+  content: string
+  is_read: boolean
+  created_at: string
+}
+
 export interface Inquiry {
   id: string
   vendor_id: string

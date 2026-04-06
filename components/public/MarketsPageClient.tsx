@@ -32,7 +32,7 @@ export default function MarketsPageClient({ initialMarkets }: MarketsPageClientP
       // For now, we perform search.
       return matchesSearch
     })
-  }, [initialMarkets, search, category])
+  }, [initialMarkets, search])
 
   return (
     <>

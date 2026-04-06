@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import SearchFilters, { FilterState } from './SearchFilters'
 import SearchResultsGrid from './SearchResultsGrid'
 
@@ -40,20 +40,12 @@ export default function SearchResultsWrapper({
   initialListings,
   lowestPrice,
   highestPrice,
-  marketCount,
-  vendorCount,
   availableMarkets,
 }: SearchResultsWrapperProps) {
-  const [filters, setFilters] = useState<FilterState>({
-    sortStr: 'price-low',
-    market: 'all',
-    availability: 'in-stock',
-  })
 
   const [filteredListings, setFilteredListings] = useState<SearchListing[]>(initialListings)
 
   const handleFilterChange = useCallback((newFilters: FilterState) => {
-    setFilters(newFilters)
 
     let results = [...initialListings]
 

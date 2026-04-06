@@ -14,7 +14,7 @@ export default function VendorCTA() {
           <p className="text-xs uppercase tracking-widest text-green-300">Opportunities for locals.</p>
           <h2 className="mt-4 text-white">
             <span className="block text-3xl font-bold font-sans">Are you a</span>
-            <span className="block text-3xl font-bold italic font-serif">local vendor?</span>
+            <span className="block text-3xl font-bold font-serif">local vendor?</span>
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-green-200 max-w-md">
             Register your stall on the official Butuan Market Information System to increase your visibility

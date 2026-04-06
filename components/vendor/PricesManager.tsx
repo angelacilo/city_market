@@ -132,7 +132,7 @@ export default function PricesManager({ listings }: Props) {
                   )}
                 >
                   <div className="flex-1 min-w-0">
-                    <p className={cn("text-base font-black italic font-serif transition-colors", hasChanged ? "text-green-900" : "text-gray-900")}>
+                    <p className={cn("text-base font-black font-serif transition-colors", hasChanged ? "text-green-900" : "text-gray-900")}>
                       {listing.products?.name ?? '—'}
                     </p>
                     <div className="flex items-center gap-2 mt-1">

@@ -14,7 +14,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
   const params = await searchParams
   const query = params.q?.trim()
   if (!query) {
-    return { title: 'Search | BCMIS', description: 'Search for products in Butuan City.' }
+    return { title: 'Search | Butuan City Market', description: 'Search for products in Butuan City.' }
   }
   return {
     title: `Search results for ${query} - Butuan Market IS`,
@@ -40,7 +40,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <Link href="/" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-green-50 hover:text-green-600 transition-colors cursor-pointer group">
                 <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-colors" />
               </Link>
-              <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight italic">
+              <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
                 Search
               </h1>
             </div>
@@ -52,15 +52,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <Search className="w-10 h-10 text-gray-400" />
           </div>
           <div className="space-y-4">
-            <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight italic">Search for a product</h2>
-            <p className="text-gray-500 font-medium leading-relaxed italic">
+            <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">Search for a product</h2>
+            <p className="text-gray-500 font-medium leading-relaxed">
               Type the name of any product such as rice, pork, or bangus in the search bar above to find where it is sold and at what price across all Butuan markets.
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
             {QUICK_SEARCH_TAGS.map(tag => (
               <Link key={tag} href={`/search?q=${tag}`}>
-                <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50/50 hover:bg-green-600 hover:text-white transition-colors cursor-pointer px-4 py-1.5 rounded-full font-bold uppercase text-[10px] tracking-widest italic">
+                <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50/50 hover:bg-green-600 hover:text-white transition-colors cursor-pointer px-4 py-1.5 rounded-full font-bold uppercase text-[10px] tracking-widest">
                   {tag}
                 </Badge>
               </Link>
@@ -105,11 +105,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <Link href="/" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-green-50 hover:text-green-600 transition-colors cursor-pointer group">
                 <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-colors" />
               </Link>
-              <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight italic">
+              <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
                 "{query}"
               </h1>
             </div>
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest italic">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
               No results found for this search.
             </span>
           </div>
@@ -120,15 +120,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <PackageSearch className="w-10 h-10 text-gray-400" />
           </div>
           <div className="space-y-4">
-            <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight italic">No results for "{query}"</h2>
-            <p className="text-gray-500 font-medium leading-relaxed italic">
+            <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">No results for "{query}"</h2>
+            <p className="text-gray-500 font-medium leading-relaxed">
               We could not find any available products matching your search in any Butuan market right now. Try searching with a different spelling or a more general term.
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
             {QUICK_SEARCH_TAGS.map(tag => (
               <Link key={tag} href={`/search?q=${tag}`}>
-                <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50/50 hover:bg-green-600 hover:text-white transition-colors cursor-pointer px-4 py-1.5 rounded-full font-bold uppercase text-[10px] tracking-widest italic">
+                <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50/50 hover:bg-green-600 hover:text-white transition-colors cursor-pointer px-4 py-1.5 rounded-full font-bold uppercase text-[10px] tracking-widest">
                   {tag}
                 </Badge>
               </Link>
@@ -157,11 +157,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <Link href="/" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-green-50 hover:text-green-600 transition-colors cursor-pointer group">
               <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-colors" />
             </Link>
-            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight italic truncate max-w-[150px] sm:max-w-none">
+            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight truncate max-w-[150px] sm:max-w-none">
               "{query}"
             </h1>
           </div>
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest italic text-right pl-4">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest text-right pl-4">
             {listings.length} listings found across {marketCount} markets.
           </span>
         </div>

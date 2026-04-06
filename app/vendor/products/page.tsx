@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import ProductsManager from '@/components/vendor/ProductsManager'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'My Products — Vendor Dashboard | BCMIS' }
+export const metadata = { title: 'My Products — Vendor Dashboard | Butuan City Market' }
 
 export default async function VendorProductsPage() {
   const supabase = await createClient()
@@ -48,7 +48,7 @@ export default async function VendorProductsPage() {
         <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
           My
         </span>
-        <h1 className="text-4xl font-black italic text-green-700 font-serif leading-none">
+        <h1 className="text-4xl font-black text-green-700 font-serif leading-none">
           Products
         </h1>
         <p className="text-sm text-gray-400 mt-2">

@@ -55,7 +55,7 @@ export default function PriceSnapshotTable({ listings }: PriceSnapshotTableProps
                   <td className="px-6 py-4 text-center">
                     <span
                       className={cn(
-                        'font-serif text-lg italic text-gray-900',
+                        'font-serif text-lg text-gray-900',
                         isMin && 'text-green-700'
                       )}
                     >

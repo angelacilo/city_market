@@ -13,13 +13,13 @@ const inter = Inter({
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  style: ["italic"],
+  style: ["normal"],
   weight: ["400", "700"],
   variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
-  title: "BCMIS | Butuan City Market Information System",
+  title: "Butuan City Market | Marketplace & Price Monitor",
   description:
     "Browse all Public Markets in Butuan City, search for products, compare prices, and connect with vendors online.",
 };
@@ -36,7 +36,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white dark:bg-[#0a140a] text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300`}
       >
-        <ThemeProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <ConditionalNavbar />
           <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
             {children}

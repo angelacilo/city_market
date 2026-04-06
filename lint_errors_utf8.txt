@@ -1,0 +1,82 @@
+﻿
+> city_market@0.1.0 lint
+> eslint
+
+
+C:\xampp\htdocs\city_market\app\markets\[id]\page.tsx
+  5:18  warning  'Info' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\app\vendor\layout.tsx
+  3:17  warning  'Home' is defined but never used         @typescript-eslint/no-unused-vars
+  3:23  warning  'CheckCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\Navbar.tsx
+  2:17  warning  'ShoppingBasket' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\auth\RegisterForm.tsx
+  19:20  warning  'MapPin' is defined but never used          @typescript-eslint/no-unused-vars
+  19:28  warning  'DoorOpen' is defined but never used        @typescript-eslint/no-unused-vars
+  96:5   warning  'watch' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\auth\steps\OtpStep.tsx
+  5:10  warning  'Input' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\compare\ComparePageClient.tsx
+  12:10  warning  'Separator' is defined but never used  @typescript-eslint/no-unused-vars
+  18:3   warning  'Sparkles' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\public\InquiryForm.tsx
+  10:10  warning  'Separator' is defined but never used      @typescript-eslint/no-unused-vars
+  18:3   warning  'Check' is defined but never used          @typescript-eslint/no-unused-vars
+  19:3   warning  'MessageCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\public\MarketsPageClient.tsx
+  35:6  warning  React Hook useMemo has an unnecessary dependency: 'category'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\xampp\htdocs\city_market\components\public\PriceCompareTable.tsx
+  47:33  warning  'idx' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\public\ProductCard.tsx
+   2:10  warning  'ShoppingCart' is defined but never used  @typescript-eslint/no-unused-vars
+   2:24  warning  'TrendingUp' is defined but never used    @typescript-eslint/no-unused-vars
+   2:36  warning  'Info' is defined but never used          @typescript-eslint/no-unused-vars
+  20:3   warning  'id' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\public\SearchFilters.tsx
+  3:20  warning  'useMemo' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\public\SearchResultsWrapper.tsx
+   3:20  warning  'useMemo' is defined but never used           @typescript-eslint/no-unused-vars
+  43:3   warning  'marketCount' is defined but never used       @typescript-eslint/no-unused-vars
+  44:3   warning  'vendorCount' is defined but never used       @typescript-eslint/no-unused-vars
+  47:10  warning  'filters' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\shared\InquiryChat.tsx
+  94:6  warning  React Hook useEffect has a missing dependency: 'supabase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\xampp\htdocs\city_market\components\vendor\InquiriesManager.tsx
+   7:43  warning  'Check' is defined but never used       @typescript-eslint/no-unused-vars
+  49:73  warning  'marketName' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\vendor\PricesManager.tsx
+  4:10  warning  'Input' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\vendor\ProductsManager.tsx
+   7:10  warning  'Badge' is defined but never used              @typescript-eslint/no-unused-vars
+   8:10  warning  'Card' is defined but never used               @typescript-eslint/no-unused-vars
+   8:16  warning  'CardContent' is defined but never used        @typescript-eslint/no-unused-vars
+  36:3   warning  'Coins' is defined but never used              @typescript-eslint/no-unused-vars
+  96:10  warning  'InlinePriceEditor' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\components\vendor\VendorSidebarNav.tsx
+   11:3   warning  'Tag' is defined but never used     @typescript-eslint/no-unused-vars
+  158:65  warning  'userId' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\lib\supabase\middleware.ts
+  14:58  warning  'options' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\xampp\htdocs\city_market\tailwind.config.ts
+  71:13  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+Γ£û 37 problems (1 error, 36 warnings)
+

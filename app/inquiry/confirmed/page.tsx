@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Inquiry Sent | BCMIS',
+  title: 'Inquiry Sent | Butuan City Market',
   description: 'Your inquiry has been sent successfully to the vendor.',
 }
 
