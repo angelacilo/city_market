@@ -121,7 +121,7 @@ export default async function StallProfilePage({ params }: { params: Promise<{ i
         {/* Current Supplies Listings block */}
         <div className="mt-8 bg-white rounded-[2rem] border border-gray-100 p-8 sm:p-12 shadow-sm relative overflow-hidden">
            <h2 className="text-lg font-black text-gray-900 tracking-tighter uppercase mb-8 border-b border-gray-100 pb-4">Available Products</h2>
-           <SupplyListings initialListings={listings || []} marketName={(vendor.markets as any)?.name || 'Market'} />
+           <SupplyListings marketId={vendor.market_id} vendorId={vendor.id} marketName={(vendor.markets as any)?.name || 'Market'} />
            {(!listings || listings.length === 0) && (
               <p className="text-xs text-gray-400 font-medium py-8 text-center bg-gray-50 rounded-xl">This stall hasn't listed any active products yet. Check back soon.</p>
            )}

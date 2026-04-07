@@ -41,6 +41,7 @@ export interface Conversation {
   vendor_unread_count: number
   buyer_profiles?: {
     full_name: string
+    is_active?: boolean
   } | null
 }
 
@@ -75,4 +76,30 @@ export interface Inquiry {
       stall_number: string | null
     } | null
   } | null
+}
+
+export interface CanvassItem {
+  id: string
+  list_id: string
+  product_id: string
+  created_at: string
+  products: {
+    name: string
+    category_id: string
+    categories: {
+      name: string
+      color: string | null
+    } | null
+  } | null
+  cheapest_listing?: {
+    price: number
+    market_name: string
+  } | null
+}
+
+export interface CanvassList {
+  id: string
+  buyer_id: string
+  name: string
+  created_at: string
 }

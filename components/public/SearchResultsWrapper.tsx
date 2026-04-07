@@ -8,6 +8,7 @@ export interface SearchListing {
   id: string
   price: number
   is_available: boolean
+  product_id?: string
   vendor_id: string
   products: {
     name: string

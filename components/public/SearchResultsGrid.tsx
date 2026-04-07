@@ -3,8 +3,12 @@
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MapPin, Store, DoorClosed, Star, Sparkles, TrendingUp, Info } from 'lucide-react'
+import { MapPin, Store, DoorClosed, Star, Sparkles, TrendingUp, Info, ShoppingBasket, Check } from 'lucide-react'
 import InquiryTrigger from './InquiryTrigger'
+import { addToCanvass } from '@/lib/actions/canvass'
+import { createClient } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
+import { useState } from 'react'
 import { SearchListing } from './SearchResultsWrapper'
 import Link from 'next/link'
 
@@ -27,6 +31,27 @@ export default function SearchResultsGrid({
   currentBestMarket,
   onClearFilters,
 }: SearchResultsGridProps) {
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'info' } | null>(null)
+  const supabase = createClient()
+
+  const handleAddToCanvass = async (listing: any) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      setToast({ message: 'Please login to use canvass', type: 'info' })
+      setTimeout(() => setToast(null), 2000)
+      return
+    }
+
+    const productId = listing.product_id || listing.id
+    const res = await addToCanvass(productId, session.user.id)
+    if (res.status === 'success') {
+      setToast({ message: 'Added to canvass list', type: 'success' })
+    } else if (res.status === 'already_exists') {
+      setToast({ message: 'Already in your canvass', type: 'info' })
+    }
+    setTimeout(() => setToast(null), 2000)
+  }
+
   if (listings.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 my-12 bg-white rounded-[2rem] shadow-sm border border-gray-100">
@@ -185,9 +210,9 @@ export default function SearchResultsGrid({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 mt-2 sm:mt-auto pt-4 border-t border-gray-50">
+                      <div className="grid grid-cols-[1fr,1fr,48px] gap-3 mt-2 sm:mt-auto pt-4 border-t border-gray-50">
                         <Link href={`/compare?product=${listing.id}`}>
-                          <Button className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-green-600 hover:bg-green-700 text-white font-black uppercase text-[10px] sm:text-xs tracking-widest transition-all shadow-lg shadow-green-100">
+                          <Button className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-green-100 px-1">
                             Compare
                           </Button>
                         </Link>
@@ -204,6 +229,14 @@ export default function SearchResultsGrid({
                           triggerVariant="outline"
                           triggerSize="default"
                         />
+
+                        <button
+                          onClick={() => handleAddToCanvass(listing)}
+                          className="w-12 h-12 rounded-xl border border-gray-100 flex items-center justify-center text-gray-400 hover:text-green-700 hover:bg-green-50 transition-all shadow-sm shrink-0"
+                          title="Add to canvass list"
+                        >
+                          <ShoppingBasket className="w-5 h-5" />
+                        </button>
                       </div>
                     </Card>
                   )
@@ -213,6 +246,24 @@ export default function SearchResultsGrid({
           )
         })}
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className={cn(
+            "px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 backdrop-blur-md border",
+            toast.type === 'success' ? "bg-green-900 border-green-800 text-white" : "bg-gray-900 border-gray-800 text-white"
+          )}>
+            <div className={cn(
+              "w-6 h-6 rounded-full flex items-center justify-center",
+              toast.type === 'success' ? "bg-green-700" : "bg-gray-700"
+            )}>
+              {toast.type === 'success' ? <Check className="w-3.5 h-3.5" /> : <Info className="w-3.5 h-3.5" />}
+            </div>
+            <span className="text-xs font-black uppercase tracking-widest">{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

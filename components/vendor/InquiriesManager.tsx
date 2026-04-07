@@ -20,8 +20,10 @@ import {
   CheckCheck,
   Eye,
   Circle,
-  Dot
+  Dot,
+  Image as ImageIcon
 } from 'lucide-react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDistanceToNow, format } from 'date-fns'
@@ -188,23 +190,25 @@ export default function InquiriesManager({ initialConversations, vendorId }: Inq
     <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-2xl overflow-hidden flex h-[720px] relative">
       
       {/* Sidebar */}
-      <div className="w-96 border-r border-gray-50 flex flex-col h-full bg-gray-50/20">
-        <div className="p-8 pb-4">
-           <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2 font-serif italic">Inbox</h2>
-              <div className="px-3 py-1 bg-[#1b6b3e]/10 rounded-full">
-                 <p className="text-[9px] font-black uppercase tracking-widest text-[#1b6b3e]">{conversations.length} Active</p>
+      <div className="w-80 border-r border-gray-100 flex flex-col h-full bg-white">
+        <div className="p-5">
+           <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Chats</h1>
+              <div className="flex gap-2">
+                 <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 cursor-pointer transition-colors">
+                    <MoreVertical className="w-4 h-4 text-gray-600" />
+                 </div>
               </div>
            </div>
            
-           <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#1b6b3e] transition-colors" />
+           <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input 
                  type="text" 
-                 placeholder="Search conversations..."
+                 placeholder="Search Messenger"
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}
-                 className="w-full h-12 bg-white border border-gray-100 rounded-2xl pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#1b6b3e]/20 transition-all shadow-sm"
+                 className="w-full h-9 bg-gray-100 border-none rounded-full pl-10 pr-4 text-sm focus:outline-none focus:ring-0 placeholder:text-gray-500"
               />
            </div>
         </div>
@@ -238,7 +242,11 @@ export default function InquiriesManager({ initialConversations, vendorId }: Inq
                               "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm shadow-sm border border-gray-100",
                               hasUnread ? "bg-[#1b6b3e] text-white" : "bg-white text-gray-400"
                            )}>
-                              {(c.buyer_profiles?.full_name || 'B')[0]}
+                              {c.buyer_profiles?.avatar_url ? (
+                                <Image src={c.buyer_profiles.avatar_url} alt="" fill className="object-cover" />
+                              ) : (
+                                (c.buyer_profiles?.full_name || 'B')[0]
+                              )}
                            </div>
                            {isOnline && (
                               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center border border-gray-50 shadow-sm">
@@ -281,122 +289,150 @@ export default function InquiriesManager({ initialConversations, vendorId }: Inq
       {/* Chat window */}
       <div className="flex-1 flex flex-col h-full bg-white relative">
         {!activeConversationId ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#fafcfa]">
-            <div className="w-24 h-24 bg-white rounded-[2.5rem] shadow-2xl flex items-center justify-center mb-10 border border-gray-50">
-                <MessageCircle className="w-10 h-10 text-gray-100" />
+          <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                <MessageCircle className="w-10 h-10 text-gray-200" />
             </div>
-            <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight leading-none italic font-serif">Vendor Hub</h2>
-            <p className="text-gray-400 font-medium text-center max-w-[280px] text-sm leading-relaxed">
-               Select an incoming inquiry from the sidebar to start a real-time negotiation.
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Select a chat</h2>
+            <p className="text-gray-500 text-sm">Choose from your existing inquiries to start messaging.</p>
           </div>
         ) : (
           <>
-            <div className="px-10 py-6 border-b border-gray-50 bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                   <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100 shadow-sm transition-transform hover:scale-105 duration-300">
-                      <ShoppingBag className="w-6 h-6 text-[#1b6b3e]" />
-                   </div>
-                   <div className="hidden sm:block">
-                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#1b6b3e] opacity-50 mb-0.5">Active Negotiation</p>
-                      <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">Direct Inquiry</h4>
-                   </div>
-                </div>
-                
-                {/* Buyer Details Context - Right Aligned */}
-                <div className="flex flex-col items-end gap-2">
-                   <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 shadow-sm">
-                         <div className={cn("w-1.5 h-1.5 rounded-full", onlineUsers.has(activeConversation?.buyer_id) ? "bg-green-500 animate-pulse" : "bg-gray-300")} />
-                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none">
-                            {onlineUsers.has(activeConversation?.buyer_id) ? 'Online' : 'Offline'}
-                         </span>
-                      </div>
-                      <h5 className="text-lg font-black text-gray-900 tracking-tight leading-none italic font-serif uppercase">
+            {/* Header */}
+            <div className="h-16 px-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+               <div className="flex items-center gap-3">
+                  <div className="relative shrink-0">
+                     <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 overflow-hidden relative">
+                        {activeConversation?.buyer_profiles?.avatar_url ? (
+                          <Image 
+                            src={activeConversation.buyer_profiles.avatar_url}
+                            alt=""
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          (activeConversation?.buyer_profiles?.full_name || 'B')[0]
+                        )}
+                     </div>
+                     {onlineUsers.has(activeConversation?.buyer_id) && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+                     )}
+                  </div>
+                  <div className="flex flex-col">
+                     <h4 className="text-sm font-bold text-gray-900 leading-tight">
                         {activeConversation?.buyer_profiles?.full_name || 'Anonymous Buyer'}
-                      </h5>
-                   </div>
- 
-                   {/* Pinned Product Badge */}
-                   <div className="group flex items-center gap-3 bg-[#1b6b3e] text-white px-4 py-2 rounded-2xl shadow-xl shadow-green-900/20 transform hover:-translate-x-1 transition-transform cursor-help">
-                      <div className="flex flex-col items-end">
-                         <span className="text-[9px] font-black uppercase tracking-widest opacity-80 leading-none mb-1">Pinned Product</span>
-                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-black uppercase tracking-tight text-white/90">
-                              {activeConversation?.product_name}
-                            </span>
-                            <div className="w-1 h-1 bg-white/40 rounded-full" />
-                            <span className="text-[10px] font-black text-white">
-                              ₱{activeConversation?.price} / {activeConversation?.unit}
-                            </span>
-                         </div>
-                      </div>
-                      <div className="bg-white/10 p-2 rounded-xl border border-white/10">
-                         <ExternalLink className="w-3 h-3 text-white" />
-                      </div>
-                   </div>
-                </div>
+                     </h4>
+                     <p className="text-[11px] text-gray-500 font-medium">
+                        {onlineUsers.has(activeConversation?.buyer_id) ? 'Active now' : 'Offline'}
+                     </p>
+                  </div>
+               </div>
+               
+               <div className="flex items-center gap-4">
+                  <div className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors">
+                     <svg className="w-5 h-5 text-[#1b6b3e]" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                  </div>
+                  <div className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors">
+                     <svg className="w-5 h-5 text-[#1b6b3e]" fill="currentColor" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                  </div>
+                  <div className="p-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors">
+                     <Dot className="w-6 h-6 text-[#1b6b3e]" />
+                  </div>
+               </div>
             </div>
  
-            <div className="flex-1 overflow-y-auto p-10 space-y-8 scrollbar-hide">
+            {/* Pinned Product Bar */}
+            <div className="px-5 py-2 bg-white/80 backdrop-blur-sm border-b border-gray-50 flex items-center gap-3 shrink-0">
+               <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z"/></svg>
+               </div>
+               <div className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500">
+                  <span className="text-gray-900">{activeConversation?.product_name}</span>
+                  <span className="text-gray-300">•</span>
+                  <span>₱{activeConversation?.price}/{activeConversation?.unit}</span>
+               </div>
+            </div>
+ 
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
                {loadingMessages ? (
                  <div className="flex items-center justify-center h-full">
-                    <Loader2 className="w-8 h-8 text-[#1b6b3e] animate-spin" />
+                    <Loader2 className="w-6 h-6 text-[#1b6b3e] animate-spin" />
                  </div>
                ) : (
-                 messages.map((m, idx) => {
-                   const isMe = m.sender_type === 'vendor'
-                   const isLast = idx === messages.length - 1
-                   return (
-                     <div key={m.id} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
-                       <div className={cn("max-w-[75%] group", isMe ? "text-right" : "text-left")}>
-                         <div className={cn(
-                           "p-5 rounded-[1.8rem] text-sm font-medium leading-relaxed shadow-sm transition-all group-hover:shadow-md",
-                           isMe ? "bg-[#1b6b3e] text-white rounded-tr-none shadow-green-900/10" : "bg-white text-gray-600 rounded-tl-none border border-gray-100"
-                         )}>
-                           {m.content}
-                         </div>
-                         
-                         <div className={cn("flex items-center gap-2 mt-2 px-1 opacity-0 group-hover:opacity-100 transition-opacity", isMe ? "justify-end" : "justify-start")}>
-                           <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-                             {format(new Date(m.created_at), 'h:mm a')}
-                           </span>
-                           {isMe && isLast && (
-                             <div className="flex items-center gap-1 text-[#1b6b3e]">
-                               {m.read_at ? (
-                                  <div className="flex items-center gap-1 bg-green-50 px-1.5 py-0.5 rounded-full border border-green-100/50">
-                                     <Eye className="w-2.5 h-2.5" />
-                                     <span className="text-[7px] font-black uppercase tracking-tighter">Seen {format(new Date(m.read_at), 'h:mm a')}</span>
-                                  </div>
-                               ) : (
-                                  <div className="flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded-full">
-                                     <CheckCheck className="w-3 h-3 text-gray-300" />
-                                     <span className="text-[7px] font-black uppercase tracking-tighter">Delivered</span>
-                                  </div>
-                               )}
-                             </div>
-                           )}
-                         </div>
-                       </div>
-                     </div>
-                   )
-                 })
+                 <div className="flex flex-col space-y-1">
+                  {messages.map((m, idx) => {
+                    const isMe = m.sender_type === 'vendor'
+                    const isLast = idx === messages.length - 1
+                    const showTime = idx === 0 || (new Date(m.created_at).getTime() - new Date(messages[idx-1].created_at).getTime() > 1000 * 60 * 30)
+ 
+                    return (
+                      <div key={m.id} className="flex flex-col w-full">
+                        {showTime && (
+                          <div className="w-full text-center py-6">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                               {format(new Date(m.created_at), 'MMM d, h:mm a')}
+                            </span>
+                          </div>
+                        )}
+                        <div className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
+                          <div className={cn("max-w-[70%] group", isMe ? "items-end" : "items-start")}>
+                            <div className={cn(
+                              "px-4 py-2 my-[1px] text-[15px] font-medium leading-normal shadow-none transition-all",
+                              isMe 
+                                ? "bg-[#1b6b3e] text-white rounded-[1.25rem] rounded-tr-none" 
+                                : "bg-[#f0f0f0] text-gray-900 rounded-[1.25rem] rounded-tl-none"
+                            )}>
+                              {m.content}
+                            </div>
+                            
+                            {isMe && isLast && (
+                              <div className="relative h-4 mt-0.5">
+                                 <p className="absolute right-1 text-[10px] font-bold text-gray-400">
+                                   {m.read_at ? 'Seen' : 'Delivered'}
+                                 </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                 </div>
                )}
                <div ref={messagesEndRef} />
             </div>
  
-            <div className="p-8 border-t border-gray-50 bg-gray-50/20">
-               <form onSubmit={handleSend} className="bg-white rounded-[1.8rem] p-2 border border-gray-100 shadow-xl flex items-center group focus-within:ring-2 focus-within:ring-[#1b6b3e]/10 transition-all">
-                  <Textarea 
-                     value={reply}
-                     onChange={(e) => setReply(e.target.value)}
-                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e); } }}
-                     placeholder="Securely reply to inquirer..."
-                     className="flex-1 border-none bg-transparent resize-none focus-visible:ring-0 text-sm font-medium p-4 py-4 min-h-[56px]"
-                  />
-                  <Button type="submit" disabled={sending || !reply.trim()} className="w-12 h-12 rounded-2xl bg-[#1b6b3e] hover:bg-[#155430] text-white p-0 shrink-0 mx-2 shadow-lg shadow-green-900/10">
-                     {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                  </Button>
+            <div className="p-3 bg-white shrink-0">
+               <form onSubmit={handleSend} className="flex items-center gap-2">
+                  <div className="flex gap-2 text-[#1b6b3e] px-1">
+                     <div className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                     </div>
+                     <div className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c0 1.1.9-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                     </div>
+                  </div>
+                  <div className="flex-1 bg-gray-100 rounded-full flex items-center px-4 py-1.5">
+                     <Textarea 
+                        value={reply}
+                        onChange={(e) => setReply(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e); } }}
+                        placeholder="Aa"
+                        className="flex-1 border-none bg-transparent resize-none focus-visible:ring-0 text-[15px] p-1 min-h-[32px] max-h-32 scrollbar-hide"
+                     />
+                     <div className="text-[#1b6b3e] hover:bg-gray-200 rounded-full p-1 cursor-pointer">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5s.67 1.5 1.5 1.5zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+                     </div>
+                  </div>
+                  <button type="submit" className="p-2 text-[#1b6b3e] transition-transform active:scale-90 disabled:opacity-30">
+                     {sending ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                     ) : !reply.trim() ? (
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M2 13c0-1.1.9-2 2-2h1c1.1 0 2 .9 2 2v2H2v-2zM20 13c0-1.1-.9-2-2-2h-1c-1.1 0-2 .9-2 2v2h5v-2zM12 2c-4.41 0-8 3.59-8 8v1h16v-1c0-4.41-3.59-8-8-8zM12 14c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2s2-.9 2-2v-4c0-1.1-.9-2-2-2z"/></svg> 
+                     ) : (
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                     )}
+                  </button>
                </form>
             </div>
           </>

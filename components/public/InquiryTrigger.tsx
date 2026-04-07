@@ -66,12 +66,12 @@ export default function InquiryTrigger({
         className={cn(
           triggerVariant === 'solid'
             ? 'bg-[#1b6b3e] hover:bg-[#155430] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-lg shadow-green-900/10'
-            : 'rounded-2xl border-gray-200 text-gray-700 font-bold text-[10px] uppercase tracking-widest',
+            : triggerVariant === 'outline' ? 'rounded-2xl border-gray-200 text-gray-700 font-bold text-[10px] uppercase tracking-widest' : '',
           className
         )}
       >
-        <span>{triggerLabel}</span>
-        <MessageCircle className="w-4 h-4 ml-2" />
+        {triggerLabel && <span>{triggerLabel}</span>}
+        <MessageCircle className={cn("w-4 h-4", triggerLabel && "ml-2")} />
       </Button>
  
       {/* Inquiry Form (Main Dialog) */}

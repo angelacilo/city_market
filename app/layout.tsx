@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import FloatingChatWrapper from "@/components/public/FloatingChatWrapper";
 
 export default function RootLayout({
   children,
@@ -46,6 +47,7 @@ export default function RootLayout({
           <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
             {children}
           </main>
+          <FloatingChatWrapper />
           <BottomNav />
           <Footer />
         </ThemeProvider>
