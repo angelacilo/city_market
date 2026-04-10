@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { PresenceProvider } from "@/components/providers/PresenceProvider";
 import FloatingChatWrapper from "@/components/public/FloatingChatWrapper";
 
 export default function RootLayout({
@@ -43,13 +44,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ConditionalNavbar />
-          <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
-            {children}
-          </main>
-          <FloatingChatWrapper />
-          <BottomNav />
-          <Footer />
+          <PresenceProvider>
+            <ConditionalNavbar />
+            <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
+              {children}
+            </main>
+            <FloatingChatWrapper />
+            <BottomNav />
+            <Footer />
+          </PresenceProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -225,6 +225,7 @@ export default function SearchResultsGrid({
                           marketName={listing.markets?.name ?? ''}
                           price={listing.price}
                           unit={listing.products?.unit ?? 'unit'}
+                          productImage={listing.products?.image_url}
                           triggerLabel="Ask vendor"
                           triggerVariant="outline"
                           triggerSize="default"

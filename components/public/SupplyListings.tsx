@@ -322,6 +322,7 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
                         marketName={marketName}
                         price={listing.price}
                         unit={listing.products?.unit ?? 'unit'}
+                        productImage={listing.products?.image_url}
                         triggerLabel=""
                         triggerVariant="ghost"
                         triggerSize="icon"

@@ -276,7 +276,7 @@ export default function ComparePageClient({
       .from('price_listings')
       .select(`
         id, price, is_available, last_updated, vendor_id, market_id, product_id,
-        products ( id, name, unit ),
+        products ( id, name, unit, image_url ),
         vendors ( id, business_name, stall_number, contact_number, owner_name ),
         markets ( id, name, barangay, address )
       `)
@@ -625,6 +625,7 @@ export default function ComparePageClient({
                             marketName={listing.markets?.name ?? ''}
                             price={listing.price}
                             unit={listing.products?.unit ?? 'unit'}
+                            productImage={listing.products?.image_url}
                             triggerLabel="Ask Vendor"
                             triggerVariant="solid" 
                             triggerSize="lg"

@@ -24,20 +24,22 @@ export default async function VendorPricesPage() {
     .order('price', { ascending: true })
 
   return (
-    <div className="space-y-8">
-      <div>
-        <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
-          Update
-        </span>
-        <h1 className="text-4xl font-black text-green-700 font-serif leading-none">
-          Prices
-        </h1>
-        <p className="text-sm text-gray-400 mt-2 font-medium">
-          Manage your stall catalog and set current market rates.
-        </p>
-      </div>
+    <div className="flex-1 overflow-y-auto p-6 sm:p-10 lg:p-14 custom-scrollbar h-full">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div>
+          <span className="text-sm font-sans font-normal text-gray-500 uppercase tracking-wide block mb-1">
+            Update
+          </span>
+          <h1 className="text-4xl font-black text-green-700 font-serif leading-none">
+            Prices
+          </h1>
+          <p className="text-sm text-gray-400 mt-2 font-medium">
+            Manage your stall catalog and set current market rates.
+          </p>
+        </div>
 
-      <PricesManager listings={(listings as any[]) ?? []} />
+        <PricesManager listings={(listings as any[]) ?? []} />
+      </div>
     </div>
   )
 }

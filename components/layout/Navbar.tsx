@@ -10,6 +10,7 @@ import {
   LogOut,
   User as UserIcon,
   ShoppingBasket,
+  Store,
   Bell,
   Check,
   ChevronDown,
@@ -25,6 +26,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
+import { setUserOnlineStatus } from '@/lib/actions/messenger'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 import { ThemeToggle } from './ThemeToggle'
 import CanvassSheet from '../public/CanvassSheet'
@@ -54,10 +56,42 @@ export default function Navbar() {
   const [profile, setProfile] = useState<any>(null)
   const [isCanvassOpen, setIsCanvassOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [isActive, setIsActive] = useState(true)
+  const [isActive, setIsActive] = useState(false)
+  const [isTogglingActive, setIsTogglingActive] = useState(false)
   const { theme, setTheme } = useTheme()
 
   const supabase = createClient()
+
+  // Handle active status toggle - connect to database
+  const handleActiveStatusToggle = async (newStatus: boolean) => {
+    if (!user) return
+    setIsTogglingActive(true)
+    try {
+      await setUserOnlineStatus(user.id, 'buyer', newStatus)
+      setIsActive(newStatus)
+      // Store in localStorage for persistence
+      localStorage.setItem('bcmis_buyer_active', newStatus ? 'true' : 'false')
+    } catch (err) {
+      console.error('Error updating online status:', err)
+    } finally {
+      setIsTogglingActive(false)
+    }
+  }
+
+  // Setup beforeunload listener for automatic offline detection
+  useEffect(() => {
+    if (userType !== 'buyer' || !user) return
+
+    const handleBeforeUnload = () => {
+      navigator.sendBeacon('/api/set-offline', JSON.stringify({
+        userId: user.id,
+        type: 'buyer'
+      }))
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [user, userType])
 
   const fetchStats = useCallback(async (userId: string, type: 'buyer' | 'vendor' | 'admin') => {
     if (type === 'buyer') {
@@ -115,6 +149,15 @@ export default function Navbar() {
       setUserType('buyer')
       setProfile(buyerRes.data)
       fetchStats(userId, 'buyer')
+      
+      // Load active status from localStorage or database
+      const savedStatus = localStorage.getItem('bcmis_buyer_active')
+      if (savedStatus !== null) {
+        setIsActive(savedStatus === 'true')
+      } else if (buyerRes.data.is_online !== undefined) {
+        setIsActive(buyerRes.data.is_online)
+        localStorage.setItem('bcmis_buyer_active', buyerRes.data.is_online ? 'true' : 'false')
+      }
     }
     setLoading(false)
   }, [supabase, fetchStats])
@@ -251,10 +294,11 @@ export default function Navbar() {
                           <span className="text-xs font-bold text-gray-600">Active Status</span>
                         </div>
                         <div 
-                          onClick={() => setIsActive(!isActive)}
+                          onClick={() => !isTogglingActive && handleActiveStatusToggle(!isActive)}
                           className={cn(
-                            "w-8 h-4 rounded-full transition-all relative border",
-                            isActive ? "bg-green-500 border-green-600" : "bg-gray-200 border-gray-300"
+                            "w-8 h-4 rounded-full transition-all relative border cursor-pointer",
+                            isActive ? "bg-green-500 border-green-600" : "bg-gray-200 border-gray-300",
+                            isTogglingActive && "opacity-50 cursor-not-allowed"
                           )}
                         >
                           <div className={cn(
@@ -307,14 +351,27 @@ export default function Navbar() {
               </div>
             ) : userType === 'vendor' ? (
               <div className="flex items-center gap-6">
-                <span className="text-xs font-black text-gray-900 uppercase tracking-widest">
-                  {profile?.business_name || 'Vendor'}
-                </span>
-                <Button asChild variant="ghost" className="rounded-full text-green-700 font-black uppercase text-[10px] tracking-widest hover:bg-green-50">
-                  <Link href="/vendor/dashboard">Dashboard</Link>
-                </Button>
-                <button onClick={handleLogout} className="text-red-500 hover:text-red-600 transition-colors">
-                  <LogOut className="w-5 h-5" />
+                {/* Market Symbol (Dashboard) */}
+                <Link href="/vendor/dashboard" className="relative group" title="Vendor Dashboard">
+                  <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-white group-hover:shadow-xl transition-all duration-300">
+                    <Store className="w-5 h-5 text-gray-400 group-hover:text-[#1b6b3e] transition-colors" />
+                  </div>
+                </Link>
+
+                {/* User Profile */}
+                <Link href="/vendor/profile" className="flex items-center gap-2 group" title="My Profile">
+                  <div className="w-9 h-9 rounded-full bg-[#1b6b3e] text-white flex items-center justify-center text-xs font-black shadow-lg shadow-green-900/10 active:scale-95 transition-all">
+                    {getInitials(profile?.owner_name || 'Vendor')}
+                  </div>
+                </Link>
+
+                {/* Logout Button */}
+                <button 
+                  onClick={handleLogout} 
+                  className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 hover:bg-red-50 hover:border-red-100 group transition-all duration-300"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
                 </button>
               </div>
             ) : !loading && (

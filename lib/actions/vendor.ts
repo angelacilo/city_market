@@ -257,12 +257,13 @@ export async function markInquiryRead(inquiryId: string) {
 export async function updateVendorProfile(
   vendorId: string,
   data: {
-    business_name: string
+    business_name?: string
     owner_name?: string
     stall_number?: string
     contact_number?: string
     opening_time?: string
     closing_time?: string
+    is_active?: boolean
   }
 ) {
   const supabase = await createClient()
@@ -270,12 +271,13 @@ export async function updateVendorProfile(
   const { error } = await supabase
     .from('vendors')
     .update({
-      business_name: data.business_name,
+      ...(data.business_name && { business_name: data.business_name }),
       owner_name: data.owner_name || null,
       stall_number: data.stall_number || null,
       contact_number: data.contact_number || null,
       opening_time: data.opening_time || null,
       closing_time: data.closing_time || null,
+      ...(data.is_active !== undefined && { is_active: data.is_active }),
     })
     .eq('id', vendorId)
 

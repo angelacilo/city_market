@@ -20,6 +20,7 @@ interface InquiryTriggerProps {
   triggerVariant?: 'solid' | 'outline' | 'ghost'
   triggerSize?: 'default' | 'sm' | 'lg' | 'icon'
   className?: string
+  productImage?: string | null
 }
  
 export default function InquiryTrigger({
@@ -33,6 +34,7 @@ export default function InquiryTrigger({
   triggerLabel = 'Ask Vendor',
   triggerVariant = 'solid',
   triggerSize = 'default',
+  productImage,
   className,
 }: InquiryTriggerProps) {
   const [showInquiryForm, setShowInquiryForm] = useState(false)
@@ -85,6 +87,7 @@ export default function InquiryTrigger({
         marketName={marketName}
         price={price}
         unit={unit}
+        productImage={productImage}
       />
  
       {/* Login Gate Prompt */}

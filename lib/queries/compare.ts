@@ -12,6 +12,7 @@ export interface ComparisonListing {
     id: string
     name: string
     unit: string
+    image_url: string | null
   } | null
   vendors: {
     id: string
@@ -50,7 +51,7 @@ export async function fetchComparisonData(productId: string): Promise<Comparison
       vendor_id,
       market_id,
       product_id,
-      products ( id, name, unit ),
+      products ( id, name, unit, image_url ),
       vendors ( id, business_name, stall_number, contact_number, owner_name ),
       markets ( id, name, barangay, address )
     `)
