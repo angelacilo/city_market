@@ -144,11 +144,11 @@ function ProductSearchBar({
     <div ref={containerRef} className="relative flex-1">
       {/* If a product is selected, show it as a chip */}
       {selectedProduct && !isOpen ? (
-        <div className="flex items-center h-14 rounded-xl border border-[#1b6b3e]/20 bg-[#1b6b3e]/5 px-4 gap-2">
-          <ShoppingBag className="w-5 h-5 text-[#1b6b3e]/60 flex-shrink-0" />
-          <span className="text-sm font-bold text-gray-900 truncate flex-1 text-left">
+        <div className="flex items-center h-14 rounded-xl border border-[#1b6b3e]/20 dark:border-green-500/10 bg-[#1b6b3e]/5 dark:bg-green-500/5 px-4 gap-2">
+          <ShoppingBag className="w-5 h-5 text-[#1b6b3e]/60 dark:text-green-500/40 flex-shrink-0" />
+          <span className="text-sm font-bold text-gray-900 dark:text-white truncate flex-1 text-left">
             {selectedProduct.name}
-            <span className="text-gray-400 font-medium ml-1">({selectedProduct.unit})</span>
+            <span className="text-gray-400 dark:text-gray-600 font-medium ml-1">({selectedProduct.unit})</span>
           </span>
           {loading ? (
             <Loader2 className="w-4 h-4 text-[#1b6b3e] animate-spin flex-shrink-0" />
@@ -178,7 +178,7 @@ function ProductSearchBar({
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
             placeholder="e.g. Rice, Chicken, Tomatoes..."
-            className="w-full h-14 pl-12 pr-10 rounded-xl border-none bg-gray-100 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1b6b3e]/20 transition-all"
+            className="w-full h-14 pl-12 pr-10 rounded-xl border-none bg-gray-100 dark:bg-white/5 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#1b6b3e]/20 transition-all shadow-inner"
           />
           {query && (
             <button
@@ -197,7 +197,7 @@ function ProductSearchBar({
  
       {/* Dropdown results */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-100 shadow-2xl z-50 max-h-80 overflow-y-auto p-1.5 translate-y-0 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#0a0f0a] rounded-2xl border border-gray-100 dark:border-white/10 shadow-2xl z-50 max-h-80 overflow-y-auto p-1.5 translate-y-0 animate-in fade-in slide-in-from-top-2 duration-300">
           {totalResults === 0 ? (
             <div className="px-6 py-10 text-center">
               <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -347,16 +347,16 @@ export default function ComparePageClient({
   /* ---------------------------------------------------------------- */
  
   return (
-    <div className="min-h-screen bg-white pb-20 md:pb-8">
+    <div className="min-h-screen bg-white dark:bg-[#050a05] pb-20 md:pb-8 transition-colors duration-500">
       {/* ============================================================ */}
       {/* Hero Header                                                    */}
       {/* ============================================================ */}
-      <div className="bg-white">
+      <div className="bg-white dark:bg-[#050a05] transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6 pt-16 pb-12">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight leading-tight mb-6">
-            Compare Prices <span className="font-serif italic font-medium text-[#1b6b3e]">Across Markets</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-tight mb-6 italic font-serif">
+            Compare Prices <span className="font-serif italic font-medium text-[#1b6b3e] dark:text-green-500">Across Markets</span>
           </h1>
-          <p className="text-gray-500 text-sm font-medium max-w-2xl leading-relaxed">
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium max-w-2xl leading-relaxed">
             Access verified agricultural data from city bureaus. Select your products and<br className="hidden md:block" />
             compare live pricing from all official municipal market hubs.
           </p>
@@ -364,7 +364,7 @@ export default function ComparePageClient({
  
         {/* New Search Controls Bar */}
         <div className="max-w-6xl mx-auto px-6 pb-16">
-          <div className="bg-white rounded-[2rem] p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] border border-gray-100">
+          <div className="bg-white dark:bg-[#0a0f0a] rounded-[2rem] p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-white/5 transition-colors">
             <div className="grid grid-cols-1 lg:grid-cols-12 items-end gap-8">
               
               {/* Product Search */}
@@ -391,7 +391,7 @@ export default function ComparePageClient({
                 <div className="relative group">
                   <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#1b6b3e]/60 z-10" />
                   <Select value={activeMarketFilter} onValueChange={setActiveMarketFilter}>
-                    <SelectTrigger className="h-14 pl-12 pr-6 rounded-xl border-none bg-gray-100 font-bold text-sm text-gray-900 group-hover:bg-gray-200/50 transition-colors">
+                    <SelectTrigger className="h-14 pl-12 pr-6 rounded-xl border-none bg-gray-100 dark:bg-white/5 font-bold text-sm text-gray-900 dark:text-white group-hover:bg-gray-200/50 transition-colors shadow-inner">
                       <SelectValue placeholder="All Markets" />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-gray-100 shadow-2xl">
@@ -430,7 +430,7 @@ export default function ComparePageClient({
         {/* Empty State — No product selected                            */}
         {/* ============================================================ */}
         {!selectedProductId && !loading && (
-          <div className="rounded-[3rem] bg-gradient-to-br from-gray-50 to-white border border-gray-100 py-32 flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
+          <div className="rounded-[3rem] bg-gradient-to-br from-gray-50 to-white dark:from-[#081008] dark:to-[#050a05] border border-gray-100 dark:border-white/5 py-32 flex flex-col items-center justify-center text-center px-4 relative overflow-hidden transition-colors duration-500">
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#1b6b3e 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
             
             <div className="w-24 h-24 bg-white rounded-3xl shadow-2xl flex items-center justify-center mb-10 relative z-10 animate-bounce-slow">
@@ -440,7 +440,7 @@ export default function ComparePageClient({
                </div>
             </div>
             
-            <h2 className="text-2xl font-black text-gray-900 mb-4 tracking-tight relative z-10">
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4 tracking-tight relative z-10 font-serif italic">
               Search for a product to compare prices
             </h2>
             <p className="text-gray-400 max-w-md mx-auto text-sm font-medium leading-relaxed mb-12 relative z-10">
@@ -499,28 +499,28 @@ export default function ComparePageClient({
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Summary strip */}
             {stats && (
-              <div className="flex flex-wrap items-center gap-x-12 gap-y-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-12 pb-6 border-b border-gray-100">
+              <div className="flex flex-wrap items-center gap-x-12 gap-y-4 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-12 pb-6 border-b border-gray-100 dark:border-white/5">
                 <div className="flex items-center gap-3">
                   <span className="w-2 h-2 rounded-full bg-blue-500" />
                   <span>Verified Listings:</span>
-                  <span className="text-gray-900 tracking-normal">{stats.totalListings} Units</span>
+                  <span className="text-gray-900 dark:text-white tracking-normal">{stats.totalListings} Units</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-2 h-2 rounded-full bg-green-500" />
                   <span>Market Hubs:</span>
-                  <span className="text-gray-900 tracking-normal">{stats.uniqueMarkets} Hubs</span>
+                  <span className="text-gray-900 dark:text-white tracking-normal">{stats.uniqueMarkets} Hubs</span>
                 </div>
                 <div className="flex items-center gap-3 lg:ml-auto">
                   <span className="w-2 h-2 rounded-full bg-green-600" />
                   <span>Global Min Price:</span>
-                  <Badge className="bg-[#1b6b3e] text-white font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-widest">
+                  <Badge className="bg-[#1b6b3e] dark:bg-green-600 text-white font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-widest">
                     {formatPeso(stats.lowestPrice)}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-gray-300" />
+                  <span className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-700" />
                   <span>Global Max Price:</span>
-                  <span className="text-gray-900 tracking-normal">{formatPeso(stats.highestPrice)}</span>
+                  <span className="text-gray-900 dark:text-white tracking-normal">{formatPeso(stats.highestPrice)}</span>
                 </div>
               </div>
             )}
@@ -549,8 +549,8 @@ export default function ComparePageClient({
                     <div
                       key={listing.id}
                       className={cn(
-                        "group relative bg-white rounded-[2.5rem] overflow-hidden transition-all duration-500 border border-gray-100 hover:shadow-2xl hover:shadow-[#1b6b3e]/5 hover:-translate-y-1",
-                        isBest && "ring-2 ring-[#007e41] shadow-xl shadow-[#007e41]/5"
+                        "group relative bg-white dark:bg-[#0a0f0a] rounded-[2.5rem] overflow-hidden transition-all duration-500 border border-gray-100 dark:border-white/5 hover:shadow-2xl dark:hover:shadow-[0_0_40px_-10px_rgba(27,107,62,0.3)] hover:-translate-y-1",
+                        isBest && "ring-2 ring-[#007e41] shadow-xl shadow-[#007e41]/5 dark:shadow-[0_0_40px_-5px_rgba(34,197,94,0.1)]"
                       )}
                     >
                       <div className="p-8">
@@ -559,7 +559,7 @@ export default function ComparePageClient({
                           <div className="text-left">
                             <div className="flex items-center gap-2 mb-1">
                                <Store className="w-4 h-4 text-[#1b6b3e]" />
-                               <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.1em]">
+                               <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-[0.1em]">
                                  {listing.markets?.name ?? '—'}
                                </h3>
                             </div>
@@ -577,7 +577,7 @@ export default function ComparePageClient({
                             )}
                             <p className={cn(
                               "text-4xl font-black tracking-tight",
-                              isBest ? 'text-[#007e41]' : 'text-gray-900'
+                              isBest ? 'text-[#007e41] dark:text-green-500' : 'text-gray-900 dark:text-white'
                             )}>
                               {formatPeso(listing.price)}
                             </p>
@@ -588,13 +588,13 @@ export default function ComparePageClient({
                         </div>
  
                         {/* Vendor info */}
-                        <div className="bg-gray-50 rounded-2xl p-5 flex items-center justify-between mb-8">
+                        <div className="bg-gray-50 dark:bg-black/40 rounded-2xl p-5 flex items-center justify-between mb-8">
                            <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-gray-100">
                                  <LayoutDashboard className="w-5 h-5 text-[#1b6b3e]/60" />
                               </div>
                               <div className="text-left">
-                                 <p className="text-xs font-black text-gray-900 uppercase tracking-wide">
+                                 <p className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wide">
                                    {listing.vendors?.business_name ?? '—'}
                                  </p>
                                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">

@@ -42,6 +42,7 @@ export default async function VendorProfilePage() {
             closing_time: vendor.closing_time ?? '',
           }}
           marketName={(vendor.markets as any)?.name ?? '—'}
+          email={user.email!}
         />
       </div>
     </div>

@@ -83,11 +83,11 @@ export default function PricesManager({ listings }: Props) {
   )
  
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-8 max-w-4xl transition-colors duration-500">
       {/* Success/Error Banners */}
       <div className="grid gap-4">
         {success && failedNames.length === 0 && (
-          <div className="flex items-center gap-4 bg-[#f0f7f0] dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 rounded-[2rem] px-8 py-6 shadow-xl shadow-green-900/5 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-4 bg-[#f0f7f0] dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 rounded-[2rem] px-8 py-6 shadow-xl shadow-green-900/5 dark:shadow-[0_0_50px_rgba(27,107,62,0.15)] animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="w-12 h-12 rounded-2xl bg-white dark:bg-[#121212] flex items-center justify-center text-[#1b6b3e] dark:text-green-500 shadow-sm border border-green-50 dark:border-white/5">
                <CheckCircle2 className="w-6 h-6" />
             </div>
@@ -97,7 +97,7 @@ export default function PricesManager({ listings }: Props) {
             </div>
           </div>
         )}
- 
+
         {failedNames.length > 0 && (
           <div className="flex items-start gap-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-[2rem] px-8 py-6 shadow-xl shadow-red-900/5 transition-colors">
             <div className="w-12 h-12 rounded-2xl bg-white dark:bg-[#121212] flex items-center justify-center text-red-600 shadow-sm mt-1 border border-red-50 dark:border-white/5">
@@ -115,7 +115,7 @@ export default function PricesManager({ listings }: Props) {
           </div>
         )}
       </div>
- 
+
       {listings.length === 0 ? (
         <div className="bg-white dark:bg-[#0a0f0a] rounded-[3rem] border border-gray-100 dark:border-white/5 p-20 text-center shadow-2xl transition-colors">
            <div className="w-24 h-24 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-10 border border-gray-100 dark:border-white/5">
@@ -132,15 +132,16 @@ export default function PricesManager({ listings }: Props) {
                 <div
                   key={listing.id}
                   className={cn(
-                    "flex flex-col sm:flex-row sm:items-center gap-6 px-10 py-10 transition-all rounded-[2.5rem] group",
+                    "flex flex-col sm:flex-row sm:items-center gap-6 px-10 py-10 transition-all rounded-[2.5rem] group relative",
                     hasChanged 
-                      ? "bg-[#f0f7f0] dark:bg-green-500/5 shadow-inner" 
+                      ? "bg-[#f0f7f0] dark:bg-green-500/[0.03] shadow-inner" 
                       : "hover:bg-gray-50/50 dark:hover:bg-white/5"
                   )}
                 >
+                  {hasChanged && <div className="absolute left-0 top-10 bottom-10 w-1 bg-[#1b6b3e] dark:bg-green-500 rounded-r-full" />}
                   <div className="flex-1 min-w-0">
                     <p className={cn(
-                        "text-lg font-black font-serif italic transition-colors tracking-tight", 
+                        "text-lg font-black font-serif italic transition-colors tracking-tight uppercase", 
                         hasChanged ? "text-[#1b6b3e] dark:text-green-500" : "text-gray-900 dark:text-white"
                     )}>
                       {listing.products?.name ?? '—'}
@@ -149,7 +150,7 @@ export default function PricesManager({ listings }: Props) {
                          <div className="bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-500 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full">
                              {listing.products?.categories?.name ?? 'Unverified'}
                          </div>
-                         <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-300 dark:text-gray-800 uppercase tracking-tighter transition-colors">
+                         <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-300 dark:text-gray-800 uppercase tracking-tighter transition-colors">
                             <Dot className="w-4 h-4" />
                             Per {listing.products?.unit ?? 'unit'}
                          </div>
@@ -157,8 +158,8 @@ export default function PricesManager({ listings }: Props) {
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <div className={cn(
-                        "flex items-center bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5 px-6 h-16 transition-all group-hover:border-gray-200 dark:group-hover:border-white/10 overflow-hidden",
-                        hasChanged && "bg-white dark:bg-black/40 border-[#1b6b3e] dark:border-green-500 shadow-xl shadow-green-700/5 ring-4 ring-green-700/5"
+                        "flex items-center bg-gray-50 dark:bg-black/40 rounded-2xl border border-transparent px-6 h-16 transition-all group-hover:border-gray-200 dark:group-hover:border-white/10 overflow-hidden",
+                        hasChanged && "bg-white dark:bg-black/60 border-[#1b6b3e] dark:border-green-500/50 shadow-xl shadow-green-700/5 ring-4 ring-green-700/5 dark:ring-green-500/10"
                     )}>
                         <span className={cn("text-sm font-black transition-colors mr-3 font-serif", hasChanged ? "text-[#1b6b3e] dark:text-green-500" : "text-gray-300 dark:text-gray-700")}>₱</span>
                         <input
@@ -169,7 +170,7 @@ export default function PricesManager({ listings }: Props) {
                             onChange={(e) =>
                                 setCurrentPrices((prev) => ({ ...prev, [listing.id]: e.target.value }))
                             }
-                            className="bg-transparent border-0 focus:outline-none focus:ring-0 text-base font-black text-right w-24 p-0 tabular-nums dark:text-white"
+                            className="bg-transparent border-0 focus:outline-none focus:ring-0 text-base font-black text-right w-24 p-0 tabular-nums text-gray-900 dark:text-white placeholder:text-gray-300 dark:placeholder:text-gray-800"
                         />
                     </div>
                   </div>
@@ -179,7 +180,7 @@ export default function PricesManager({ listings }: Props) {
           </div>
         </div>
       )}
- 
+
       {listings.length > 0 && (
         <div className="flex justify-end pt-4 pb-10">
              <Button
@@ -188,7 +189,7 @@ export default function PricesManager({ listings }: Props) {
                 className={cn(
                     "rounded-2xl h-16 px-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all gap-4 shadow-2xl active:scale-95",
                     hasUnsavedChanges 
-                        ? "bg-[#1b6b3e] hover:bg-[#155430] text-white shadow-green-900/30" 
+                        ? "bg-[#1b6b3e] hover:bg-[#155430] text-white shadow-green-900/30 dark:shadow-[0_0_40px_rgba(27,107,62,0.3)]" 
                         : "bg-gray-100 dark:bg-white/5 text-gray-300 dark:text-gray-800 shadow-none cursor-not-allowed"
                 )}
             >

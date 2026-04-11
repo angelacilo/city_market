@@ -44,70 +44,73 @@ export default function EmailStep({ onSubmit, submitting }: EmailStepProps) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <StepIndicator current={1} />
 
       {/* Back to login */}
       <Link
         href="/login"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        className="inline-flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-gray-600 hover:text-green-700 dark:hover:text-green-500 transition-all uppercase tracking-[0.2em] group"
       >
-        <ChevronLeft className="w-3.5 h-3.5" />
-        Back to login
+        <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+        Terminate Reset Protocol
       </Link>
 
       {/* Header */}
       <div className="flex flex-col items-center text-center">
-        <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-          <Mail className="w-6 h-6 text-green-700" />
+        <div className="w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-500/5 flex items-center justify-center border border-green-100/50 dark:border-green-500/10 shadow-inner">
+          <Mail className="w-6 h-6 text-green-700 dark:text-green-500" />
         </div>
-        <p className="text-xs font-bold tracking-widest text-green-600 uppercase mt-4">
-          Step 1 of 3
-        </p>
-        <h1 className="text-2xl font-bold text-gray-900 mt-1">
-          Find your account
-        </h1>
-        <p className="text-sm text-gray-500 leading-relaxed mt-2 mb-6">
-          Enter the email address registered to your vendor account. We will
-          send a 6-digit verification code to your inbox.
-        </p>
+        <div className="mt-6 flex flex-col items-center">
+          <p className="text-[10px] font-black tracking-[0.4em] text-green-700 dark:text-green-500 uppercase">
+            Phase 01 — Identity Resolution
+          </p>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white mt-3 italic font-serif tracking-tighter uppercase leading-none">
+            Find Your <span className="text-green-700 dark:text-green-500">Record</span>
+          </h1>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed mt-4 max-w-[280px] font-bold uppercase tracking-widest opacity-80">
+            Enter the authorized email address associated with your secure account.
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Email field */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 block">
-            Email address <span className="text-red-500">*</span>
+        <div className="space-y-3">
+          <label className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.3em] block ml-4">
+            Identity Signature (Email)
           </label>
-          <Input
-            {...register('email')}
-            type="email"
-            autoComplete="email"
-            placeholder="e.g. juandelacruz@gmail.com"
-            className={cn(
-              'rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 px-4 text-sm transition-all',
-              errors.email && 'border-red-300 focus:border-red-300 ring-2 ring-red-50'
-            )}
-          />
+          <div className="relative group/input">
+            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-800 group-focus-within/input:text-green-700 dark:group-focus-within/input:text-green-500 transition-colors" />
+            <Input
+              {...register('email')}
+              type="email"
+              autoComplete="email"
+              placeholder="auth@bcmis.cloud"
+              className={cn(
+                'rounded-3xl border-none bg-gray-50 dark:bg-white/[0.03] focus:bg-white dark:focus:bg-white/[0.06] h-16 pl-14 pr-6 text-xs font-black text-gray-900 dark:text-white transition-all shadow-inner placeholder:text-gray-300 dark:placeholder:text-gray-800',
+                errors.email && 'ring-2 ring-red-500/20'
+              )}
+            />
+          </div>
           {errors.email && (
-            <p className="text-xs text-red-500">{errors.email.message}</p>
+            <p className="text-[9px] text-red-500 font-black uppercase tracking-widest ml-4">{errors.email.message}</p>
           )}
         </div>
 
         {/* Info box */}
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-2">
+        <div className="bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100/50 dark:border-blue-500/10 rounded-2xl p-4 flex items-start gap-3">
           <Info className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-gray-600 leading-relaxed">
-            A 6-digit code will be sent to your Gmail inbox. Check your spam
-            folder if you do not receive it within a minute.
+          <p className="text-[9px] text-blue-900/60 dark:text-blue-400/60 leading-relaxed font-black uppercase tracking-wider">
+            An 8-digit verification sequence will be dispatched to your Gmail inbox. Check your secure relays (spam) if not received.
           </p>
         </div>
 
         {/* Error alert */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-3 flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
-            <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="bg-red-50 dark:bg-red-500/5 border-l-4 border-red-500 rounded-r-2xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-[10px] text-red-700 dark:text-red-400 font-black uppercase tracking-widest">{error}</p>
           </div>
         )}
 
@@ -115,17 +118,17 @@ export default function EmailStep({ onSubmit, submitting }: EmailStepProps) {
         <Button
           type="submit"
           disabled={submitting}
-          className="w-full bg-green-700 hover:bg-green-800 text-white h-11 rounded-full text-sm font-semibold gap-2"
+          className="w-full bg-[#1b6b3e] hover:bg-[#155430] text-white h-16 rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] gap-3 shadow-[0_20px_40px_-15px_rgba(27,107,62,0.4)] transition-all active:scale-[0.98] group"
         >
           {submitting ? (
             <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Sending code...
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Broadcasting Code...
             </>
           ) : (
             <>
-              Send verification code
-              <ArrowRight className="w-3.5 h-3.5" />
+              Initialize Recovery
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </>
           )}
         </Button>

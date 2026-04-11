@@ -22,7 +22,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#050a05] pb-20 transition-colors duration-500">
       <BuyerProfileManager initialProfile={profile} userEmail={session.user.email ?? ''} />
     </div>
   )

@@ -327,6 +327,24 @@ export default function FloatingChat() {
         }
         
         setTimeout(scrollToBottom, 50)
+
+        // IMPORTANT: Update conversation preview in sidebar
+        setConversations(prev => {
+          const idx = prev.findIndex(c => c.id === newMsg.conversation_id)
+          if (idx === -1) return prev
+          const arr = [...prev]
+          arr[idx] = { 
+            ...arr[idx], 
+            last_message_content: newMsg.content,
+            last_message_at: newMsg.created_at,
+            last_sender_type: newMsg.sender_type,
+            // Increment unread count if it's from vendor and NOT current chat
+            buyer_unread_count: (newMsg.conversation_id !== activeConversation?.id && newMsg.sender_type === 'vendor')
+              ? (arr[idx].buyer_unread_count || 0) + 1
+              : arr[idx].buyer_unread_count
+          }
+          return arr.sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime())
+        })
       })
       .on('postgres_changes', {
         event: 'UPDATE',
@@ -429,7 +447,7 @@ export default function FloatingChat() {
 
       {isOpen && (
         <div className={cn(
-          "bg-white rounded-[2rem] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.18)] border border-gray-100 overflow-hidden flex flex-col transition-all duration-300 pointer-events-auto",
+          "bg-white dark:bg-[#050a05] rounded-[2rem] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.18)] dark:shadow-[0_0_50px_rgba(27,107,62,0.15)] border border-gray-100 dark:border-white/5 overflow-hidden flex flex-col transition-all duration-300 pointer-events-auto",
           isMinimized ? "h-16 w-16 rounded-full" : "h-[620px]",
           !isMinimized && (isExpanded ? "w-[95vw] sm:w-[820px]" : "w-[95vw] sm:w-[420px]")
         )}>
@@ -449,7 +467,7 @@ export default function FloatingChat() {
           ) : (
             <>
               {/* Header */}
-              <div className="h-12 bg-white border-b border-gray-100 px-4 shrink-0 flex items-center justify-between">
+              <div className="h-12 bg-white dark:bg-[#0a0f0a] border-b border-gray-100 dark:border-white/5 px-4 shrink-0 flex items-center justify-between transition-colors">
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   <span className="text-[#1b6b3e] font-bold text-lg whitespace-nowrap">Chat</span>
                   <span className="text-[#1b6b3e] text-sm hidden sm:inline">({conversations.length})</span>
@@ -473,14 +491,14 @@ export default function FloatingChat() {
               </div>
 
               {/* Body */}
-              <div className="flex-1 flex overflow-hidden bg-white">
+              <div className="flex-1 flex overflow-hidden bg-white dark:bg-[#050a05]">
                 {/* Always show list in expanded mode OR if view is list */}
                 {(isExpanded || view === 'list') && (
                   <div className={cn(
-                    "flex flex-col border-r border-gray-100 transition-all duration-300",
+                    "flex flex-col border-r border-gray-100 dark:border-white/5 transition-all duration-300",
                     isExpanded ? "w-[320px] shrink-0" : "w-full"
                   )}>
-                    <div className="p-3 bg-white border-b border-gray-50 flex items-center gap-2">
+                    <div className="p-3 bg-white dark:bg-[#0a0f0a] border-b border-gray-50 dark:border-white/5 flex items-center gap-2">
                       <div className="relative flex-1 group">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         <input
@@ -488,12 +506,12 @@ export default function FloatingChat() {
                           placeholder="Search name"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full h-8 bg-gray-50 border border-gray-100 rounded-md pl-8 pr-2 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500/20"
+                          className="w-full h-8 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-md pl-8 pr-2 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-500/20 transition-all"
                         />
                       </div>
-                      <div className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-100 rounded-md cursor-pointer hover:bg-gray-50">
-                        <span className="text-[10px] font-medium text-gray-600">All</span>
-                        <ChevronDown className="w-3 h-3 text-gray-400" />
+                      <div className="flex items-center gap-1 px-2 py-1 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
+                        <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">All</span>
+                        <ChevronDown className="w-3 h-3 text-gray-400 dark:text-gray-500" />
                       </div>
                     </div>
 
@@ -508,21 +526,21 @@ export default function FloatingChat() {
                           key={conv.id}
                           onClick={() => handleSelectConversation(conv)}
                           className={cn(
-                            "flex items-start gap-3 p-3 rounded-2xl transition-all relative overflow-hidden border-b border-gray-50",
-                            activeConversation?.id === conv.id ? "bg-gray-100" : "hover:bg-gray-50",
+                            "flex items-start gap-3 p-3 rounded-2xl transition-all relative overflow-hidden border-b border-gray-50 dark:border-white/[0.02]",
+                            activeConversation?.id === conv.id ? "bg-gray-100 dark:bg-white/10" : "hover:bg-gray-50 dark:hover:bg-white/5",
                             "group"
                           )}
                         >
                           <div className="relative shrink-0">
-                            <div className="w-10 h-10 rounded-full bg-green-50 border border-green-100 flex items-center justify-center text-[#1b6b3e] font-bold text-sm">
+                            <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 flex items-center justify-center text-[#1b6b3e] dark:text-green-500 font-bold text-sm transition-colors">
                               {conv.vendor_name.charAt(0)}
                             </div>
                             {vendorOnlineStatuses[conv.vendor_id]?.is_online && (
-                              <div className="absolute right-0 bottom-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full shadow-sm" />
+                              <div className="absolute right-0 bottom-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0a0f0a] rounded-full shadow-sm" />
                             )}
                           </div>
                           <div className="flex-1 min-w-0 pr-28 relative">
-                            <h3 className="text-[13px] font-black text-gray-900 tracking-tight">
+                            <h3 className="text-[13px] font-black text-gray-900 dark:text-white tracking-tight leading-none uppercase mb-1">
                               {conv.vendor_name}
                             </h3>
                             <div className="flex flex-col">
@@ -535,7 +553,19 @@ export default function FloatingChat() {
                                   : `Active ${vendorOnlineStatuses[conv.vendor_id]?.last_seen_at ? formatDistanceToNow(new Date(vendorOnlineStatuses[conv.vendor_id].last_seen_at), { addSuffix: true }).replace('about ', '') : 'Offline'}`}
                               </p>
                               <p className="text-[10px] text-gray-400 truncate leading-tight mt-0.5 font-medium">
-                                {conv.product_name}
+                                {conv.last_sender_type === 'buyer' && <span className="text-[#1b6b3e] font-black mr-1 uppercase text-[8px]">Me:</span>}
+                                {(() => {
+                                  if (!conv.last_message_content) return conv.product_name
+                                  try {
+                                    const data = JSON.parse(conv.last_message_content)
+                                    if (data.type === 'product_inquiry') return data.text
+                                    if (data.type === 'image') return 'Sent an image'
+                                    if (data.type === 'file') return `Sent a file: ${data.name || ''}`
+                                    return conv.last_message_content
+                                  } catch (e) {
+                                    return conv.last_message_content
+                                  }
+                                })()}
                               </p>
                             </div>
                           </div>
@@ -550,7 +580,7 @@ export default function FloatingChat() {
 
                 {/* Show chat area if expanded or view is chat */}
                 {(isExpanded || view === 'chat') && (
-                  <div className="flex-1 flex flex-col bg-[#f5f5f5] relative">
+                  <div className="flex-1 flex flex-col bg-[#f5f5f5] dark:bg-[#0a0f0a] relative">
                     {!activeConversation && isExpanded ? (
                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-40">
                         <MessageCircle className="w-12 h-12 mb-4 text-gray-300" />
@@ -559,9 +589,9 @@ export default function FloatingChat() {
                     ) : (
                       <>
                         {/* Chat Header */}
-                        <div className="h-10 bg-white border-b border-gray-100 flex items-center px-4 shrink-0">
-                          <button onClick={() => !isExpanded && setView('list')} className="flex items-center gap-1 hover:bg-gray-50 px-1 rounded transition-colors group">
-                            <span className="text-xs font-bold text-gray-800">{activeConversation?.vendor_name}</span>
+                        <div className="h-10 bg-white dark:bg-[#0a0f0a] border-b border-gray-100 dark:border-white/5 flex items-center px-4 shrink-0 transition-colors">
+                          <button onClick={() => !isExpanded && setView('list')} className="flex items-center gap-1 hover:bg-gray-50 dark:hover:bg-white/5 px-2 py-1 rounded transition-colors group">
+                            <span className="text-xs font-black text-gray-800 dark:text-white tracking-tight uppercase">{activeConversation?.vendor_name}</span>
                             <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600" />
                           </button>
                         </div>
@@ -594,7 +624,7 @@ export default function FloatingChat() {
                                   )}>
                                     <div className="flex items-end gap-2 max-w-[85%]">
                                       {!isBuyer && (
-                                        <div className="w-8 h-8 rounded-full bg-green-50 border border-green-100 flex items-center justify-center text-[#1b6b3e] font-bold text-[10px] shrink-0">
+                                        <div className="w-8 h-8 rounded-full bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 flex items-center justify-center text-[#1b6b3e] dark:text-green-500 font-bold text-[10px] shrink-0">
                                           {activeConversation?.vendor_name?.charAt(0)}
                                         </div>
                                       )}
@@ -602,8 +632,8 @@ export default function FloatingChat() {
                                         <div className={cn(
                                           "px-3 py-2.5 text-[13px] leading-relaxed shadow-sm border",
                                           isBuyer
-                                            ? "bg-[#eeffde] border-[#d8f0be] text-gray-800 rounded-xl rounded-tr-none"
-                                            : "bg-white border-gray-100 text-gray-800 rounded-xl rounded-tl-none"
+                                            ? "bg-[#eeffde] dark:bg-green-900/40 border-[#d8f0be] dark:border-green-800/40 text-gray-800 dark:text-white rounded-xl rounded-tr-none"
+                                            : "bg-white dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-800 dark:text-white rounded-xl rounded-tl-none"
                                         )}>
                                           {(() => {
                                             try {
@@ -662,8 +692,8 @@ export default function FloatingChat() {
                         </div>
 
                         {/* Safety Box & Input */}
-                        <div className="bg-white border-t border-gray-100 p-2">
-                          <div className="mx-2 mb-2 p-3 bg-green-50/50 border border-green-100 rounded-lg flex items-start gap-3">
+                        <div className="bg-white dark:bg-[#0a0f0a] border-t border-gray-100 dark:border-white/5 p-2 transition-colors">
+                          <div className="mx-2 mb-2 p-3 bg-green-50/50 dark:bg-green-500/5 border border-green-100 dark:border-green-500/10 rounded-lg flex items-start gap-3">
                             <AlertCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
                             <div className="flex-1">
                               <p className="text-[10px] text-gray-600 leading-normal font-medium">
@@ -677,7 +707,7 @@ export default function FloatingChat() {
                             </div>
                           </div>
 
-                          <div className="bg-white px-2 pt-2">
+                          <div className="bg-white dark:bg-transparent px-2 pt-2">
                              <form onSubmit={handleSend} className="relative group">
                               <textarea
                                 value={reply}
@@ -689,7 +719,7 @@ export default function FloatingChat() {
                                   }
                                 }}
                                 placeholder="Type a message here"
-                                className="w-full bg-white border-none text-[13px] placeholder:text-gray-400 focus:ring-0 resize-none min-h-[40px] max-h-32 scrollbar-hide py-1 px-1"
+                                className="w-full bg-white dark:bg-transparent border-none text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 focus:ring-0 resize-none min-h-[40px] max-h-32 scrollbar-hide py-1 px-1"
                               />
                               
                               <div className="flex items-center justify-between pb-1 pt-2 border-t border-gray-50">

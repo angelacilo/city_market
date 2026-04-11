@@ -183,7 +183,13 @@ export default function LoginForm() {
                   <div className="space-y-3">
                      <div className="flex justify-between items-center px-4 mb-2">
                         <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block">Secure Access Key</label>
-                        <button type="button" className="text-[10px] font-black text-green-700 dark:text-green-500 uppercase tracking-widest hover:underline hover:underline-offset-4 transition-all">Recovery</button>
+                        <button 
+                           type="button" 
+                           onClick={() => router.push('/forgot-password')}
+                           className="text-[10px] font-black text-green-700 dark:text-green-500 uppercase tracking-widest hover:underline hover:underline-offset-4 transition-all"
+                        >
+                           Recovery
+                        </button>
                      </div>
                      <div className="relative group">
                         <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />

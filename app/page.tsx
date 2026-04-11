@@ -150,7 +150,7 @@ export default async function LandingPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-white dark:bg-[#050a05] transition-colors duration-500">
       <Hero 
         tickerItems={tickerItems.map(t => ({ name: t.name, price: t.price, unit: t.unit, change: t.changePct }))} 
         popularTags={popularTags.length > 0 ? popularTags : undefined}
@@ -162,7 +162,7 @@ export default async function LandingPage() {
         showAllHref="/markets"
         showAllLabel={`Show all ${marketCount ?? markets.length} markets`}
       />
-      <section className="bg-white px-6 py-16">
+      <section className="bg-white dark:bg-[#050a05] px-6 py-16 transition-colors duration-500">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>

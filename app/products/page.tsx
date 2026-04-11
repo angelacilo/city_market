@@ -81,9 +81,9 @@ export default async function ProductsPage({
   const vendorCount = new Set(typedListings.map((l) => l.vendor_id)).size
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#050a05] flex flex-col pb-20 md:pb-0 transition-colors duration-500">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-100 py-6 px-4 sm:px-6 shadow-sm">
+      <header className="sticky top-0 z-30 bg-white dark:bg-[#0a0f0a] border-b border-gray-100 dark:border-white/5 py-6 px-4 sm:px-6 shadow-sm backdrop-blur-xl transition-colors duration-500">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
@@ -92,7 +92,7 @@ export default async function ProductsPage({
             >
               <ChevronLeft className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-colors" />
             </Link>
-            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
+            <h1 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight font-serif italic">
               {categoryName ?? 'All Products'}
             </h1>
           </div>
@@ -114,13 +114,13 @@ export default async function ProductsPage({
         />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-2xl mx-auto space-y-6 mt-20">
-          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
-            <ChevronLeft className="w-10 h-10 text-gray-400" />
+          <div className="w-24 h-24 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center">
+            <ChevronLeft className="w-10 h-10 text-gray-400 dark:text-gray-600" />
           </div>
-          <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">
+          <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight italic font-serif">
             No {categoryName?.toLowerCase() || ''} products available
           </h2>
-          <p className="text-gray-500 text-sm font-medium">
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
             None of the vendors are currently listing products in this category. Check back later.
           </p>
           <div className="flex flex-wrap justify-center gap-2">

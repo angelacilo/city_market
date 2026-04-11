@@ -211,14 +211,27 @@ function MessagesContent() {
                      if (prev.find(m => m.id === newMsg.id)) return prev
                      return [...prev, newMsg]
                   })
-
-                  // Mark as delivered if from vendor
                   if (newMsg.sender_type === 'vendor' && newMsg.status === 'sent') {
                      await markMessagesDelivered(newMsg.conversation_id, 'vendor')
                   }
-                  
                   setTimeout(() => scrollToBottom('smooth'), 100)
                }
+
+               setConversations(prev => {
+                  const idx = prev.findIndex(c => c.id === newMsg.conversation_id)
+                  if (idx === -1) return prev
+                  const arr = [...prev]
+                  arr[idx] = { 
+                     ...arr[idx], 
+                     last_message_content: newMsg.content,
+                     last_message_at: newMsg.created_at,
+                     last_sender_type: newMsg.sender_type,
+                     buyer_unread_count: (newMsg.conversation_id !== activeConversationId && newMsg.sender_type === 'vendor')
+                        ? (arr[idx].buyer_unread_count || 0) + 1
+                        : arr[idx].buyer_unread_count
+                  }
+                  return arr.sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime())
+               })
             } else if (payload.eventType === 'UPDATE') {
                if (newMsg.conversation_id === activeConversationId) {
                   setMessages(prev => prev.map(m => m.id === newMsg.id ? newMsg : m))

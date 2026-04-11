@@ -54,12 +54,12 @@ export default function SearchResultsGrid({
 
   if (listings.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 my-12 bg-white rounded-[2rem] shadow-sm border border-gray-100">
-        <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center">
+      <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 my-12 bg-white dark:bg-[#0a0f0a] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 transition-colors duration-500">
+        <div className="w-16 h-16 bg-orange-50 dark:bg-orange-500/10 rounded-full flex items-center justify-center">
           <Info className="w-8 h-8 text-orange-500" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">No matches</h3>
+          <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight italic font-serif">No matches</h3>
           <p className="text-sm text-gray-400 font-bold uppercase tracking-widest leading-relaxed max-w-sm">
             No results match your current filters. Try clearing the market filter or showing all availability.
           </p>
@@ -87,13 +87,13 @@ export default function SearchResultsGrid({
   return (
     <div className="space-y-12">
       {/* Summary Strip */}
-      <div className="w-full bg-green-50 border border-green-200 rounded-3xl p-4 sm:p-6 shadow-sm shadow-green-100/50 flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
+      <div className="w-full bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 rounded-3xl p-4 sm:p-6 shadow-sm shadow-green-100/50 dark:shadow-none flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 transition-colors">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-black text-green-600 uppercase tracking-widest bg-white px-2 py-1 rounded-md border border-green-100 shadow-sm w-max">
               Total found
             </span>
-            <span className="text-lg font-black text-gray-900 uppercase tracking-tighter">
+            <span className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">
               {listings.length} listings
             </span>
           </div>
@@ -102,7 +102,7 @@ export default function SearchResultsGrid({
             <span className="text-[10px] font-black text-green-600 uppercase tracking-widest bg-white px-2 py-1 rounded-md border border-green-100 shadow-sm w-max">
               Availability
             </span>
-            <span className="text-lg font-black text-gray-900 uppercase tracking-tighter">
+            <span className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">
               {currentMarketsCount} markets
             </span>
           </div>
@@ -125,7 +125,7 @@ export default function SearchResultsGrid({
             <span className="text-[10px] font-black text-green-600 uppercase tracking-widest bg-white px-2 py-1 rounded-md border border-green-100 shadow-sm w-max">
               Best Market
             </span>
-            <span className="text-lg font-black text-gray-900 uppercase tracking-tighter">
+            <span className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">
               Best at {currentBestMarket}
             </span>
           </div>
@@ -160,19 +160,19 @@ export default function SearchResultsGrid({
                   const isHighest = listing.price === highestPrice
 
                   return (
-                    <Card key={listing.id} className="group overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:border-green-400 transition-all duration-500 rounded-3xl bg-white p-6 sm:p-8 flex flex-col gap-6 scale-100 hover:-translate-y-1">
+                    <Card key={listing.id} className="group overflow-hidden border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-2xl hover:border-green-400 dark:hover:border-green-600 transition-all duration-500 rounded-3xl bg-white dark:bg-[#0a0f0a] p-6 sm:p-8 flex flex-col gap-6 scale-100 hover:-translate-y-1">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2">
-                          <h3 className="text-xl sm:text-2xl font-black text-gray-900 uppercase tracking-tight leading-none group-hover:text-green-600 transition-colors">
+                          <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors font-serif italic">
                             {listing.products?.name}
                           </h3>
-                          <Badge variant="outline" className="text-gray-400 font-bold text-[9px] uppercase tracking-widest border-gray-200 p-1.5 px-3 rounded-lg bg-gray-50">
+                          <Badge variant="outline" className="text-gray-400 dark:text-gray-500 font-bold text-[9px] uppercase tracking-widest border-gray-200 dark:border-white/5 p-1.5 px-3 rounded-lg bg-gray-50 dark:bg-white/5">
                             {listing.products?.categories?.name || 'General Supply'}
                           </Badge>
                         </div>
                       </div>
 
-                      <div className="p-8 pb-10 rounded-[2rem] bg-gray-50 border border-gray-100 flex flex-col items-center justify-center gap-2 group-hover:bg-green-50/50 group-hover:border-green-100 transition-colors relative shadow-inner">
+                      <div className="p-8 pb-10 rounded-[2rem] bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/5 flex flex-col items-center justify-center gap-2 group-hover:bg-green-50/50 dark:group-hover:bg-green-500/5 group-hover:border-green-100 dark:group-hover:border-green-800/30 transition-colors relative shadow-inner">
                         {isLowest && (
                           <Badge className="absolute -top-3 bg-green-600 hover:bg-green-700 text-white font-black text-[9px] uppercase tracking-widest py-1.5 px-3 rounded-xl shadow-lg shadow-green-200 border-none flex items-center gap-1.5 z-10">
                             <Star className="w-3 h-3 fill-current" />
@@ -185,26 +185,26 @@ export default function SearchResultsGrid({
                             Most Expensive
                           </Badge>
                         )}
-                        <div className="text-4xl sm:text-5xl font-black text-green-700 tracking-tighter">
+                        <div className="text-4xl sm:text-5xl font-black text-green-700 dark:text-green-500 tracking-tighter">
                           &#8369;{listing.price.toLocaleString()}
                         </div>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        <span className="text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-widest">
                           Per {listing.products?.unit || 'unit'}
                         </span>
                       </div>
 
                       <div className="space-y-3 px-2">
-                        <div className="text-sm font-black text-gray-900 uppercase tracking-tight bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                        <div className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight bg-gray-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-white/5">
                           {listing.vendors?.business_name || 'Market Vendor'}
                         </div>
                         <div className="flex flex-wrap gap-3">
-                          <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                            <Store className="w-3.5 h-3.5 text-gray-400" />
+                          <div className="flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">
+                            <Store className="w-3.5 h-3.5 text-gray-400 dark:text-gray-600" />
                             {marketName}
                           </div>
-                          <div className="hidden sm:block w-px h-3 bg-gray-200 self-center" />
-                          <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                            <DoorClosed className="w-3.5 h-3.5 text-gray-400" />
+                          <div className="hidden sm:block w-px h-3 bg-gray-200 dark:bg-white/5 self-center" />
+                          <div className="flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">
+                            <DoorClosed className="w-3.5 h-3.5 text-gray-400 dark:text-gray-600" />
                             Stall {listing.vendors?.stall_number || 'TBA'}
                           </div>
                         </div>
@@ -212,7 +212,7 @@ export default function SearchResultsGrid({
 
                       <div className="grid grid-cols-[1fr,1fr,48px] gap-3 mt-2 sm:mt-auto pt-4 border-t border-gray-50">
                         <Link href={`/compare?product=${listing.id}`}>
-                          <Button className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-green-100 px-1">
+                          <Button className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-green-100 dark:shadow-none px-1">
                             Compare
                           </Button>
                         </Link>
@@ -233,7 +233,7 @@ export default function SearchResultsGrid({
 
                         <button
                           onClick={() => handleAddToCanvass(listing)}
-                          className="w-12 h-12 rounded-xl border border-gray-100 flex items-center justify-center text-gray-400 hover:text-green-700 hover:bg-green-50 transition-all shadow-sm shrink-0"
+                          className="w-12 h-12 rounded-xl border border-gray-100 dark:border-white/5 bg-white dark:bg-white/5 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-green-700 dark:hover:text-green-500 hover:bg-green-50 dark:hover:bg-white/10 transition-all shadow-sm shrink-0"
                           title="Add to canvass list"
                         >
                           <ShoppingBasket className="w-5 h-5" />

@@ -1,10 +1,9 @@
-'use client'
-
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { ShieldCheck, ChevronLeft, Loader2, AlertCircle } from 'lucide-react'
+import { ShieldCheck, ChevronLeft, Loader2, AlertCircle, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 import StepIndicator from './StepIndicator'
 
 interface OtpStepProps {
@@ -14,13 +13,12 @@ interface OtpStepProps {
 }
 
 export default function OtpStep({ email, onSuccess, onBack }: OtpStepProps) {
-  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', ''])
+  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '', '', ''])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [resendCooldown, setResendCooldown] = useState(30)
   const [resendLoading, setResendLoading] = useState(false)
-  const [resendSuccess, setResendSuccess] = useState('')
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null, null, null])
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null, null, null, null, null])
 
   // Initial 30s cooldown on mount
   useEffect(() => {
@@ -51,16 +49,13 @@ export default function OtpStep({ email, onSuccess, onBack }: OtpStepProps) {
   }, [])
 
   function handleChange(index: number, value: string) {
-    // Keep only the last typed character (handles overtype)
     const char = value.slice(-1)
-    // Only allow digits
     if (char && !/^\d$/.test(char)) return
 
     updateDigit(index, char)
     setError('')
 
-    // Auto-advance
-    if (char && index < 5) {
+    if (char && index < 7) {
       inputRefs.current[index + 1]?.focus()
     }
   }
@@ -74,18 +69,17 @@ export default function OtpStep({ email, onSuccess, onBack }: OtpStepProps) {
 
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
     e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 8)
     if (!pasted) return
 
     const newDigits = [...digits]
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       newDigits[i] = pasted[i] || ''
     }
     setDigits(newDigits)
     setError('')
 
-    // Focus the last filled or the 6th box
-    const lastFilled = Math.min(pasted.length, 6) - 1
+    const lastFilled = Math.min(pasted.length, 8) - 1
     inputRefs.current[lastFilled]?.focus()
   }
 
@@ -95,20 +89,23 @@ export default function OtpStep({ email, onSuccess, onBack }: OtpStepProps) {
     setError('')
 
     const supabase = createClient()
-    await supabase.auth.signInWithOtp({
+    const { error: resendError } = await supabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: false },
     })
 
     setResendLoading(false)
-    setResendCooldown(30)
-    setResendSuccess('Code resent successfully')
-    setTimeout(() => setResendSuccess(''), 3000)
+    if (resendError) {
+      toast.error('Dispatch failed: ' + resendError.message)
+    } else {
+      setResendCooldown(30)
+      toast.success('8-digit sequence re-transmitted to terminal.')
+    }
   }
 
   async function handleVerify() {
     const token = digits.join('')
-    if (token.length < 6) return
+    if (token.length < 8) return
 
     setSubmitting(true)
     setError('')
@@ -117,61 +114,60 @@ export default function OtpStep({ email, onSuccess, onBack }: OtpStepProps) {
     const { error: verifyError } = await supabase.auth.verifyOtp({
       email,
       token,
-      type: 'email',
+      type: 'recovery', // password reset uses 'recovery'
     })
 
     setSubmitting(false)
 
     if (verifyError) {
       const msg = verifyError.message.toLowerCase()
-      if (msg.includes('expired') || msg.includes('otp_expired')) {
-        setError('Your code has expired. Please request a new code by clicking Resend.')
-      } else if (msg.includes('invalid') || msg.includes('otp_invalid') || verifyError.status === 422) {
-        setError('Incorrect code. Please check your email and try again. You have a few attempts remaining.')
+      if (msg.includes('expired')) {
+        setError('Sequence expired. Re-transmit code.')
+        toast.error('Identity Challenge Expired')
       } else {
-        setError('Verification failed. Please try again.')
+        setError('Incorrect sequence. Unauthorized access attempt logged.')
+        toast.error('Verification Failure')
       }
       return
     }
 
+    toast.success('Identity Verified', { description: 'Matrix access granted.' })
     onSuccess()
   }
 
-  const allFilled = digits.join('').length === 6
+  const allFilled = digits.join('').length === 8
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <StepIndicator current={2} />
 
-      {/* Back button */}
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        className="inline-flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-gray-600 hover:text-green-700 dark:hover:text-green-500 transition-all uppercase tracking-[0.2em] group"
       >
-        <ChevronLeft className="w-3.5 h-3.5" />
-        Back
+        <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+        Retreat to Step 01
       </button>
 
-      {/* Header */}
       <div className="flex flex-col items-center text-center">
-        <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-          <ShieldCheck className="w-6 h-6 text-green-700" />
+        <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-500/5 flex items-center justify-center border border-amber-100/50 dark:border-amber-500/10 shadow-inner">
+          <ShieldCheck className="w-6 h-6 text-amber-600 dark:text-amber-500" />
         </div>
-        <p className="text-xs font-bold tracking-widest text-green-600 uppercase mt-4">
-          Step 2 of 3
-        </p>
-        <h1 className="text-2xl font-bold text-gray-900 mt-1">
-          Enter verification code
-        </h1>
-        <p className="text-sm text-gray-500 leading-relaxed mt-2 mb-6">
-          We sent a 6-digit code to{' '}
-          <span className="text-green-700 font-semibold">{email}</span>.
-        </p>
+        <div className="mt-6 flex flex-col items-center">
+          <p className="text-[10px] font-black tracking-[0.4em] text-amber-600 dark:text-amber-500 uppercase">
+            Phase 02 — Cryptographic Challenge
+          </p>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white mt-3 italic font-serif tracking-tighter uppercase leading-none">
+            Enter <span className="text-amber-500">Access Key</span>
+          </h1>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed mt-4 max-w-[280px] font-bold uppercase tracking-widest opacity-80">
+            An 8-digit sequence was dispatched to <span className="text-gray-900 dark:text-white underline decoration-amber-500/30">{email}</span>.
+          </p>
+        </div>
       </div>
 
-      {/* 6-digit OTP inputs */}
-      <div className="flex justify-center gap-3 mb-6">
+      <div className="flex justify-center gap-2 py-4">
         {digits.map((digit, i) => (
           <input
             key={i}
@@ -184,67 +180,60 @@ export default function OtpStep({ email, onSuccess, onBack }: OtpStepProps) {
             onKeyDown={(e) => handleKeyDown(i, e)}
             onPaste={i === 0 ? handlePaste : undefined}
             className={cn(
-              'w-[52px] h-[60px] text-2xl font-black text-center text-gray-900',
-              'border-2 border-gray-200 rounded-xl',
-              'focus:border-green-600 focus:outline-none focus:ring-0',
-              'caret-green-600 transition-colors bg-white',
-              error && digit === '' && 'border-red-300'
+              'w-[38px] sm:w-[46px] h-14 text-xl font-black text-center transition-all duration-300',
+              'bg-gray-50 dark:bg-white/[0.03] border-none rounded-xl',
+              'text-gray-900 dark:text-white shadow-inner',
+              'focus:bg-white dark:focus:bg-white/[0.08] focus:ring-2 focus:ring-amber-500/20 focus:outline-none',
+              error && digit === '' && 'ring-2 ring-red-500/20',
+              digit !== '' && ' ring-2 ring-amber-500/10'
             )}
             autoComplete="one-time-code"
           />
         ))}
       </div>
 
-      {/* Error message */}
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-3 flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
-          <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="bg-red-50 dark:bg-red-500/5 border-l-4 border-red-500 rounded-r-2xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-[10px] text-red-700 dark:text-red-400 font-black uppercase tracking-widest">{error}</p>
         </div>
       )}
 
-      {/* Resend row */}
-      <div className="flex items-center justify-center gap-2 flex-wrap">
-        <span className="text-sm text-gray-500">Didn&apos;t receive the code?</span>
-        {resendCooldown > 0 ? (
-          <span className="text-sm text-gray-400">
-            Resend in {resendCooldown}s
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={handleResend}
-            disabled={resendLoading}
-            className="text-sm text-green-700 font-medium underline hover:text-green-800 transition-colors disabled:opacity-50"
-          >
-            {resendLoading ? 'Sending...' : 'Resend code'}
-          </button>
-        )}
+      <div className="flex flex-col items-center gap-4 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-widest">Protocol Stalled?</span>
+          {resendCooldown > 0 ? (
+            <span className="text-[10px] font-black text-gray-300 dark:text-gray-800 uppercase tracking-widest">
+              Retry in {resendCooldown}s
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendLoading}
+              className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest hover:underline hover:underline-offset-4 transition-all disabled:opacity-30"
+            >
+              {resendLoading ? 'Re-Broadcasting...' : 'Re-Transmit Code'}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Resend success message */}
-      {resendSuccess && (
-        <p className="text-xs text-green-600 text-center animate-in fade-in">
-          {resendSuccess}
-        </p>
-      )}
-
-      {/* Verify button */}
       <Button
         type="button"
         onClick={handleVerify}
         disabled={submitting || !allFilled}
-        className="w-full bg-green-700 hover:bg-green-800 text-white h-11 rounded-full text-sm font-semibold gap-2 disabled:opacity-50"
+        className="w-full bg-amber-600 hover:bg-amber-700 dark:bg-amber-500/80 dark:hover:bg-amber-500 text-white h-16 rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] gap-3 shadow-[0_20px_40px_-15px_rgba(217,119,6,0.2)] dark:shadow-[0_0_30px_rgba(217,119,6,0.1)] transition-all active:scale-[0.98] group"
       >
         {submitting ? (
           <>
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Verifying...
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Verifying Signature...
           </>
         ) : (
           <>
-            <ShieldCheck className="w-3.5 h-3.5" />
-            Verify code
+            Decrypt Identity
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
           </>
         )}
       </Button>

@@ -57,7 +57,7 @@ export default async function MarketsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#f0f7f0]">
+    <div className="min-h-screen bg-[#f0f7f0] dark:bg-[#050a05] transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         {/* HERO SECTION */}
         <section className="pt-16 pb-10 grid grid-cols-1 md:grid-cols-[55%_45%] gap-10 items-center">
@@ -69,16 +69,16 @@ export default async function MarketsPage() {
               </span>
             </div>
             
-            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight leading-none uppercase">
-              <span className="block text-gray-900 font-sans">MARKETS IN</span>
-              <span className="block text-green-700 font-sans">BUTUAN CITY</span>
+            <h1 className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight leading-none uppercase italic font-serif">
+              <span className="block text-gray-900 dark:text-white">MARKETS IN</span>
+              <span className="block text-green-700 dark:text-green-500">BUTUAN CITY</span>
             </h1>
 
             <div className="max-w-sm space-y-2">
-              <p className="text-sm sm:text-base font-medium text-gray-600 uppercase tracking-wide leading-relaxed">
+              <p className="text-sm sm:text-base font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] leading-relaxed">
                 BROWSE ALL PUBLIC MARKETS AND THEIR AVAILABLE SUPPLIES.
               </p>
-              <p className="text-sm sm:text-base font-medium text-gray-600 leading-relaxed">
+              <p className="text-sm sm:text-base font-medium text-gray-600 dark:text-gray-400 leading-relaxed">
                 Real-time updates on availability and local trade flow.
               </p>
             </div>
@@ -86,29 +86,29 @@ export default async function MarketsPage() {
 
           {/* Right Column - Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:flex md:flex-row gap-4 h-fit">
-            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
-              <div className="text-4xl font-black text-green-700 font-sans">
+            <div className="bg-white dark:bg-[#0a0f0a] rounded-2xl border border-gray-100 dark:border-white/5 px-6 py-6 shadow-sm dark:shadow-[0_0_30px_-5px_rgba(27,107,62,0.1)] flex-1 min-w-[140px] transition-all hover:-translate-y-1">
+              <div className="text-4xl font-black text-green-700 dark:text-green-500 font-serif italic mb-1">
                 {marketsCount || 0}
               </div>
-              <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
+              <div className="text-[9px] font-black tracking-[0.2em] text-gray-400 dark:text-gray-600 uppercase">
                 ACTIVE MARKETS
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
-              <div className="text-4xl font-black text-green-700 font-sans">
+            <div className="bg-white dark:bg-[#0a0f0a] rounded-2xl border border-gray-100 dark:border-white/5 px-6 py-6 shadow-sm dark:shadow-[0_0_30px_-5px_rgba(27,107,62,0.1)] flex-1 min-w-[140px] transition-all hover:-translate-y-1">
+              <div className="text-4xl font-black text-green-700 dark:text-green-500 font-serif italic mb-1">
                 {vendorsCount || 0}
               </div>
-              <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
+              <div className="text-[9px] font-black tracking-[0.2em] text-gray-400 dark:text-gray-600 uppercase">
                 APPROVED VENDORS
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-5 shadow-sm flex-1 min-w-[140px]">
-              <div className="text-4xl font-black text-green-700 font-sans">
+            <div className="bg-white dark:bg-[#0a0f0a] rounded-2xl border border-gray-100 dark:border-white/5 px-6 py-6 shadow-sm dark:shadow-[0_0_30px_-5px_rgba(27,107,62,0.1)] flex-1 min-w-[140px] transition-all hover:-translate-y-1">
+              <div className="text-4xl font-black text-green-700 dark:text-green-500 font-serif italic mb-1">
                 {productsCount || 0}
               </div>
-              <div className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
+              <div className="text-[9px] font-black tracking-[0.2em] text-gray-400 dark:text-gray-600 uppercase">
                 PRODUCT CATALOG
               </div>
             </div>

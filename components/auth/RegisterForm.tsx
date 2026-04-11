@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
 import {
    Loader2,
    Store,
@@ -16,7 +17,10 @@ import {
    EyeOff,
    ArrowRight,
    Phone,
-   Building
+   Building,
+   ShieldCheck,
+   ChevronLeft,
+   AlertCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,7 +44,12 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
 
    const [selectedRole, setSelectedRole] = useState<'buyer' | 'vendor'>(initialRole)
    const [loading, setLoading] = useState(false)
-   const [registrationComplete, setRegistrationComplete] = useState(false)
+   const [registrationStep, setRegistrationStep] = useState<'FORM' | 'VERIFY' | 'SUCCESS'>('FORM')
+   const [otpError, setOtpError] = useState('')
+   const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '', '', '']) // 8-digit code
+   const [resendCooldown, setResendCooldown] = useState(0)
+   const [resendLoading, setResendLoading] = useState(false)
+   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
 
    // Buyer state
    const [buyerData, setBuyerData] = useState({
@@ -76,7 +85,7 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
       setLoading(true)
 
       try {
-         // 1. Sign Up
+         // 1. Sign Up (triggers confirmation email code if configured)
          const { data: authData, error: authError } = await supabase.auth.signUp({
             email: buyerData.email,
             password: buyerData.password,
@@ -87,22 +96,8 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
 
          if (authError) throw authError
 
-         // 2. Insert into buyer_profiles
-         if (authData.user) {
-            const { error: profileError } = await supabase
-               .from('buyer_profiles')
-               .insert({
-                  user_id: authData.user.id,
-                  full_name: buyerData.fullName
-               })
-
-            if (profileError) throw profileError
-         }
-
-         // 3. Fix auto-login bug: sign out immediately
-         await supabase.auth.signOut()
-
-         setRegistrationComplete(true)
+         setRegistrationStep('VERIFY')
+         toast.success('Verification code dispatched to your email')
       } catch (error: any) {
          console.error(error)
          toast.error(error.message || 'Registration failed')
@@ -131,27 +126,8 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
 
          if (authError) throw authError
 
-         // 2. Create Vendor record (pending approval)
-         if (authData.user) {
-            const { error: vendorError } = await supabase
-               .from('vendors')
-               .insert({
-                  user_id: authData.user.id,
-                  business_name: vendorData.businessName,
-                  owner_name: vendorData.ownerName,
-                  market_id: vendorData.marketId,
-                  stall_number: vendorData.stallNumber,
-                  contact_number: vendorData.contactNumber,
-                  is_approved: false
-               })
-
-            if (vendorError) throw vendorError
-         }
-
-         // 3. Fix auto-login bug: sign out immediately
-         await supabase.auth.signOut()
-
-         setRegistrationComplete(true)
+         setRegistrationStep('VERIFY')
+         toast.success('Verification code dispatched to your email')
       } catch (error: any) {
          console.error(error)
          toast.error(error.message || 'Registration failed')
@@ -160,20 +136,124 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
       }
    }
 
-   if (registrationComplete) {
+   const handleVerifyOtp = async () => {
+      const token = otpDigits.join('')
+      if (token.length < 8) return
+      
+      setLoading(true)
+      setOtpError('')
+
+      try {
+         const { error: verifyError } = await supabase.auth.verifyOtp({
+            email: selectedRole === 'buyer' ? buyerData.email : vendorData.email,
+            token,
+            type: 'signup'
+         })
+
+         if (verifyError) throw verifyError
+
+         // 2. Insert profile data now that user is confirmed
+         const { data: { user } } = await supabase.auth.getUser()
+         
+         if (user) {
+            if (selectedRole === 'buyer') {
+               const { error: profileError } = await supabase
+                  .from('buyer_profiles')
+                  .insert({
+                     user_id: user.id,
+                     full_name: buyerData.fullName
+                  })
+               if (profileError) throw profileError
+            } else {
+               const { error: vendorError } = await supabase
+                  .from('vendors')
+                  .insert({
+                     user_id: user.id,
+                     business_name: vendorData.businessName,
+                     owner_name: vendorData.ownerName,
+                     market_id: vendorData.marketId,
+                     stall_number: vendorData.stallNumber,
+                     contact_number: vendorData.contactNumber,
+                     is_approved: false
+                  })
+               if (vendorError) throw vendorError
+            }
+         }
+
+         // 3. Finalize and sign out
+         await supabase.auth.signOut()
+         setRegistrationStep('SUCCESS')
+      } catch (error: any) {
+         console.error(error)
+         setOtpError(error.message || 'Verification failed')
+         toast.error('Invalid Verification Code')
+      } finally {
+         setLoading(false)
+      }
+   }
+
+   const handleResendOtp = async () => {
+      if (resendCooldown > 0 || resendLoading) return
+      setResendLoading(true)
+      
+      try {
+         const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: selectedRole === 'buyer' ? buyerData.email : vendorData.email
+         })
+         if (error) throw error
+         
+         setResendCooldown(60)
+         toast.success('Verification sequence re-transmitted')
+      } catch (error: any) {
+         toast.error(error.message || 'Resend failed')
+      } finally {
+         setResendLoading(false)
+      }
+   }
+
+   // Cooldown timer
+   useEffect(() => {
+      if (resendCooldown <= 0) return
+      const timer = setInterval(() => setResendCooldown(prev => prev - 1), 1000)
+      return () => clearInterval(timer)
+   }, [resendCooldown])
+
+   const handleOtpChange = (index: number, value: string) => {
+      const char = value.slice(-1)
+      if (char && !/^\d$/.test(char)) return
+
+      const newDigits = [...otpDigits]
+      newDigits[index] = char
+      setOtpDigits(newDigits)
+      setOtpError('')
+
+      if (char && index < 7) {
+         otpRefs.current[index + 1]?.focus()
+      }
+   }
+
+   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+      if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+         otpRefs.current[index - 1]?.focus()
+      }
+   }
+
+   if (registrationStep === 'SUCCESS') {
       return (
          <div className="w-full max-w-2xl flex flex-col items-center text-center py-24 px-12 bg-white dark:bg-[#111111]/80 backdrop-blur-xl rounded-[4rem] border border-gray-100 dark:border-white/5 shadow-2xl animate-in zoom-in duration-700">
             <div className="w-28 h-28 bg-green-500/10 dark:bg-green-500/5 rounded-[3rem] flex items-center justify-center mb-12 border border-green-100 dark:border-green-500/10 shadow-sm">
                <CheckCircle2 className="w-12 h-12 text-green-700 dark:text-green-500" />
             </div>
 
-            <h2 className="text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-none italic font-serif">
+            <h2 className="text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-none italic font-serif uppercase">
                {selectedRole === 'buyer' ? 'Access Granted' : 'Request Logged'}
             </h2>
+            <p className="text-[11px] font-black tracking-[0.3em] text-[#1b6b3e] dark:text-green-500 uppercase mb-4">Identity Matrix Synchronized</p>
             <p className="text-gray-500 dark:text-gray-400 font-medium text-base leading-relaxed mb-12 max-w-md">
                {selectedRole === 'buyer'
                   ? 'Your biometric profile has been successfully integrated into the system. You may now initiate procurement activities.'
-                  : 'Your commercial entity credentials have been submitted for administrative verification. Protocol status is currently: PENDING.'}
+                  : 'Your commercial entity credentials have been verified. Your request is now pending final administrative validation.'}
             </p>
 
             <div className="w-full max-w-sm space-y-4">
@@ -189,6 +269,93 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                <p className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.4em] leading-relaxed">
                   System Encryption Active <br /> Core Identity Secured
                </p>
+            </div>
+         </div>
+      )
+   }
+
+   if (registrationStep === 'VERIFY') {
+      const currentEmail = selectedRole === 'buyer' ? buyerData.email : vendorData.email
+      return (
+         <div className="w-full max-w-3xl animate-in slide-in-from-bottom-8 duration-700">
+            <div className="bg-white dark:bg-[#0a0f0a] rounded-[4rem] border border-gray-100 dark:border-white/[0.03] shadow-2xl p-12 lg:p-20 text-center relative overflow-hidden group">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full -mr-32 -mt-32 blur-[80px]" />
+               
+               <button
+                  type="button"
+                  onClick={() => setRegistrationStep('FORM')}
+                  className="absolute top-12 left-12 flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-green-700 uppercase tracking-widest transition-all group/back"
+               >
+                  <ChevronLeft className="w-4 h-4 group-hover/back:-translate-x-1 transition-transform" />
+                  Exit Matrix
+               </button>
+
+               <div className="flex flex-col items-center mb-12">
+                  <div className="w-20 h-20 rounded-3xl bg-green-50 dark:bg-green-500/5 flex items-center justify-center border border-green-100 dark:border-green-500/10 mb-8">
+                     <ShieldCheck className="w-10 h-10 text-[#1b6b3e] dark:text-green-500" />
+                  </div>
+                  <h2 className="text-5xl font-black text-gray-900 dark:text-white tracking-tighter italic font-serif uppercase mb-4">Confirm <span className="text-[#1b6b3e] dark:text-green-500">Identity</span></h2>
+                  <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.4em] max-w-xs mx-auto mb-8">
+                     A confirmation code has been dispatched to <span className="text-gray-900 dark:text-white underline decoration-green-500/30">{currentEmail}</span>
+                  </p>
+               </div>
+
+               <div className="flex justify-center gap-2 mb-12 overflow-x-auto pb-4">
+                  {otpDigits.map((digit, i) => (
+                     <input
+                        key={i}
+                        ref={el => { otpRefs.current[i] = el }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={e => handleOtpChange(i, e.target.value)}
+                        onKeyDown={e => handleOtpKeyDown(i, e)}
+                        className={cn(
+                           "w-9 h-14 md:w-11 md:h-16 text-xl md:text-2xl font-black text-center rounded-xl md:rounded-2xl bg-gray-50 dark:bg-white/[0.02] border-none text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700/20 transition-all shadow-inner",
+                           digit && "ring-2 ring-green-500/10 bg-white dark:bg-white/[0.04]",
+                           otpError && "ring-2 ring-red-500/20"
+                        )}
+                     />
+                  ))}
+               </div>
+
+               {otpError && (
+                  <div className="mb-10 p-5 bg-red-50 dark:bg-red-950/20 rounded-2xl border border-red-100 dark:border-red-900/10 flex items-center justify-center gap-3 animate-shake">
+                     <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                     <p className="text-[10px] font-black text-red-900 dark:text-red-400 uppercase tracking-widest">{otpError}</p>
+                  </div>
+               )}
+
+               <Button
+                  onClick={handleVerifyOtp}
+                  disabled={loading || otpDigits.some(d => !d)}
+                  className="w-full h-20 rounded-[2.5rem] bg-green-700 hover:bg-green-800 text-white font-black text-[11px] uppercase tracking-[0.3em] shadow-2xl transition-all active:scale-95 group"
+               >
+                  {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : (
+                     <div className="flex items-center justify-center gap-4">
+                        <span>Verify Secure Sequence</span>
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                     </div>
+                  )}
+               </Button>
+
+               <div className="mt-12 flex flex-col items-center gap-4">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[.2em]">Sequence not received?</p>
+                  <button
+                     type="button"
+                     onClick={handleResendOtp}
+                     disabled={resendCooldown > 0 || resendLoading}
+                     className={cn(
+                        "text-[10px] font-black uppercase tracking-widest transition-all",
+                        resendCooldown > 0 
+                           ? "text-gray-300 dark:text-gray-800"
+                           : "text-[#1b6b3e] dark:text-green-500 hover:underline hover:underline-offset-8"
+                     )}
+                  >
+                     {resendLoading ? "Re-Broadcasting..." : resendCooldown > 0 ? `Retry in ${resendCooldown}s` : "Re-Transmit Code"}
+                  </button>
+               </div>
             </div>
          </div>
       )

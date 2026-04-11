@@ -51,7 +51,7 @@ export default function MarketCard({ market, index }: MarketCardProps) {
 
   return (
     <Link href={`/markets/${market.id}`} className="group h-full">
-      <div className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <div className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#0a100a] shadow-sm dark:shadow-[0_0_20px_rgba(27,107,62,0.1)] transition-all hover:shadow-2xl dark:hover:shadow-[0_0_40px_-5px_rgba(34,197,94,0.3)] hover:-translate-y-1">
         {/* Image Area */}
         <div className="relative h-[200px] w-full overflow-hidden">
           <Image
@@ -72,11 +72,11 @@ export default function MarketCard({ market, index }: MarketCardProps) {
 
         {/* Card Body */}
         <div className="flex flex-1 flex-col p-5">
-          <h3 className="mb-2 text-xl font-bold text-gray-900 font-sans">
+          <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white font-serif italic tracking-tight">
             {market.name}
           </h3>
 
-          <p className="mb-4 text-sm leading-relaxed text-gray-500">
+          <p className="mb-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
             {description}
           </p>
 
@@ -86,7 +86,7 @@ export default function MarketCard({ market, index }: MarketCardProps) {
               <span className="block text-[9px] font-bold uppercase tracking-widest text-gray-400">
                 Registered Vendors
               </span>
-              <span className="text-2xl font-black text-gray-900">
+              <span className="text-2xl font-black text-gray-900 dark:text-white">
                 {market.vendors_count.toLocaleString()}
               </span>
             </div>
@@ -94,18 +94,18 @@ export default function MarketCard({ market, index }: MarketCardProps) {
               <span className="block text-[9px] font-bold uppercase tracking-widest text-gray-400">
                 Total Products
               </span>
-              <span className="text-2xl font-black text-gray-900">
+              <span className="text-2xl font-black text-gray-900 dark:text-white">
                 {market.products_count.toLocaleString()}+
               </span>
             </div>
           </div>
 
           {/* Action button */}
-          <div className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 transition-colors hover:bg-gray-100">
-            <span className="text-sm font-semibold text-green-700">
+          <div className="mt-auto flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-black/20 px-4 py-2.5 transition-colors hover:bg-gray-100 dark:hover:bg-white/5">
+            <span className="text-xs font-black uppercase tracking-widest text-[#1b6b3e] dark:text-green-500">
               {buttonLabel}
             </span>
-            <ArrowRight className="h-3.5 w-3.5 text-green-700" />
+            <ArrowRight className="h-3.5 w-3.5 text-[#1b6b3e] dark:text-green-500" />
           </div>
         </div>
       </div>

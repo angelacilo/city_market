@@ -128,7 +128,7 @@ export function Navbar() {
    ]
 
    return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-3xl border-b border-gray-100/50 shadow-sm">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#050a05]/90 backdrop-blur-3xl border-b border-gray-100/50 dark:border-white/5 shadow-sm dark:shadow-[0_0_30px_rgba(27,107,62,0.15)] transition-all duration-500">
          <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
             <div className="flex justify-between items-center h-20">
 
@@ -138,13 +138,13 @@ export function Navbar() {
                      <div className="bg-[#1b6b3e] p-2 rounded-2xl shadow-lg shadow-green-900/10 rotate-3 group-hover:rotate-0 transition-all duration-500">
                         <Store className="w-6 h-6 text-white" />
                      </div>
-                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-white border-2 border-[#1b6b3e] rounded-full animate-pulse" />
+                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-white dark:bg-[#050a05] border-2 border-[#1b6b3e] rounded-full animate-pulse" />
                   </div>
                   <div className="flex flex-col">
-                     <span className="text-lg font-black text-gray-900 leading-none tracking-tight">
+                     <span className="text-lg font-black text-gray-900 dark:text-white leading-none tracking-tight">
                         BUTUAN MARKET
                      </span>
-                     <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#1b6b3e] mt-1 opacity-70">
+                     <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#1b6b3e] dark:text-green-500 mt-1 opacity-70">
                         Secure Network
                      </span>
                   </div>
@@ -158,12 +158,12 @@ export function Navbar() {
                         href={link.href}
                         className={cn(
                            "text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2",
-                           pathname === link.href ? "text-[#1b6b3e]" : "text-gray-400 hover:text-gray-900"
+                           pathname === link.href ? "text-[#1b6b3e] dark:text-green-500" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
                         )}
                      >
                         {link.name}
                         {pathname === link.href && (
-                           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-1 bg-[#1b6b3e] rounded-full" />
+                           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-1 bg-[#1b6b3e] dark:bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
                         )}
                      </Link>
                   ))}
@@ -173,21 +173,21 @@ export function Navbar() {
                <div className="flex items-center gap-6">
 
                   {user && (
-                     <div className="hidden sm:flex items-center gap-4 border-r border-gray-100 pr-4 mr-0">
+                     <div className="hidden sm:flex items-center gap-4 border-r border-gray-100 dark:border-white/10 pr-4 mr-0">
                         {/* Notifications */}
                         <Link href="/user/notifications" className="relative group">
-                           <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-white group-hover:shadow-xl transition-all duration-300">
-                              <Bell className="w-5 h-5 text-gray-400 group-hover:text-[#1b6b3e] transition-colors" />
+                           <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-xl flex items-center justify-center border border-gray-100 dark:border-white/10 group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-xl dark:group-hover:shadow-green-500/10 transition-all duration-300">
+                              <Bell className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-[#1b6b3e] dark:group-hover:text-green-500 transition-colors" />
                               {/* Placeholder for notification bubble */}
                            </div>
                         </Link>
 
                         {/* Messages */}
                         <Link href={role === 'vendor' ? '/vendor/inquiries' : '/user/messages'} className="relative group">
-                           <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-white group-hover:shadow-xl transition-all duration-300">
-                              <MessageCircle className="w-5 h-5 text-gray-400 group-hover:text-[#1b6b3e] transition-colors" />
+                           <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-xl flex items-center justify-center border border-gray-100 dark:border-white/10 group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-xl dark:group-hover:shadow-green-500/10 transition-all duration-300">
+                              <MessageCircle className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-[#1b6b3e] dark:group-hover:text-green-500 transition-colors" />
                               {unreadCount > 0 && (
-                                 <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-4.5 bg-[#1b6b3e] rounded-full border-2 border-white flex items-center justify-center px-1">
+                                 <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-4.5 bg-[#1b6b3e] dark:bg-green-600 rounded-full border-2 border-white dark:border-[#050a05] flex items-center justify-center px-1">
                                     <span className="text-[8px] font-black text-white">{unreadCount > 9 ? '9+' : unreadCount}</span>
                                  </div>
                               )}
@@ -199,12 +199,12 @@ export function Navbar() {
                   {!user ? (
                      <div className="flex items-center gap-3">
                         <Link href="/login" className="hidden sm:block">
-                           <Button variant="ghost" className="h-11 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[#1b6b3e] hover:bg-[#1b6b3e]/5 transition-all">
+                           <Button variant="ghost" className="h-11 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:text-[#1b6b3e] dark:hover:text-green-500 hover:bg-[#1b6b3e]/5 dark:hover:bg-green-500/10 transition-all">
                               Sign In
                            </Button>
                         </Link>
                         <Link href="/register">
-                           <Button className="h-11 px-8 rounded-2xl bg-[#1b6b3e] hover:bg-[#155430] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-95">
+                           <Button className="h-11 px-8 rounded-2xl bg-[#1b6b3e] dark:bg-[#1b6b3e] hover:bg-[#155430] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-95">
                               Get Started
                            </Button>
                         </Link>
@@ -212,72 +212,72 @@ export function Navbar() {
                   ) : (
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                           <button className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none pl-2 border-l border-gray-100">
-                              <div className="w-11 h-11 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm font-black text-[#1b6b3e]">
+                           <button className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none pl-2 border-l border-gray-100 dark:border-white/10">
+                              <div className="w-11 h-11 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-white/10 dark:to-white/5 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-white/10 shadow-sm font-black text-[#1b6b3e] dark:text-green-500">
                                  {user.email?.[0].toUpperCase()}
                               </div>
                               <div className="hidden md:flex flex-col items-start">
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-900">
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white">
                                     My Account
                                  </span>
-                                 <span className="text-[9px] font-bold uppercase tracking-widest text-[#1b6b3e] opacity-60">
+                                 <span className="text-[9px] font-bold uppercase tracking-widest text-[#1b6b3e] dark:text-green-500 opacity-60">
                                     {role || 'System'}
                                  </span>
                               </div>
-                              <ChevronDown className="w-4 h-4 text-gray-300 ml-1" />
+                              <ChevronDown className="w-4 h-4 text-gray-300 dark:text-gray-600 ml-1" />
                            </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-4 border-gray-100 shadow-2xl mt-4">
+                        <DropdownMenuContent align="end" className="w-64 rounded-[2rem] p-4 border-gray-100 dark:border-white/10 dark:bg-[#0a0f0a] backdrop-blur-3xl shadow-2xl dark:shadow-[0_0_50px_rgba(27,107,62,0.2)] mt-4">
                            <DropdownMenuLabel className="px-4 py-3">
-                              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">Session Protocol</p>
-                              <p className="text-xs font-black text-gray-900 truncate">{user.email}</p>
+                              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-1">Session Protocol</p>
+                              <p className="text-xs font-black text-gray-900 dark:text-white truncate">{user.email}</p>
                            </DropdownMenuLabel>
-                           <DropdownMenuSeparator className="bg-gray-50 my-2 mx-4" />
+                           <DropdownMenuSeparator className="bg-gray-50 dark:bg-white/5 my-2 mx-4" />
 
                            {role === 'vendor' && (
-                              <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 transition-colors">
+                              <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 dark:focus:bg-green-950/20 transition-colors">
                                  <Link href="/vendor/dashboard" className="flex items-center gap-3 w-full">
-                                    <Store className="w-4 h-4 text-gray-400" />
-                                    <span className="text-xs font-black uppercase tracking-widest text-gray-700">Vendor Dash</span>
+                                    <Store className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                                    <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">Vendor Dash</span>
                                  </Link>
                               </DropdownMenuItem>
                            )}
 
                            {role === 'admin' && (
-                              <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 transition-colors">
+                              <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 dark:focus:bg-green-950/20 transition-colors">
                                  <Link href="/admin/dashboard" className="flex items-center gap-3 w-full">
-                                    <ShieldCheck className="w-4 h-4 text-[#1b6b3e]" />
-                                    <span className="text-xs font-black uppercase tracking-widest text-gray-700">Admin Control</span>
+                                    <ShieldCheck className="w-4 h-4 text-[#1b6b3e] dark:text-green-500" />
+                                    <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">Admin Control</span>
                                  </Link>
                               </DropdownMenuItem>
                            )}
 
-                           <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 transition-colors">
+                           <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 dark:focus:bg-green-950/20 transition-colors">
                               <Link href="/user/notifications" className="flex items-center gap-3 w-full">
-                                 <Bell className="w-4 h-4 text-gray-400" />
-                                 <span className="text-xs font-black uppercase tracking-widest text-gray-700">Notifications</span>
+                                 <Bell className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                                 <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">Notifications</span>
                               </Link>
                            </DropdownMenuItem>
 
-                           <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 transition-colors">
+                           <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 dark:focus:bg-green-950/20 transition-colors">
                               <Link href="/user/messages" className="flex items-center gap-3 w-full">
-                                 <MessageCircle className="w-4 h-4 text-gray-400" />
-                                 <span className="text-xs font-black uppercase tracking-widest text-gray-700">Messages</span>
+                                 <MessageCircle className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                                 <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">Messages</span>
                               </Link>
                            </DropdownMenuItem>
 
-                           <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 transition-colors">
+                           <DropdownMenuItem asChild className="rounded-xl p-3 focus:bg-green-50 dark:focus:bg-green-950/20 transition-colors">
                               <Link href={role === 'vendor' ? '/vendor/profile' : '/user/profile'} className="flex items-center gap-3 w-full">
-                                 <User className="w-4 h-4 text-gray-400" />
-                                 <span className="text-xs font-black uppercase tracking-widest text-gray-700">My Profile</span>
+                                 <User className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                                 <span className="text-xs font-black uppercase tracking-widest text-gray-700 dark:text-gray-300">My Profile</span>
                               </Link>
                            </DropdownMenuItem>
 
-                           <DropdownMenuSeparator className="bg-gray-50 my-2 mx-4" />
+                           <DropdownMenuSeparator className="bg-gray-50 dark:bg-white/5 my-2 mx-4" />
 
                            <DropdownMenuItem
                               onClick={handleLogout}
-                              className="rounded-xl p-3 focus:bg-red-50 text-red-600 transition-colors cursor-pointer"
+                              className="rounded-xl p-3 focus:bg-red-50 dark:focus:bg-red-950/20 text-red-600 dark:text-red-500 transition-colors cursor-pointer"
                            >
                               <div className="flex items-center gap-3 w-full">
                                  <LogOut className="w-4 h-4" />
@@ -289,8 +289,8 @@ export function Navbar() {
                   )}
 
                   {/* Mobile Menu Trigger */}
-                  <Button variant="ghost" size="icon" className="lg:hidden rounded-2xl bg-gray-50 border border-gray-100">
-                     <Menu className="w-5 h-5 text-gray-600" />
+                  <Button variant="ghost" size="icon" className="lg:hidden rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
+                     <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   </Button>
                </div>
             </div>

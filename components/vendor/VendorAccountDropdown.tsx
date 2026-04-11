@@ -114,7 +114,7 @@ export default function VendorAccountDropdown({ vendor }: VendorAccountDropdownP
         </div>
         <span className="text-sm font-black text-gray-700 dark:text-gray-300 hidden sm:block uppercase tracking-tighter">Account</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72 rounded-[2rem] p-3 shadow-2xl border-gray-100 dark:border-white/10 dark:bg-[#121212]">
+      <DropdownMenuContent align="end" className="w-72 rounded-[2rem] p-3 shadow-2xl dark:shadow-[0_0_50px_rgba(27,107,62,0.2)] border-gray-100 dark:border-white/10 dark:bg-[#0a0f0a]">
         <DropdownMenuLabel className="px-3 py-4">
           <div className="flex flex-col space-y-1">
             <p className="text-lg font-black text-gray-900 dark:text-white leading-tight font-serif italic tracking-tight">{vendor.business_name}</p>

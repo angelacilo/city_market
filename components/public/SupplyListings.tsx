@@ -173,7 +173,7 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
   }
 
   return (
-    <div className="space-y-12 dark:bg-[#0a140a] transition-colors duration-500 pb-20">
+    <div className="space-y-12 transition-colors duration-500 pb-20">
       {/* Header & Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 py-8 px-4 sm:px-0">
         <div>
@@ -193,12 +193,12 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
                value={search}
                onChange={(e) => setSearch(e.target.value)}
                placeholder={`Search products in ${marketName}...`}
-               className="w-full h-14 pl-12 pr-6 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm focus:ring-4 focus:ring-green-100 dark:focus:ring-green-900/20 focus:border-green-700 dark:focus:border-green-500 text-sm font-bold dark:text-white placeholder:text-gray-300 dark:placeholder:text-gray-600 transition-all outline-none"
+               className="w-full h-14 pl-12 pr-6 rounded-2xl bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 shadow-sm focus:ring-4 focus:ring-green-100 dark:focus:ring-green-900/30 focus:border-green-700 dark:focus:border-green-500 text-sm font-bold dark:text-white placeholder:text-gray-300 dark:placeholder:text-gray-400 transition-all outline-none"
              />
           </div>
 
           <Select value={activeCategory} onValueChange={setActiveCategory}>
-            <SelectTrigger className="h-14 w-full sm:w-44 rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm font-black text-[10px] uppercase tracking-widest px-8 focus:ring-green-700 dark:text-white">
+            <SelectTrigger className="h-14 w-full sm:w-44 rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-white/10 shadow-sm font-black text-[10px] uppercase tracking-widest px-8 focus:ring-green-700 dark:text-white">
                <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border-gray-100 dark:border-white/10 shadow-2xl p-2 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md">
@@ -223,7 +223,7 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
             {filteredListings.map((listing) => (
               <Card
                 key={listing.id}
-                className="group overflow-hidden border-none shadow-[0_10px_40px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.5)] hover:shadow-[0_30px_100px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_40px_150px_rgba(0,0,0,0.8)] transition-all duration-700 rounded-[2.5rem] bg-white dark:bg-[#1e1e1e]/60 backdrop-blur-3xl flex flex-col p-2 relative flex-1"
+                className="group overflow-hidden border border-gray-100 dark:border-white/5 shadow-none dark:shadow-[0_0_30px_rgba(27,107,62,0.1)] hover:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_0_60px_-10px_rgba(34,197,94,0.3)] transition-all duration-700 rounded-[2.5rem] bg-white dark:bg-[#0a0f0a] flex flex-col p-2 relative flex-1"
               >
                 {/* Product Image Panel */}
                 <div className="relative w-full aspect-[4/3] rounded-[2rem] overflow-hidden bg-gray-50 dark:bg-black/20 m-1">
@@ -259,29 +259,27 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
                 <div className="p-6 space-y-6 flex-1 flex flex-col">
                   {/* Metadata */}
                   <div className="space-y-1.5">
-                    <h3 className="text-[1.3rem] font-serif font-black text-gray-900 dark:text-white tracking-tight leading-[1.1] uppercase">
+                    <h3 className="text-[1.2rem] font-serif font-black text-gray-900 dark:text-white tracking-tight leading-[1.0] uppercase">
                       {listing.products?.name}
                     </h3>
-                    <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
-                      {listing.products?.categories?.name} <span className="mx-1 opacity-30">•</span> {listing.products?.unit || 'UNIT'}
+                    <p className="text-[9px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-[0.15em] leading-none">
+                      {listing.products?.categories?.name} <span className="mx-1 opacity-20">•</span> {listing.products?.unit || 'UNIT'}
                     </p>
-                  </div>
-
-                  {/* Vendor Mini-Card - Only show if not and a specific stall view */}
+                  </div>                  {/* Vendor Mini-Card - Only show if not and a specific stall view */}
                   {!vendorId && (
                     <Link 
                       href={`/stalls/${listing.vendor_id}`}
-                      className="p-4 rounded-2xl bg-gray-50/50 dark:bg-black/20 border border-gray-100 dark:border-white/5 flex items-center gap-4 hover:bg-white dark:hover:bg-green-950/20 hover:border-green-200 dark:hover:border-green-700/30 transition-all group/vendor cursor-pointer"
+                      className="p-3.5 rounded-2xl bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 flex items-center gap-3 hover:bg-white dark:hover:bg-green-950/20 hover:border-green-200 dark:hover:border-green-700/30 transition-all group/vendor cursor-pointer"
                     >
-                      <div className="w-10 h-10 rounded-2xl bg-white dark:bg-white/5 flex items-center justify-center shadow-sm group-hover/vendor:text-green-700 dark:group-hover/vendor:text-green-400 transition-colors">
-                        <Store className="w-4 h-4 text-gray-400 dark:text-gray-600 group-hover/vendor:text-green-700 dark:group-hover/vendor:text-green-400" />
+                      <div className="w-10 h-10 rounded-2xl bg-white dark:bg-[#121212] flex items-center justify-center shadow-sm border border-gray-50 dark:border-white/5">
+                        <Store className="w-4 h-4 text-gray-300 dark:text-gray-700 group-hover/vendor:text-green-700 dark:group-hover/vendor:text-green-500 transition-colors" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none mb-1">Stall Vendor</p>
-                        <p className="text-[12px] font-black text-gray-900 dark:text-gray-200 truncate leading-none group-hover/vendor:text-green-700 dark:group-hover/vendor:text-green-400 transition-colors">
+                        <p className="text-[8px] font-black text-gray-400 dark:text-gray-300 uppercase tracking-widest leading-none mb-1.5">Stall Vendor</p>
+                        <p className="text-[13px] font-black text-gray-900 dark:text-white truncate tracking-tight leading-none">
                           {listing.vendors?.business_name}
                         </p>
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-tighter truncate mt-1">
+                        <p className="text-[9px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest truncate mt-1">
                           Stall {listing.vendors?.stall_number || '1'}
                         </p>
                       </div>
@@ -291,9 +289,9 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
                   {/* Price and Actions Row */}
                   <div className="pt-2 flex items-end justify-between gap-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.2em] leading-none">Estimated Price</p>
-                      <div className="text-2xl font-black text-gray-900 dark:text-white leading-none tracking-tighter flex items-baseline">
-                         <span className="text-sm mr-1 font-serif italic text-green-700 dark:text-green-500">₱</span>
+                      <p className="text-[9px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.2em] leading-none mb-1">Estimated Price</p>
+                      <div className="text-2xl font-black text-gray-900 dark:text-white leading-none tracking-tighter flex items-center">
+                         <span className="text-sm mr-0.5 font-serif italic text-green-700 dark:text-green-500">₱</span>
                          {listing.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </div>
                     </div>
@@ -305,7 +303,7 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
                            handleAddToCanvass(listing.product_id || listing.id)
                          }}
                          disabled={addingProduct === (listing.product_id || listing.id)}
-                         className="w-11 h-11 rounded-2xl bg-gray-900 dark:bg-white/10 hover:bg-green-700 dark:hover:bg-green-600 text-white transition-all flex items-center justify-center shadow-lg active:scale-90 disabled:opacity-50"
+                         className="w-12 h-12 rounded-2xl bg-gray-900 dark:bg-white/5 hover:bg-green-700 dark:hover:bg-green-600 text-white transition-all flex items-center justify-center shadow-xl active:scale-95 disabled:opacity-50"
                          title="Add to canvass list"
                        >
                          {addingProduct === (listing.product_id || listing.id) ? (
@@ -326,7 +324,7 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
                         triggerLabel=""
                         triggerVariant="ghost"
                         triggerSize="icon"
-                        className="w-11 h-11 rounded-2xl bg-gray-50 dark:bg-black/30 hover:bg-green-50 dark:hover:bg-green-950/40 text-gray-400 dark:text-gray-600 hover:text-green-700 dark:hover:text-green-400 border border-transparent hover:border-green-100 dark:hover:border-green-900 transition-all flex items-center justify-center active:scale-90 p-0"
+                        className="w-12 h-12 rounded-full bg-gray-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-gray-300 dark:text-gray-600 hover:text-green-700 dark:hover:text-green-400 border border-gray-100 dark:border-white/10 transition-all flex items-center justify-center active:scale-95 p-0"
                       />
                     </div>
                   </div>
@@ -335,11 +333,11 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-40 text-center bg-gray-50/50 dark:bg-white/5 rounded-[4rem] border border-dashed border-gray-200 dark:border-white/10">
-            <div className="w-24 h-24 bg-white dark:bg-white/5 rounded-full flex items-center justify-center mb-8 shadow-xl">
-              <ShoppingBag className="w-10 h-10 text-gray-100 dark:text-gray-800" />
+          <div className="flex flex-col items-center justify-center py-40 text-center bg-gray-50/50 dark:bg-white/5 rounded-[4rem] border border-dashed border-gray-200 dark:border-white/10 dark:shadow-[0_0_50px_-10px_rgba(27,107,62,0.1)]">
+            <div className="w-24 h-24 bg-white dark:bg-[#0a0f0a] rounded-full flex items-center justify-center mb-8 shadow-xl dark:shadow-green-500/5">
+              <ShoppingBag className="w-10 h-10 text-gray-100 dark:text-gray-900" />
             </div>
-            <h3 className="text-2xl font-serif font-black text-gray-300 dark:text-gray-700 uppercase tracking-widest">
+            <h3 className="text-2xl font-serif font-black text-gray-300 dark:text-gray-800 uppercase tracking-widest">
               No products active
             </h3>
           </div>

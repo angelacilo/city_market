@@ -23,15 +23,15 @@ export default function VendorCTA() {
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-green-800 hover:bg-green-50 transition-colors"
+              className="inline-flex items-center justify-center rounded-2xl bg-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-green-900 hover:bg-green-50 transition-all active:scale-95 shadow-xl"
             >
-              Register your stall →
+              Join the Network →
             </Link>
             <Link
               href="/about"
-              className="inline-flex items-center justify-center rounded-full border-2 border-white/40 px-5 py-2.5 text-sm text-white hover:bg-white/10 transition-colors"
+              className="inline-flex items-center justify-center rounded-2xl border-2 border-white/20 hover:border-white/40 px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-white/10 transition-all active:scale-95"
             >
-              Learn More
+              Protocol Details
             </Link>
           </div>
         </div>

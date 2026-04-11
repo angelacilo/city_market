@@ -125,7 +125,7 @@ function NavContent({
  
       {/* Vendor Profile Summary (Mini) */}
       <div className="p-6">
-        <div className="bg-gray-50/50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100/50 dark:border-white/5">
+        <div className="bg-gray-50/50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100/50 dark:border-white/5 shadow-sm dark:shadow-[0_0_20px_rgba(27,107,62,0.1)] transition-all">
            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-600 mb-2">Active Node</p>
            <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#121212] border border-gray-100 dark:border-white/5 flex items-center justify-center shadow-sm">

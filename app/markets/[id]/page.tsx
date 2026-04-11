@@ -46,7 +46,7 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
   const productsCount = productsCountResult.count || 0
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-[#050a05] flex flex-col transition-colors duration-500">
       {/* Cinematic Hero Section */}
       <section className="relative h-[65vh] w-full overflow-hidden">
         {market.image_url ? (
@@ -118,7 +118,7 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
       </section>
 
       {/* Supplies Grid Section */}
-      <section id="supplies-section" className="max-w-7xl mx-auto w-full px-6 py-20">
+      <section id="supplies-section" className="max-w-7xl mx-auto w-full px-6 py-20 bg-white dark:bg-[#050a05] transition-colors duration-500">
          <div className="scroll-mt-24">
             <SupplyListings marketId={id} marketName={market.name} />
          </div>

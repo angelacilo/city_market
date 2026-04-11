@@ -216,27 +216,32 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 h-20 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <header className="sticky top-0 z-50 h-20 bg-white/95 dark:bg-[#050a05]/95 backdrop-blur-3xl border-b border-gray-100 dark:border-white/5 shadow-sm dark:shadow-[0_0_30px_rgba(27,107,62,0.15)] transition-all duration-500">
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-8 relative">
           {/* Brand Name */}
-          <Link href="/" className="font-serif text-2xl font-black text-[#1b6b3e] tracking-tight shrink-0">
+          <Link href="/" className="font-serif text-2xl font-black text-[#1b6b3e] dark:text-green-500 tracking-tight shrink-0 italic hover:opacity-80 transition-opacity">
             Butuan City Market
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-10 lg:flex absolute left-1/2 -translate-x-1/2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={cn(
-                  'text-sm font-black transition-all duration-300 uppercase tracking-widest',
-                  pathname === link.href ? 'text-[#1b6b3e] translate-y-[-2px]' : 'text-gray-400 hover:text-[#1b6b3e]'
-                )}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActiveLink = pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={cn(
+                    'text-[10px] font-black transition-all duration-300 uppercase tracking-[0.2em]',
+                    isActiveLink 
+                      ? 'text-[#1b6b3e] dark:text-green-500 translate-y-[-2px]' 
+                      : 'text-gray-400 dark:text-gray-500 hover:text-[#1b6b3e] dark:hover:text-green-500'
+                  )}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Desktop Actions */}
@@ -244,60 +249,62 @@ export default function Navbar() {
             {userType === 'buyer' && profile ? (
               <div className="flex items-center gap-6">
                 {/* Canvass Icon */}
-                <div className="relative cursor-pointer group" onClick={() => setIsCanvassOpen(true)}>
-                  <ShoppingBasket className="w-5 h-5 text-gray-400 group-hover:text-green-700 transition-colors" />
+                <div 
+                  className="relative cursor-pointer group p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-all" 
+                  onClick={() => setIsCanvassOpen(true)}
+                >
+                  <ShoppingBasket className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-green-700 dark:group-hover:text-green-500 transition-colors" />
                   {canvassCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 min-w-[18px] bg-green-700 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-700 dark:bg-green-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#050a05] shadow-lg shadow-green-900/20">
                       {canvassCount}
                     </span>
                   )}
                 </div>
 
-
-
                 {/* Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer group">
-                      <div className="w-9 h-9 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-green-900/10 active:scale-95 transition-all">
+                    <div className="flex items-center gap-3 cursor-pointer group pl-4 border-l border-gray-100 dark:border-white/10">
+                      <div className="w-10 h-10 rounded-2xl bg-[#1b6b3e] dark:bg-green-600 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-green-900/20 active:scale-95 transition-all group-hover:rotate-3">
                         {getInitials(profile.full_name)}
                       </div>
-                      <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-hover:text-green-700" />
+                      <ChevronDown className="w-3 h-3 text-gray-300 dark:text-gray-600 transition-transform group-data-[state=open]:rotate-180" />
                     </div>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-64 p-0 rounded-2xl border-gray-100 shadow-2xl overflow-hidden mt-2" align="end">
-                    <div className="p-5 bg-gray-50/50 border-b border-gray-100">
-                      <p className="text-sm font-black text-gray-900 leading-none mb-1">{profile.full_name}</p>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest truncate mb-3">{user.email}</p>
-                      <Badge className="bg-green-100 text-green-700 border-none font-black text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-full">
-                        Buyer Account
-                      </Badge>
-                    </div>
-                    <div className="p-2 space-y-1">
-                      <DropdownMenuLabel className="px-3 pt-3 pb-1 text-[9px] font-black text-gray-400 uppercase tracking-widest">Profile</DropdownMenuLabel>
+                  <DropdownMenuContent className="w-64 p-2 rounded-[2rem] border-gray-100 dark:border-white/10 bg-white dark:bg-[#0a0f0a] backdrop-blur-3xl shadow-2xl dark:shadow-[0_0_50px_rgba(27,107,62,0.2)] mt-4" align="end">
+                    <DropdownMenuLabel className="p-4 bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border border-gray-100 dark:border-white/5 mb-2">
+                      <p className="text-xs font-black text-gray-900 dark:text-white leading-none mb-1">{profile.full_name}</p>
+                      <p className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-[0.2em] truncate mb-2">{user.email}</p>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20">
+                        <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-[8px] font-black text-green-700 dark:text-green-500 uppercase tracking-widest">Buyer Node</span>
+                      </div>
+                    </DropdownMenuLabel>
+
+                    <div className="space-y-1">
                       <Link href="/user/profile">
-                        <DropdownMenuItem className="rounded-xl h-11 px-3 cursor-pointer group">
-                          <UserIcon className="w-4 h-4 mr-3 text-gray-400 group-hover:text-green-700 transition-colors" />
-                          <span className="text-xs font-bold text-gray-600 group-hover:text-gray-900 transition-colors">My Account</span>
+                        <DropdownMenuItem className="rounded-xl h-11 px-3 cursor-pointer group hover:bg-green-50 dark:hover:bg-green-500/10 transition-colors">
+                          <UserIcon className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500 group-hover:text-[#1b6b3e] dark:group-hover:text-green-500 transition-colors" />
+                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Personal Control</span>
                         </DropdownMenuItem>
                       </Link>
-
-                      <DropdownMenuSeparator className="my-2 bg-gray-50" />
-                      <DropdownMenuLabel className="px-3 pt-1 pb-1 text-[9px] font-black text-gray-400 uppercase tracking-widest">Settings</DropdownMenuLabel>
                       
+                      <DropdownMenuSeparator className="my-2 bg-gray-50 dark:bg-white/5" />
+                      
+                      {/* Sub-items for dark mode status */}
                       <DropdownMenuItem 
-                        className="rounded-xl h-11 px-3 cursor-pointer group flex items-center justify-between"
+                        className="rounded-xl h-11 px-3 cursor-pointer group flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                         onSelect={(e) => e.preventDefault()}
                       >
                         <div className="flex items-center">
-                          <Activity className={cn("w-4 h-4 mr-3 transition-colors", isActive ? "text-green-500" : "text-gray-300")} />
-                          <span className="text-xs font-bold text-gray-600">Active Status</span>
+                          <Activity className={cn("w-4 h-4 mr-3 transition-colors", isActive ? "text-green-500" : "text-gray-400 dark:text-gray-600")} />
+                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300">Active Status</span>
                         </div>
                         <div 
                           onClick={() => !isTogglingActive && handleActiveStatusToggle(!isActive)}
                           className={cn(
-                            "w-8 h-4 rounded-full transition-all relative border cursor-pointer",
-                            isActive ? "bg-green-500 border-green-600" : "bg-gray-200 border-gray-300",
+                            "w-8 h-4 rounded-full transition-all relative border cursor-pointer shadow-inner",
+                            isActive ? "bg-green-600 border-green-700" : "bg-gray-200 dark:bg-white/5 border-gray-300 dark:border-white/10",
                             isTogglingActive && "opacity-50 cursor-not-allowed"
                           )}
                         >
@@ -309,7 +316,7 @@ export default function Navbar() {
                       </DropdownMenuItem>
 
                       <DropdownMenuItem 
-                        className="rounded-xl h-11 px-3 cursor-pointer group flex items-center justify-between"
+                        className="rounded-xl h-11 px-3 cursor-pointer group flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                         onSelect={(e) => {
                           e.preventDefault()
                           setTheme(theme === 'dark' ? 'light' : 'dark')
@@ -317,16 +324,16 @@ export default function Navbar() {
                       >
                         <div className="flex items-center">
                           {theme === 'dark' ? (
-                            <Moon className="w-4 h-4 mr-3 text-blue-400" />
+                            <Moon className="w-4 h-4 mr-3 text-amber-500" />
                           ) : (
-                            <Sun className="w-4 h-4 mr-3 text-orange-400" />
+                            <Sun className="w-4 h-4 mr-3 text-indigo-500" />
                           )}
-                          <span className="text-xs font-bold text-gray-600">Dark Mode</span>
+                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{theme === 'dark' ? 'Lunar Mode' : 'Solar Mode'}</span>
                         </div>
                         <div 
                           className={cn(
-                            "w-8 h-4 rounded-full transition-all relative border",
-                            theme === 'dark' ? "bg-indigo-600 border-indigo-700" : "bg-gray-200 border-gray-300"
+                            "w-8 h-4 rounded-full transition-all relative border cursor-pointer shadow-inner",
+                            theme === 'dark' ? "bg-[#1b6b3e] border-[#1b6b3e]" : "bg-gray-200 dark:bg-white/5 border-gray-300 dark:border-white/10"
                           )}
                         >
                           <div className={cn(
@@ -335,15 +342,15 @@ export default function Navbar() {
                           )} />
                         </div>
                       </DropdownMenuItem>
-                    </div>
 
-                    <div className="p-2">
+                      <DropdownMenuSeparator className="my-2 bg-gray-50 dark:bg-white/5" />
+
                       <DropdownMenuItem
                         onClick={handleLogout}
-                        className="rounded-xl h-11 px-3 cursor-pointer group focus:bg-red-50"
+                        className="rounded-xl h-11 px-3 cursor-pointer group focus:bg-red-50 dark:focus:bg-red-950/20 text-red-600 dark:text-red-500 transition-colors"
                       >
-                        <LogOut className="w-4 h-4 mr-3 text-red-400" />
-                        <span className="text-xs font-bold text-red-600">Sign Out</span>
+                        <LogOut className="w-4 h-4 mr-3" />
+                        <span className="text-xs font-black uppercase tracking-widest">Terminate Session</span>
                       </DropdownMenuItem>
                     </div>
                   </DropdownMenuContent>
@@ -353,65 +360,114 @@ export default function Navbar() {
               <div className="flex items-center gap-6">
                 {/* Market Symbol (Dashboard) */}
                 <Link href="/vendor/dashboard" className="relative group" title="Vendor Dashboard">
-                  <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-white group-hover:shadow-xl transition-all duration-300">
-                    <Store className="w-5 h-5 text-gray-400 group-hover:text-[#1b6b3e] transition-colors" />
+                  <div className="w-11 h-11 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-white/10 group-hover:bg-[#1b6b3e]/5 dark:group-hover:bg-green-500/10 transition-all duration-300 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(27,107,62,0.1)]">
+                    <Store className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-[#1b6b3e] dark:group-hover:text-green-500 transition-colors" />
                   </div>
                 </Link>
 
                 {/* User Profile */}
-                <Link href="/vendor/profile" className="flex items-center gap-2 group" title="My Profile">
-                  <div className="w-9 h-9 rounded-full bg-[#1b6b3e] text-white flex items-center justify-center text-xs font-black shadow-lg shadow-green-900/10 active:scale-95 transition-all">
+                <Link href="/vendor/profile" className="flex items-center gap-3 group pl-4 border-l border-gray-100 dark:border-white/10">
+                  <div className="w-10 h-10 rounded-2xl bg-[#1b6b3e] dark:bg-green-600 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-green-900/10 active:scale-95 transition-all group-hover:rotate-3">
                     {getInitials(profile?.owner_name || 'Vendor')}
+                  </div>
+                  <div className="flex flex-col items-start translate-y-[-1px]">
+                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white">Vendor Dash</span>
+                     <span className="text-[9px] font-bold text-[#1b6b3e] dark:text-green-500 uppercase tracking-tighter opacity-60">System Node</span>
                   </div>
                 </Link>
 
                 {/* Logout Button */}
                 <button 
                   onClick={handleLogout} 
-                  className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 hover:bg-red-50 hover:border-red-100 group transition-all duration-300"
+                  className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-white/10 hover:bg-red-50 dark:hover:bg-red-500/10 hover:border-red-100 dark:hover:border-red-500/20 group transition-all duration-300"
                   title="Sign Out"
                 >
-                  <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+                  <LogOut className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-red-500 transition-colors" />
                 </button>
               </div>
             ) : !loading && (
-              <div className="flex items-center gap-10">
-                <Link href="/login" className="text-xs font-black text-gray-400 hover:text-[#1b6b3e] transition-all uppercase tracking-widest">
-                  Login
+              <div className="flex items-center gap-3">
+                <Link href="/login">
+                  <Button variant="ghost" className="h-11 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:text-[#1b6b3e] dark:hover:text-green-500 hover:bg-[#1b6b3e]/5 dark:hover:bg-green-500/10 transition-all">
+                    Sign In
+                  </Button>
                 </Link>
-                <Link href="/register" className="bg-[#1b6b3e] hover:bg-[#155331] text-white px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-green-900/10 active:scale-95 leading-none">
-                  Join
+                <Link href="/register">
+                  <Button className="h-11 px-8 rounded-2xl bg-[#1b6b3e] dark:bg-[#1b6b3e] hover:bg-[#155430] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-95">
+                    Join Network
+                  </Button>
                 </Link>
               </div>
             )}
           </div>
 
           {/* Mobile Navigation Trigger */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-green-800">
-                  <Menu className="w-6 h-6" />
+                <Button variant="ghost" size="icon" className="h-11 w-11 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
+                  <Menu className="w-5 h-5 text-[#1b6b3e] dark:text-green-500" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right">
+              <SheetContent side="right" className="w-[85%] sm:w-80 border-none bg-white dark:bg-[#050a05] p-0">
                 <VisuallyHidden.Root><SheetTitle>Mobile Menu</SheetTitle></VisuallyHidden.Root>
-                <div className="mt-12 flex flex-col gap-6">
-                  {navLinks.map(link => (
-                    <Link key={link.name} href={link.href} className="text-xl font-black uppercase tracking-widest border-b border-gray-50 pb-2">
-                      {link.name}
-                    </Link>
-                  ))}
-                  {user && (
-                    <div className="flex flex-col gap-4 pt-4">
-                      <Link href={userType === 'vendor' ? '/vendor/dashboard' : '/user/profile'} className="text-xl font-black uppercase tracking-widest text-[#1b6b3e]">
-                        My Account
-                      </Link>
-                      <button onClick={handleLogout} className="text-left text-xl font-black uppercase tracking-widest text-red-600">
-                        Sign Out
-                      </button>
+                <div className="p-8 flex flex-col h-full">
+                  <div className="flex items-center gap-3 mb-12">
+                    <div className="w-10 h-10 rounded-xl bg-[#1b6b3e] flex items-center justify-center shadow-lg shadow-green-900/20">
+                      <ShoppingBasket className="w-5 h-5 text-white" />
                     </div>
-                  )}
+                    <span className="font-serif text-xl font-black text-[#1b6b3e] italic">Butuan Market</span>
+                  </div>
+
+                  <nav className="flex flex-col gap-4 flex-1">
+                    {navLinks.map(link => (
+                      <Link 
+                        key={link.name} 
+                        href={link.href} 
+                        className={cn(
+                          "flex items-center justify-between py-4 px-6 rounded-2xl text-xs font-black uppercase tracking-widest transition-all",
+                          pathname === link.href 
+                            ? "bg-green-50 dark:bg-green-500/10 text-[#1b6b3e] dark:text-green-500" 
+                            : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5"
+                        )}
+                      >
+                        {link.name}
+                      </Link>
+                    ))}
+                  </nav>
+
+                  <div className="mt-auto pt-8 border-t border-gray-100 dark:border-white/5">
+                    {!user ? (
+                      <div className="flex flex-col gap-3">
+                        <Link href="/login" className="w-full">
+                          <Button variant="outline" className="w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest border-gray-100 dark:border-white/10 dark:text-white">
+                            Sign In
+                          </Button>
+                        </Link>
+                        <Link href="/register" className="w-full">
+                          <Button className="w-full h-14 rounded-2xl bg-[#1b6b3e] text-white text-xs font-black uppercase tracking-widest">
+                            Join Network
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        <Link href={userType === 'vendor' ? '/vendor/dashboard' : '/user/profile'} className="w-full">
+                          <Button className="w-full h-14 rounded-2xl bg-[#1b6b3e] text-white text-xs font-black uppercase tracking-widest">
+                            Command Center
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="ghost" 
+                          onClick={handleLogout} 
+                          className="w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                        >
+                          <LogOut className="w-4 h-4 mr-3" />
+                          Terminate Session
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>

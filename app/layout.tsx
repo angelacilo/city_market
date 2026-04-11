@@ -27,6 +27,7 @@ export const metadata: Metadata = {
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { PresenceProvider } from "@/components/providers/PresenceProvider";
 import FloatingChatWrapper from "@/components/public/FloatingChatWrapper";
+import { Toaster } from 'sonner'
 
 export default function RootLayout({
   children,
@@ -36,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white dark:bg-[#0a140a] text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300`}
+        className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white dark:bg-[#050a05] text-gray-900 dark:text-gray-100 font-sans transition-colors duration-500 selection:bg-green-500/30`}
       >
         <ThemeProvider
           attribute="class"
@@ -52,6 +53,7 @@ export default function RootLayout({
             <FloatingChatWrapper />
             <BottomNav />
             <Footer />
+            <Toaster position="top-center" richColors />
           </PresenceProvider>
         </ThemeProvider>
       </body>

@@ -35,3 +35,44 @@ export async function changePassword({ currentPassword, newPassword }: { current
     return { error: error.message || 'An unexpected error occurred.' }
   }
 }
+
+export async function initiatePasswordReset(email: string) {
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    if (error) return { error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'Failed to initiate recovery protocol.' }
+  }
+}
+
+export async function verifyOtpAndChangePassword({ email, token, newPassword }: { email: string, token: string, newPassword: string }) {
+  try {
+    const supabase = await createClient()
+    
+    // 1. Verify the OTP (recovery type)
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery'
+    })
+
+    if (verifyError) {
+      return { error: 'Invalid or expired verification code.' }
+    }
+
+    // 2. Update the password (must be done while session is active/established by verifyOtp)
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    })
+
+    if (updateError) {
+      return { error: updateError.message }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'An unexpected error occurred.' }
+  }
+}

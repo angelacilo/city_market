@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
+import { Lock, Eye, EyeOff, Loader2, AlertCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import StepIndicator from './StepIndicator'
@@ -97,129 +97,120 @@ export default function NewPasswordStep({ onSuccess }: NewPasswordStepProps) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <StepIndicator current={3} />
-
-      {/* No back button on step 3 - session is already established */}
 
       {/* Header */}
       <div className="flex flex-col items-center text-center">
-        <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-          <Lock className="w-6 h-6 text-green-700" />
+        <div className="w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-500/5 flex items-center justify-center border border-green-100/50 dark:border-green-500/10 shadow-inner">
+          <Lock className="w-6 h-6 text-green-700 dark:text-green-500" />
         </div>
-        <p className="text-xs font-bold tracking-widest text-green-600 uppercase mt-4">
-          Step 3 of 3
-        </p>
-        <h1 className="text-2xl font-bold text-gray-900 mt-1">
-          Set new password
-        </h1>
-        <p className="text-sm text-gray-500 leading-relaxed mt-2 mb-6">
-          Your identity has been verified. Create a strong new password for
-          your vendor account.
-        </p>
+        <div className="mt-6 flex flex-col items-center">
+          <p className="text-[10px] font-black tracking-[0.4em] text-green-700 dark:text-green-500 uppercase">
+            Phase 03 — Credential Reconfiguration
+          </p>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white mt-3 italic font-serif tracking-tighter uppercase leading-none">
+            Reset <span className="text-green-700 dark:text-green-500">Access Key</span>
+          </h1>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed mt-4 max-w-[280px] font-bold uppercase tracking-widest opacity-80">
+            Identity verified. Establish a high-entropy signature for your account record.
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* New password */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 block">
-            New password <span className="text-red-500">*</span>
+        <div className="space-y-3">
+          <label className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.3em] block ml-4">
+            New Signature <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+          <div className="relative group/input">
+            <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-800 group-focus-within/input:text-green-700 dark:group-focus-within/input:text-green-500 transition-colors" />
             <Input
               {...register('password')}
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
-              placeholder="Enter your new password"
+              placeholder="Min 8 characters"
               className={cn(
-                'rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 pl-11 pr-11 text-sm transition-all',
-                errors.password && 'border-red-300 focus:border-red-300 ring-2 ring-red-50'
+                'rounded-3xl border-none bg-gray-50 dark:bg-white/[0.03] focus:bg-white dark:focus:bg-white/[0.06] h-16 pl-14 pr-14 text-xs font-black text-gray-900 dark:text-white transition-all shadow-inner placeholder:text-gray-300 dark:placeholder:text-gray-800',
+                errors.password && 'ring-2 ring-red-500/20'
               )}
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-700 transition-colors"
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-800 hover:text-green-700 dark:hover:text-green-500 transition-colors"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.password && (
-            <p className="text-xs text-red-500">{errors.password.message}</p>
+            <p className="text-[9px] text-red-500 font-black uppercase tracking-widest ml-4">{errors.password.message}</p>
           )}
         </div>
 
         {/* Password strength indicator */}
         {passwordValue.length > 0 && (
-          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-            <div className="flex gap-1.5">
+          <div className="space-y-2 px-4 animate-in fade-in slide-in-from-top-1 duration-200">
+             <p className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-widest mb-2">Entropy Level</p>
+            <div className="flex gap-2">
               {[1, 2, 3, 4].map((level) => (
                 <div
                   key={level}
                   className={cn(
-                    'h-1.5 flex-1 rounded-full transition-colors duration-300',
-                    strength >= level ? strengthColors[strength] : 'bg-gray-200'
+                    'h-1 flex-1 rounded-full transition-all duration-500',
+                    strength >= level 
+                      ? (strength === 4 ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : strengthColors[strength]) 
+                      : 'bg-gray-100 dark:bg-white/5'
                   )}
                 />
               ))}
             </div>
-            <p
-              className={cn(
-                'text-xs font-medium transition-colors',
-                strength <= 1 && 'text-red-500',
-                strength === 2 && 'text-orange-500',
-                strength === 3 && 'text-yellow-600',
-                strength === 4 && 'text-green-600'
-              )}
-            >
-              {strengthLabels[strength]}
-            </p>
           </div>
         )}
 
         {/* Confirm password */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 block">
-            Confirm password <span className="text-red-500">*</span>
+        <div className="space-y-3">
+          <label className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.3em] block ml-4">
+            Confirm Signature <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+          <div className="relative group/input">
+            <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-800 group-focus-within/input:text-green-700 dark:group-focus-within/input:text-green-500 transition-colors" />
             <Input
               {...register('confirmPassword')}
               type={showConfirm ? 'text' : 'password'}
               autoComplete="new-password"
-              placeholder="Confirm your new password"
+              placeholder="Verification signature"
               className={cn(
-                'rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white h-12 pl-11 pr-11 text-sm transition-all',
-                errors.confirmPassword && 'border-red-300 focus:border-red-300 ring-2 ring-red-50'
+                'rounded-3xl border-none bg-gray-50 dark:bg-white/[0.03] focus:bg-white dark:focus:bg-white/[0.06] h-16 pl-14 pr-14 text-xs font-black text-gray-900 dark:text-white transition-all shadow-inner placeholder:text-gray-300 dark:placeholder:text-gray-800',
+                errors.confirmPassword && 'ring-2 ring-red-500/20'
               )}
             />
             <button
               type="button"
               onClick={() => setShowConfirm((v) => !v)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-700 transition-colors"
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-800 hover:text-green-700 dark:hover:text-green-500 transition-colors"
             >
               {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.confirmPassword && (
-            <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>
+            <p className="text-[9px] text-red-500 font-black uppercase tracking-widest ml-4">{errors.confirmPassword.message}</p>
           )}
         </div>
 
         {/* Error alert */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-3 flex items-start gap-2 animate-in fade-in slide-in-from-top-2">
-            <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+          <div className="bg-red-50 dark:bg-red-500/5 border-l-4 border-red-500 rounded-r-2xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm text-red-700">{error}</p>
+              <p className="text-[10px] text-red-700 dark:text-red-400 font-black uppercase tracking-widest leading-relaxed">{error}</p>
               {sessionExpired && (
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-green-700 underline font-medium mt-1 inline-block"
+                  className="text-[10px] text-green-700 dark:text-green-500 underline font-black uppercase tracking-widest mt-2 inline-block hover:opacity-80"
                 >
-                  Start over →
+                  Restart Matrix →
                 </Link>
               )}
             </div>
@@ -230,17 +221,17 @@ export default function NewPasswordStep({ onSuccess }: NewPasswordStepProps) {
         <Button
           type="submit"
           disabled={submitting}
-          className="w-full bg-green-700 hover:bg-green-800 text-white h-11 rounded-full text-sm font-semibold gap-2"
+          className="w-full bg-[#1b6b3e] hover:bg-[#155430] text-white h-16 rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] gap-3 shadow-[0_20px_40px_-15px_rgba(27,107,62,0.4)] transition-all active:scale-[0.98] group"
         >
           {submitting ? (
             <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Saving...
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Updating Core Registry...
             </>
           ) : (
             <>
-              <Lock className="w-3.5 h-3.5" />
-              Update password
+              Update Access Key
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </>
           )}
         </Button>

@@ -57,8 +57,8 @@ const ProductInquiryCard = ({ product, text, isMe }: { product: any, text: strin
       <div className={cn(
         "px-4 py-2 my-[1px] text-[15px] font-medium leading-normal shadow-none transition-all whitespace-pre-wrap",
         isMe
-          ? "bg-[#1b6b3e] text-white rounded-[1.25rem] rounded-tr-none shadow-green-900/5"
-          : "bg-[#f0f0f0] dark:bg-white/10 text-gray-900 dark:text-white rounded-[1.25rem] rounded-tl-none"
+          ? "bg-[#1b6b3e] text-white rounded-[1.25rem] rounded-tr-none shadow-green-900/5 dark:shadow-green-500/10"
+          : "bg-[#f0f0f0] dark:bg-white/10 text-gray-900 dark:text-gray-100 rounded-[1.25rem] rounded-tl-none"
       )}>
         {text}
       </div>
@@ -177,7 +177,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
           if (!conversationExists) return
 
           if (payload.eventType === 'INSERT') {
-            // Update messages list if it's the active conversation
+            // 1. Update messages list if it's the active conversation
             if (newMsg.conversation_id === activeConversationId) {
               setMessages(prev => {
                 const alreadyExists = prev.some(m => m.id === newMsg.id)
@@ -197,6 +197,27 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
               // Auto-scroll
               setTimeout(() => scrollToBottom('smooth'), 100)
             }
+
+            // 2. IMPORTANT: Update the conversation's preview in the sidebar
+            setConversations(prev => {
+              const idx = prev.findIndex(c => c.id === newMsg.conversation_id)
+              if (idx === -1) return prev
+              const newArr = [...prev]
+              newArr[idx] = {
+                ...newArr[idx],
+                last_message_content: newMsg.content,
+                last_message_at: newMsg.created_at,
+                last_sender_type: newMsg.sender_type,
+                // Increment unread count if it's from buyer and NOT active
+                vendor_unread_count: (newMsg.conversation_id !== activeConversationId && newMsg.sender_type === 'buyer')
+                  ? (newArr[idx].vendor_unread_count || 0) + 1
+                  : newArr[idx].vendor_unread_count
+              }
+              // Re-sort by last_message_at
+              return newArr.sort((a, b) =>
+                new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+              )
+            })
           } else if (payload.eventType === 'UPDATE') {
             if (newMsg.conversation_id === activeConversationId) {
               setMessages(prev => prev.map(m => m.id === newMsg.id ? newMsg : m))
@@ -419,20 +440,20 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
       <div className="w-96 border-r border-gray-100 dark:border-white/5 flex flex-col h-full bg-white dark:bg-[#0a0f0a] shrink-0">
         <div className="p-8 pb-4">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none font-serif italic">Chats</h2>
-            <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer transition-colors border border-gray-100 dark:border-white/5">
-              <MoreVertical className="w-4 h-4 text-gray-400" />
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none font-serif italic">Inquiries</h2>
+            <div className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer transition-all border border-gray-100 dark:border-white/5 shadow-sm">
+              <MoreVertical className="w-4 h-4 text-gray-400 dark:text-gray-600" />
             </div>
           </div>
 
           <div className="relative group mb-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-600 group-focus-within:text-[#1b6b3e] transition-colors" />
             <input
               type="text"
-              placeholder="Search conversations..."
+              placeholder="Search transmissions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-11 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl pl-11 pr-4 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-[#1b6b3e] transition-all"
+              className="w-full h-12 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl pl-11 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-[#1b6b3e] dark:text-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-700"
             />
           </div>
         </div>
@@ -475,7 +496,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
                       </div>
                       <div className={cn(
                         "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4 border-white dark:border-[#0a0f0a] transition-colors",
-                        isOnline ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-gray-300 dark:bg-gray-800"
+                        isOnline ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.5)]" : "bg-gray-300 dark:bg-gray-800"
                       )} />
                     </div>
 
@@ -579,7 +600,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
               </div>
 
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="w-12 h-12 rounded-2xl text-gray-400 hover:text-[#1b6b3e] hover:bg-green-50 dark:hover:bg-white/10 transition-all border border-transparent hover:border-green-100 dark:hover:border-white/5">
+                <Button variant="ghost" size="icon" className="w-12 h-12 rounded-2xl text-gray-400 dark:text-gray-600 hover:text-[#1b6b3e] dark:hover:text-green-500 hover:bg-green-50 dark:hover:bg-white/10 transition-all border border-transparent hover:border-green-100 dark:hover:border-white/5">
                   <MoreVertical className="w-5 h-5" />
                 </Button>
               </div>
@@ -656,10 +677,10 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
                               } catch (e) { }
                               return (
                                 <div className={cn(
-                                  "px-6 py-3.5 text-[15px] font-medium leading-relaxed transition-all whitespace-pre-wrap shadow-sm",
+                                  "px-6 py-4 text-[15px] font-medium leading-relaxed transition-all whitespace-pre-wrap shadow-sm",
                                   isMe
-                                    ? "bg-[#1b6b3e] text-white rounded-[1.75rem] rounded-tr-[0.5rem] shadow-xl shadow-green-900/10"
-                                    : "bg-white dark:bg-white/10 text-gray-900 dark:text-white rounded-[1.75rem] rounded-tl-[0.5rem] border border-gray-100 dark:border-white/5"
+                                    ? "bg-[#1b6b3e] text-white rounded-[2rem] rounded-tr-[0.5rem] shadow-xl shadow-green-900/10 dark:shadow-green-500/5"
+                                    : "bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-gray-100 rounded-[2rem] rounded-tl-[0.5rem] border border-gray-100 dark:border-white/5"
                                 )}>
                                   {m.content}
                                 </div>
@@ -711,7 +732,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
                     placeholder="Provide procurement signal response..."
-                    className="w-full bg-gray-50/50 dark:bg-white/5 border-none rounded-3xl pl-6 pr-16 py-5 text-base font-medium focus:ring-2 focus:ring-[#1b6b3e]/10 transition-all resize-none min-h-[72px] max-h-48 scrollbar-hide dark:text-white"
+                    className="w-full bg-gray-50/50 dark:bg-white/[0.03] border-none rounded-3xl pl-6 pr-16 py-6 text-base font-medium focus:ring-2 focus:ring-[#1b6b3e]/10 transition-all resize-none min-h-[80px] max-h-48 scrollbar-hide text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-700 shadow-inner"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault()
