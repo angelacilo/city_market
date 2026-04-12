@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import NextImage from 'next/image'
+
 import { usePathname, useRouter } from 'next/navigation'
 import {
   Menu,
@@ -19,6 +21,8 @@ import {
   Sun,
   Activity
 } from 'lucide-react'
+
+
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -30,6 +34,8 @@ import { setUserOnlineStatus } from '@/lib/actions/messenger'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
 import { ThemeToggle } from './ThemeToggle'
 import CanvassSheet from '../public/CanvassSheet'
+import VendorAccountDropdown from '../vendor/VendorAccountDropdown'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -328,7 +334,7 @@ export default function Navbar() {
                           ) : (
                             <Sun className="w-4 h-4 mr-3 text-indigo-500" />
                           )}
-                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{theme === 'dark' ? 'Lunar Mode' : 'Solar Mode'}</span>
+                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
                         </div>
                         <div 
                           className={cn(
@@ -350,7 +356,7 @@ export default function Navbar() {
                         className="rounded-xl h-11 px-3 cursor-pointer group focus:bg-red-50 dark:focus:bg-red-950/20 text-red-600 dark:text-red-500 transition-colors"
                       >
                         <LogOut className="w-4 h-4 mr-3" />
-                        <span className="text-xs font-black uppercase tracking-widest">Terminate Session</span>
+                        <span className="text-xs font-black uppercase tracking-widest">Sign Out</span>
                       </DropdownMenuItem>
                     </div>
                   </DropdownMenuContent>
@@ -358,32 +364,21 @@ export default function Navbar() {
               </div>
             ) : userType === 'vendor' ? (
               <div className="flex items-center gap-6">
-                {/* Market Symbol (Dashboard) */}
-                <Link href="/vendor/dashboard" className="relative group" title="Vendor Dashboard">
-                  <div className="w-11 h-11 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-white/10 group-hover:bg-[#1b6b3e]/5 dark:group-hover:bg-green-500/10 transition-all duration-300 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(27,107,62,0.1)]">
-                    <Store className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-[#1b6b3e] dark:group-hover:text-green-500 transition-colors" />
-                  </div>
-                </Link>
+                <VendorAccountDropdown 
+                  vendor={profile} 
+                  trigger={
+                    <div className="flex items-center gap-3 group pl-4 border-l border-gray-100 dark:border-white/10 cursor-pointer">
+                      <div className="w-10 h-10 rounded-full bg-[#1b6b3e] dark:bg-green-600 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-green-900/10 active:scale-95 transition-all group-hover:rotate-3 overflow-hidden relative">
+                        {profile?.avatar_url ? (
+                          <NextImage src={profile.avatar_url} alt="Profile" fill className="object-cover" />
+                        ) : (
+                          getInitials(profile?.owner_name || 'Vendor')
+                        )}
+                      </div>
+                    </div>
+                  }
+                />
 
-                {/* User Profile */}
-                <Link href="/vendor/profile" className="flex items-center gap-3 group pl-4 border-l border-gray-100 dark:border-white/10">
-                  <div className="w-10 h-10 rounded-2xl bg-[#1b6b3e] dark:bg-green-600 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-green-900/10 active:scale-95 transition-all group-hover:rotate-3">
-                    {getInitials(profile?.owner_name || 'Vendor')}
-                  </div>
-                  <div className="flex flex-col items-start translate-y-[-1px]">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-900 dark:text-white">Vendor Dash</span>
-                     <span className="text-[9px] font-bold text-[#1b6b3e] dark:text-green-500 uppercase tracking-tighter opacity-60">System Node</span>
-                  </div>
-                </Link>
-
-                {/* Logout Button */}
-                <button 
-                  onClick={handleLogout} 
-                  className="w-10 h-10 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center border border-gray-100 dark:border-white/10 hover:bg-red-50 dark:hover:bg-red-500/10 hover:border-red-100 dark:hover:border-red-500/20 group transition-all duration-300"
-                  title="Sign Out"
-                >
-                  <LogOut className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-red-500 transition-colors" />
-                </button>
               </div>
             ) : !loading && (
               <div className="flex items-center gap-3">

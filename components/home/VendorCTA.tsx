@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import NextImage from 'next/image'
 import Link from 'next/link'
 
 const MARKET_GREEN = '#1a5c38'
@@ -36,7 +36,7 @@ export default function VendorCTA() {
           </div>
         </div>
         <div className="relative h-64 w-full overflow-hidden md:h-auto md:w-[45%] md:min-h-[320px]">
-          <Image
+          <NextImage
             src="https://images.unsplash.com/photo-1588964895597-cfb1b3ebf378?w=600&q=80"
             alt="Vendor at a fresh produce stall"
             fill

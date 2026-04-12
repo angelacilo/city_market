@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import NextImage from 'next/image'
 import { ArrowRight } from 'lucide-react'
 
 interface MarketCardProps {
@@ -54,7 +54,7 @@ export default function MarketCard({ market, index }: MarketCardProps) {
       <div className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#0a100a] shadow-sm dark:shadow-[0_0_20px_rgba(27,107,62,0.1)] transition-all hover:shadow-2xl dark:hover:shadow-[0_0_40px_-5px_rgba(34,197,94,0.3)] hover:-translate-y-1">
         {/* Image Area */}
         <div className="relative h-[200px] w-full overflow-hidden">
-          <Image
+          <NextImage
             src={imageUrl}
             alt={market.name}
             fill

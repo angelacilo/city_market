@@ -74,7 +74,7 @@ const ProductInquiryCard = ({ product, text, isMe }: { product: any, text: strin
   )
 }
 
-const MessageStatusIndicator = ({ status }: { status: string }) => {
+const MessageStatusIndicator = ({ status, avatarUrl }: { status: string, avatarUrl?: string }) => {
   if (status === 'sent') {
     return (
       <div className="flex items-center gap-1 text-gray-400 dark:text-gray-600">
@@ -89,13 +89,22 @@ const MessageStatusIndicator = ({ status }: { status: string }) => {
     )
   } else if (status === 'seen') {
     return (
-      <div className="flex items-center gap-1 text-blue-500 dark:text-blue-400">
-        <CheckCheck className="w-3.5 h-3.5" />
+      <div className="flex items-center gap-1">
+        {avatarUrl ? (
+          <div className="relative w-4 h-4 rounded-full overflow-hidden border border-green-500/20">
+             <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+          </div>
+        ) : (
+          <div className="text-green-500">
+            <CheckCheck className="w-3.5 h-3.5" />
+          </div>
+        )}
       </div>
     )
   }
   return null
 }
+
 
 export default function FloatingChat() {
   const [isOpen, setIsOpen] = useState(false)
@@ -135,9 +144,10 @@ export default function FloatingChat() {
   async function fetchConversations(uid: string) {
     const { data } = await supabase
       .from('conversations')
-      .select('*')
+      .select('*, vendors:vendor_id(avatar_url)')
       .eq('buyer_id', uid)
       .order('last_message_at', { ascending: false })
+
     setConversations(data || [])
     return data || []
   }
@@ -215,8 +225,16 @@ export default function FloatingChat() {
         filter: `buyer_id=eq.${userId}`
       }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          setConversations(prev => [payload.new, ...prev])
-        } else if (payload.eventType === 'UPDATE') {
+          supabase
+            .from('conversations')
+            .select('*, vendors:vendor_id(avatar_url)')
+            .eq('id', payload.new.id)
+            .single()
+            .then(({ data }) => {
+              if (data) setConversations(prev => [data, ...prev])
+            })
+        }
+ else if (payload.eventType === 'UPDATE') {
           setConversations(prev => {
             const index = prev.findIndex(c => c.id === payload.new.id)
             if (index === -1) return [payload.new, ...prev]
@@ -532,9 +550,14 @@ export default function FloatingChat() {
                           )}
                         >
                           <div className="relative shrink-0">
-                            <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 flex items-center justify-center text-[#1b6b3e] dark:text-green-500 font-bold text-sm transition-colors">
-                              {conv.vendor_name.charAt(0)}
+                            <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 flex items-center justify-center text-[#1b6b3e] dark:text-green-500 font-bold text-sm transition-colors overflow-hidden relative">
+                              {conv.vendors?.avatar_url ? (
+                                <img src={conv.vendors.avatar_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{conv.vendor_name.charAt(0)}</span>
+                              )}
                             </div>
+
                             {vendorOnlineStatuses[conv.vendor_id]?.is_online && (
                               <div className="absolute right-0 bottom-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0a0f0a] rounded-full shadow-sm" />
                             )}
@@ -624,10 +647,15 @@ export default function FloatingChat() {
                                   )}>
                                     <div className="flex items-end gap-2 max-w-[85%]">
                                       {!isBuyer && (
-                                        <div className="w-8 h-8 rounded-full bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 flex items-center justify-center text-[#1b6b3e] dark:text-green-500 font-bold text-[10px] shrink-0">
-                                          {activeConversation?.vendor_name?.charAt(0)}
+                                        <div className="w-8 h-8 rounded-full bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 flex items-center justify-center text-[#1b6b3e] dark:text-green-500 font-bold text-[10px] shrink-0 overflow-hidden relative">
+                                          {activeConversation?.vendors?.avatar_url ? (
+                                            <img src={activeConversation.vendors.avatar_url} alt="" className="w-full h-full object-cover" />
+                                          ) : (
+                                            <span>{activeConversation?.vendor_name?.charAt(0)}</span>
+                                          )}
                                         </div>
                                       )}
+
                                       <div className="flex flex-col">
                                         <div className={cn(
                                           "px-3 py-2.5 text-[13px] leading-relaxed shadow-sm border",
@@ -678,9 +706,19 @@ export default function FloatingChat() {
                                             return msg.content
                                           })()}
                                         </div>
-                                        <span className="text-[9px] text-gray-400 mt-1 font-medium px-1">
-                                          {format(new Date(msg.created_at), 'HH:mm')}
-                                        </span>
+                                        
+                                         <div className="flex items-center justify-between mt-1 px-1">
+                                            <span className="text-[9px] text-gray-400 font-medium whitespace-nowrap">
+                                              {format(new Date(msg.created_at), 'HH:mm')}
+                                            </span>
+                                            {isBuyer && (
+                                               <MessageStatusIndicator 
+                                                  status={msg.status} 
+                                                  avatarUrl={activeConversation?.vendors?.avatar_url} 
+                                               />
+                                            )}
+                                         </div>
+
                                       </div>
                                     </div>
                                   </div>

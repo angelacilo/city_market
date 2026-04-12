@@ -31,7 +31,7 @@ import { formatDistanceToNow, format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
-const MessageStatusIndicator = ({ status }: { status: string }) => {
+const MessageStatusIndicator = ({ status, avatarUrl }: { status: string, avatarUrl?: string }) => {
   if (status === 'sent') {
     return (
       <div className="flex items-center gap-1 text-gray-400 dark:text-gray-600">
@@ -46,13 +46,22 @@ const MessageStatusIndicator = ({ status }: { status: string }) => {
     )
   } else if (status === 'seen') {
     return (
-      <div className="flex items-center gap-1 text-green-500">
-        <CheckCheck className="w-3.5 h-3.5" />
+      <div className="flex items-center gap-1">
+        {avatarUrl ? (
+          <div className="relative w-4 h-4 rounded-full overflow-hidden border border-green-500/20">
+             <Image src={avatarUrl} alt="" fill className="object-cover" />
+          </div>
+        ) : (
+          <div className="text-green-500">
+            <CheckCheck className="w-3.5 h-3.5" />
+          </div>
+        )}
       </div>
     )
   }
   return null
 }
+
 
 const ProductInquiryCard = ({ product, text, isMe }: { product: any, text: string, isMe: boolean }) => {
    return (
@@ -155,9 +164,10 @@ function MessagesContent() {
 
          const { data } = await supabase
             .from('conversations')
-            .select('*')
+            .select('*, vendors:vendor_id(avatar_url)')
             .eq('buyer_id', user.id)
             .order('last_message_at', { ascending: false })
+
 
          setConversations(data || [])
          setLoading(false)
@@ -178,8 +188,16 @@ function MessagesContent() {
             filter: `buyer_id=eq.${userId}`
          }, (payload) => {
             if (payload.eventType === 'INSERT') {
-               setConversations(prev => [payload.new, ...prev])
-            } else if (payload.eventType === 'UPDATE') {
+               supabase
+                  .from('conversations')
+                  .select('*, vendors:vendor_id(avatar_url)')
+                  .eq('id', payload.new.id)
+                  .single()
+                  .then(({ data }) => {
+                     if (data) setConversations(prev => [data, ...prev])
+                  })
+            }
+ else if (payload.eventType === 'UPDATE') {
                setConversations(prev => {
                   const idx = prev.findIndex(c => c.id === payload.new.id)
                   if (idx === -1) return [payload.new, ...prev]
@@ -389,10 +407,15 @@ function MessagesContent() {
                               >
                                  <div className="relative shrink-0">
                                     <div className={cn(
-                                       "w-14 h-14 rounded-2xl flex items-center justify-center font-black text-base shadow-sm border border-gray-100 dark:border-white/5 transition-all overflow-hidden uppercase",
+                                       "w-14 h-14 rounded-2xl flex items-center justify-center font-black text-base shadow-sm border border-gray-100 dark:border-white/5 transition-all overflow-hidden relative",
                                        hasUnread ? "bg-green-700 text-white" : "bg-gray-50 dark:bg-white/5 text-gray-400 dark:text-gray-600"
                                     )}>
-                                       {c.vendor_name[0]}
+                                       {c.vendors?.avatar_url ? (
+                                           <Image src={c.vendors.avatar_url} alt="" fill className="object-cover" />
+                                        ) : (
+                                           <span className="uppercase">{c.vendor_name[0]}</span>
+                                        )}
+
                                     </div>
                                     <div className={cn(
                                        "absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full border-4 border-white dark:border-[#111111] transition-colors",
@@ -453,8 +476,13 @@ function MessagesContent() {
                                  <ArrowLeft className="w-6 h-6" />
                               </Button>
                               <div className="relative shrink-0">
-                                 <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-white/10 flex items-center justify-center font-black text-xl text-[#1b6b3e] dark:text-green-500 border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden uppercase">
-                                    {activeConversation?.vendor_name[0]}
+                                 <div className="w-14 h-14 rounded-2xl bg-gray-50 dark:bg-white/10 flex items-center justify-center font-black text-xl text-[#1b6b3e] dark:text-green-500 border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden relative">
+                                    {activeConversation?.vendors?.avatar_url ? (
+                                        <Image src={activeConversation.vendors.avatar_url} alt="" fill className="object-cover" />
+                                     ) : (
+                                        <span className="uppercase">{activeConversation?.vendor_name[0]}</span>
+                                     )}
+
                                  </div>
                                  <div className={cn(
                                     "absolute -bottom-0.5 -right-0.5 w-4.5 h-4.5 rounded-full border-4 border-white dark:border-[#111111] shadow-sm",
@@ -532,7 +560,7 @@ function MessagesContent() {
 
                                                 {isMe && (
                                                    <div className="flex justify-end mt-1.5 px-2">
-                                                      <MessageStatusIndicator status={m.status || 'sent'} />
+                                                      <MessageStatusIndicator status={m.status || 'sent'} avatarUrl={activeConversation?.vendors?.avatar_url} />
                                                    </div>
                                                 )}
                                              </div>

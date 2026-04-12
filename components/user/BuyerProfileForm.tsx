@@ -57,12 +57,12 @@ export default function BuyerProfileForm({ userId, initialData }: BuyerProfileFo
   return (
     <form onSubmit={handleSubmit} className="space-y-12">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-8">
-         <div className="bg-white p-12 rounded-[3.5rem] border border-gray-50 shadow-2xl shadow-green-900/5 relative overflow-hidden group">
+         <div className="bg-white p-8 rounded-3xl border border-gray-50 shadow-2xl shadow-green-900/5 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-green-50/30 rounded-full blur-3xl -mr-20 -mt-20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
             
             <div className="flex items-center gap-6 mb-12">
-               <div className="w-16 h-16 bg-[#1b6b3e] rounded-[1.5rem] flex items-center justify-center shadow-lg shadow-green-900/20 rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                  <User className="w-8 h-8 text-white" />
+               <div className="w-14 h-14 bg-[#1b6b3e] rounded-2xl flex items-center justify-center shadow-lg shadow-green-900/20 rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                  <User className="w-7 h-7 text-white" />
                </div>
                <div>
                   <h3 className="text-2xl font-black text-gray-900 leading-none mb-1 tracking-tight">Personal Details</h3>
@@ -78,7 +78,7 @@ export default function BuyerProfileForm({ userId, initialData }: BuyerProfileFo
                      <Input
                         value={formData.full_name}
                         onChange={e => setFormData({...formData, full_name: e.target.value})}
-                        className="h-16 pl-14 pr-6 rounded-[1.5rem] border-gray-100 bg-gray-50/50 group-hover/input:bg-white focus:bg-white focus:ring-[#1b6b3e]/10 focus:border-[#1b6b3e]/30 transition-all font-black text-gray-900 placeholder:text-gray-300"
+                        className="h-14 pl-14 pr-6 rounded-2xl border-gray-100 bg-gray-50/50 group-hover/input:bg-white focus:bg-white focus:ring-[#1b6b3e]/10 focus:border-[#1b6b3e]/30 transition-all font-black text-gray-900 placeholder:text-gray-300"
                         placeholder="Juana Dela Cruz"
                         required
                      />
@@ -92,7 +92,7 @@ export default function BuyerProfileForm({ userId, initialData }: BuyerProfileFo
                      <Input
                         value={formData.contact_number}
                         onChange={e => setFormData({...formData, contact_number: e.target.value})}
-                        className="h-16 pl-14 pr-6 rounded-[1.5rem] border-gray-100 bg-gray-50/50 group-hover/input:bg-white focus:bg-white focus:ring-[#1b6b3e]/10 focus:border-[#1b6b3e]/30 transition-all font-black text-gray-900 placeholder:text-gray-300"
+                        className="h-14 pl-14 pr-6 rounded-2xl border-gray-100 bg-gray-50/50 group-hover/input:bg-white focus:bg-white focus:ring-[#1b6b3e]/10 focus:border-[#1b6b3e]/30 transition-all font-black text-gray-900 placeholder:text-gray-300"
                         placeholder="0912 345 6789"
                      />
                   </div>
@@ -105,7 +105,7 @@ export default function BuyerProfileForm({ userId, initialData }: BuyerProfileFo
                      <Input
                         value={formData.barangay}
                         onChange={e => setFormData({...formData, barangay: e.target.value})}
-                        className="h-16 pl-14 pr-6 rounded-[1.5rem] border-gray-100 bg-gray-50/50 group-hover/input:bg-white focus:bg-white focus:ring-[#1b6b3e]/10 focus:border-[#1b6b3e]/30 transition-all font-black text-gray-900 placeholder:text-gray-300 uppercase"
+                        className="h-14 pl-14 pr-6 rounded-2xl border-gray-100 bg-gray-50/50 group-hover/input:bg-white focus:bg-white focus:ring-[#1b6b3e]/10 focus:border-[#1b6b3e]/30 transition-all font-black text-gray-900 placeholder:text-gray-300 uppercase"
                         placeholder="E.g. Libertad, Butuan City"
                      />
                   </div>
@@ -119,7 +119,7 @@ export default function BuyerProfileForm({ userId, initialData }: BuyerProfileFo
             type="submit" 
             disabled={loading}
             className={cn(
-               "h-16 px-12 rounded-[1.5rem] transition-all active:scale-95 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest",
+               "h-14 px-10 rounded-2xl transition-all active:scale-95 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest",
                saved 
                  ? "bg-green-600 hover:bg-green-700 text-white shadow-2xl shadow-green-900/40" 
                  : "bg-gray-900 hover:bg-black text-white shadow-2xl shadow-gray-900/20"

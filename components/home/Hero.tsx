@@ -1,7 +1,7 @@
 'use client'
  
 import { useState } from 'react'
-import Image from 'next/image'
+import NextImage from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { CheckCircle, Search, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react'
@@ -37,7 +37,7 @@ export default function Hero({
     <section className="relative w-full min-h-[85vh] flex flex-col items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
-        <Image
+        <NextImage
           src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80"
           alt="Market Background"
           fill

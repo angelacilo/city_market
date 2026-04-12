@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import Image from 'next/image'
+import NextImage from 'next/image'
 import {
   Dialog,
   DialogContent,
@@ -368,7 +368,7 @@ function EditListingDialog({
               >
                 {previewUrl ? (
                   <>
-                    <Image src={previewUrl} alt="Preview" fill className="object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <NextImage src={previewUrl} alt="Preview" fill className="object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
                       <div className="flex flex-col items-center scale-90 group-hover:scale-100 transition-transform">
                         <Camera className="w-6 h-6 text-white mb-2" />
@@ -665,7 +665,7 @@ function AddListingDialog({
                   className="w-full h-40 rounded-[2rem] border-2 border-dashed border-gray-100 dark:border-white/[0.03] bg-gray-50 dark:bg-white/[0.01] flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-white/[0.03] transition-all group relative overflow-hidden"
                 >
                   {previewUrl && (
-                    <Image src={previewUrl} alt="Preview" fill className="object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <NextImage src={previewUrl} alt="Preview" fill className="object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                   )}
                   <div className={cn("relative z-10 flex flex-col items-center justify-center p-4", previewUrl && "bg-black/40 inset-0 absolute backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all")}>
                     <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-2 transition-transform duration-500", previewUrl ? "bg-white/20 scale-90 group-hover:scale-100" : "bg-green-100 dark:bg-green-500/10")}>
@@ -938,7 +938,7 @@ export default function ProductsManager({ listings: initialListings, allProducts
                         <div className="flex items-center gap-6">
                           <div className="relative w-20 h-20 rounded-[2rem] bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 overflow-hidden flex-shrink-0 shadow-sm group-hover:scale-105 group-hover:border-[#1b6b3e]/30 dark:group-hover:border-green-500/30 transition-all duration-500">
                             {listing.products?.image_url ? (
-                              <Image
+                              <NextImage
                                 src={listing.products.image_url}
                                 alt={listing.products.name ?? 'product'}
                                 fill

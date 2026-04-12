@@ -11,9 +11,10 @@ export default async function VendorProfilePage() {
 
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('id, business_name, owner_name, stall_number, contact_number, opening_time, closing_time, markets(name)')
+    .select('id, business_name, owner_name, stall_number, contact_number, opening_time, closing_time, avatar_url, markets(name)')
     .eq('user_id', user.id)
     .single()
+
 
   if (!vendor) redirect('/register')
 
@@ -40,7 +41,9 @@ export default async function VendorProfilePage() {
             contact_number: vendor.contact_number ?? '',
             opening_time: vendor.opening_time ?? '',
             closing_time: vendor.closing_time ?? '',
+            avatar_url: vendor.avatar_url ?? '',
           }}
+
           marketName={(vendor.markets as any)?.name ?? '—'}
           email={user.email!}
         />

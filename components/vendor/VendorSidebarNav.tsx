@@ -117,7 +117,7 @@ function NavContent({
               BUTUAN MARKET
             </span>
             <span className="text-[7px] font-black uppercase tracking-[0.3em] text-[#1b6b3e] dark:text-green-500 mt-1 opacity-70">
-              Vendor Console
+              Vendor Dashboard
             </span>
           </div>
         </Link>
@@ -126,7 +126,7 @@ function NavContent({
       {/* Vendor Profile Summary (Mini) */}
       <div className="p-6">
         <div className="bg-gray-50/50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100/50 dark:border-white/5 shadow-sm dark:shadow-[0_0_20px_rgba(27,107,62,0.1)] transition-all">
-           <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-600 mb-2">Active Node</p>
+           <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-600 mb-2">Store Status</p>
            <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#121212] border border-gray-100 dark:border-white/5 flex items-center justify-center shadow-sm">
                 <Store className="w-5 h-5 text-[#1b6b3e] dark:text-green-500" />
@@ -145,7 +145,7 @@ function NavContent({
       {/* Main Navigation */}
       <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto custom-scrollbar">
         <div className="px-3 mb-3">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Main Control</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Menu</p>
         </div>
         {mainNavItems.map((item) => (
           <NavLink
@@ -156,9 +156,15 @@ function NavContent({
             badge={item.href === '/vendor/inquiries' ? unreadCount : undefined}
           />
         ))}
+
+        <NavLink
+          href={`/stalls/${vendor.id}`}
+          icon={Store}
+          name="Public Stall"
+        />
  
         <div className="px-3 mt-8 mb-3">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Preferences</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">Settings</p>
         </div>
         {accountNavItems.map((item) => (
           <NavLink key={item.href} href={item.href} icon={item.icon} name={item.name} />
@@ -174,7 +180,7 @@ function NavContent({
           <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-500/20 flex items-center justify-center group-hover:bg-red-100 dark:group-hover:bg-red-500/30 transition-colors">
             <LogOut className="w-4 h-4 shadow-sm" />
           </div>
-          Sign out session
+          Sign Out
         </button>
       </div>
     </div>

@@ -3,7 +3,9 @@
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Store, LogOut, UserCircle, Moon, Sun, Activity } from 'lucide-react'
+import NextImage from 'next/image'
 import { useTheme } from 'next-themes'
+
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { updateVendorProfile } from '@/lib/actions/vendor'
@@ -22,11 +24,17 @@ interface VendorAccountDropdownProps {
     id: string;
     business_name: string;
     is_active: boolean;
-    user_id?: string;
-  }
+    owner_name?: string | null;
+    avatar_url?: string;
+  };
+  trigger?: React.ReactNode;
 }
 
-export default function VendorAccountDropdown({ vendor }: VendorAccountDropdownProps) {
+
+
+
+export default function VendorAccountDropdown({ vendor, trigger }: VendorAccountDropdownProps) {
+
   const router = useRouter()
   const supabase = createClient()
   const { theme, setTheme } = useTheme()
@@ -104,21 +112,37 @@ export default function VendorAccountDropdown({ vendor }: VendorAccountDropdownP
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 rounded-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors focus:outline-none">
-        <div className="relative">
-          <UserCircle className="h-6 w-6 text-[#1b6b3e] dark:text-green-500" />
-          <div className={cn(
-            "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#0a0f0a]",
-            isActive ? "bg-green-500" : "bg-gray-400"
-          )} />
-        </div>
-        <span className="text-sm font-black text-gray-700 dark:text-gray-300 hidden sm:block uppercase tracking-tighter">Account</span>
+      <DropdownMenuTrigger asChild>
+        {trigger ? (
+          <button className="focus:outline-none">
+            {trigger}
+          </button>
+        ) : (
+          <button className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors focus:outline-none">
+            <div className="relative">
+              <div className="h-10 w-10 rounded-full overflow-hidden ring-2 ring-green-100 dark:ring-green-900/40 shadow-xl relative bg-[#1b6b3e] flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
+                {vendor.avatar_url ? (
+                  <NextImage src={vendor.avatar_url} alt="Profile" fill className="object-cover" />
+                ) : (
+                  <span className="text-sm font-black text-white uppercase tracking-tighter">
+                      {((vendor.owner_name || vendor.business_name).split(' ').map(n => n[0]).join('').slice(0, 2))}
+                  </span>
+                )}
+              </div>
+              <div className={cn(
+                "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-[#0a0f0a]",
+                isActive ? "bg-green-500" : "bg-gray-400"
+              )} />
+            </div>
+          </button>
+        )}
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="end" className="w-72 rounded-[2rem] p-3 shadow-2xl dark:shadow-[0_0_50px_rgba(27,107,62,0.2)] border-gray-100 dark:border-white/10 dark:bg-[#0a0f0a]">
         <DropdownMenuLabel className="px-3 py-4">
           <div className="flex flex-col space-y-1">
             <p className="text-lg font-black text-gray-900 dark:text-white leading-tight font-serif italic tracking-tight">{vendor.business_name}</p>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1b6b3e] dark:text-green-500 opacity-60">Vendor Node Status</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1b6b3e] dark:text-green-500 opacity-60">Store Status</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-gray-50 dark:bg-white/5" />
@@ -167,7 +191,7 @@ export default function VendorAccountDropdown({ vendor }: VendorAccountDropdownP
         {/* My Stall Link */}
         <DropdownMenuItem
           className="flex items-center gap-4 cursor-pointer py-4 px-4 rounded-2xl focus:bg-gray-50 dark:focus:bg-white/5 transition-colors"
-          onClick={() => router.push(`/stall/${vendor.id}`)}
+          onClick={() => router.push(`/stalls/${vendor.id}`)}
         >
           <div className="w-8 h-8 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center">
             <Store className="w-4 h-4 text-[#1b6b3e] dark:text-green-500" />
@@ -192,7 +216,7 @@ export default function VendorAccountDropdown({ vendor }: VendorAccountDropdownP
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-500" />}
           </div>
           <span className="text-sm font-black uppercase tracking-widest text-[11px] text-gray-700 dark:text-gray-300">
-            {theme === 'dark' ? 'Solar Mode' : 'Lunar Mode'}
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           </span>
         </DropdownMenuItem>
 
@@ -206,7 +230,7 @@ export default function VendorAccountDropdown({ vendor }: VendorAccountDropdownP
           <div className="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center">
             <LogOut className="w-4 h-4" />
           </div>
-          <span className="text-sm font-black uppercase tracking-widest text-[11px]">Terminate Session</span>
+          <span className="text-sm font-black uppercase tracking-widest text-[11px]">Sign Out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

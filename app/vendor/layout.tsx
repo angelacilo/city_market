@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Clock } from 'lucide-react'
+import { Clock, Store } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import VendorSidebarNav from '@/components/vendor/VendorSidebarNav'
@@ -45,7 +45,9 @@ export default async function VendorLayout({ children }: { children: React.React
       is_active,
       created_at,
       market_id,
+      avatar_url,
       markets ( id, name, barangay )
+
     `)
     .eq('id', mainVendor.id)
     .single()
@@ -128,12 +130,14 @@ export default async function VendorLayout({ children }: { children: React.React
           <div className="flex items-center gap-4">
             {/* Mobile Sidebar Trigger (handled inside VendorSidebarNav) */}
             <VendorSidebarNav vendor={vendorInfo} unreadCount={unreadCount} userId={user.id} mobileOnly />
-            <h1 className="hidden lg:block text-2xl font-serif font-black italic text-[#1b6b3e] dark:text-green-500 tracking-tight">
-              BUTUAN <span className="text-gray-300 dark:text-gray-800 font-sans not-italic text-sm ml-2">VERSION 1.0</span>
-            </h1>
+            <div className="flex items-center gap-2">
+               <div className="w-1.5 h-6 bg-[#1b6b3e] dark:bg-green-600 rounded-full" />
+               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 dark:text-gray-600">Vendor Panel</span>
+            </div>
+
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <VendorAccountDropdown vendor={vendor as any} />
           </div>
         </header>

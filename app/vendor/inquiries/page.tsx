@@ -22,7 +22,7 @@ export default async function VendorInquiriesPage() {
     .from('conversations')
     .select(`
       *,
-      buyer_profiles:buyer_id(id, full_name, contact_number, barangay)
+      buyer_profiles:buyer_id(id, full_name, contact_number, barangay, avatar_url)
     `)
     .eq('vendor_id', vendor.id)
     .order('last_message_at', { ascending: false })

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { changePassword } from '@/lib/actions/auth'
 import {
   User,
   Mail,
@@ -16,8 +17,13 @@ import {
   Check,
   Edit2,
   Shield,
-  Briefcase
+  Briefcase,
+  ArrowRight,
+  Activity,
+  ShieldCheck
 } from 'lucide-react'
+import { initiatePasswordReset, verifyOtpAndChangePassword } from '@/lib/actions/auth'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,9 +45,10 @@ import * as z from 'zod'
 
 const profileSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
-  mobile_number: z.string().regex(/^09\d{9}$/, 'Must be a valid Philippine mobile (09XXXXXXXXX)').optional().or(z.literal('')),
+  contact_number: z.string().regex(/^09\d{9}$/, 'Must be a valid Philippine mobile (09XXXXXXXXX)').optional().or(z.literal('')),
   barangay: z.string().min(1, 'Please select your barangay'),
 })
+
 
 type ProfileFormValues = z.infer<typeof profileSchema>
 
@@ -59,8 +66,11 @@ type SecurityFormValues = z.infer<typeof securitySchema>
 export default function BuyerProfileManager({ initialProfile, userEmail }: { initialProfile: any, userEmail: string }) {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null)
   const [avatarUrl, setAvatarUrl] = useState(initialProfile.avatar_url || '')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -70,31 +80,89 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
     resolver: zodResolver(profileSchema),
     defaultValues: {
       full_name: initialProfile.full_name || '',
-      mobile_number: initialProfile.mobile_number || '',
+      contact_number: initialProfile.contact_number || '',
       barangay: initialProfile.barangay || ''
+    }
+
+  })
+
+  const { register: registerSecurity, handleSubmit: handleSubmitSecurity, formState: { errors: securityErrors }, reset: resetSecurity } = useForm<SecurityFormValues>({
+    resolver: zodResolver(securitySchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
     }
   })
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const onUpdateProfile = async (values: ProfileFormValues) => {
+    setLoading(true)
+    const { error } = await supabase
+      .from('buyer_profiles')
+      .update(values)
+      .eq('user_id', initialProfile.user_id)
+
+    if (error) {
+      toast.error('Failed to update profile.')
+    } else {
+      toast.success('Profile updated successfully.')
+      setIsEditing(false)
+      router.refresh()
+    }
+    setLoading(false)
+  }
+
+  const handleStartEdit = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsEditing(false)
+  }
+
+  const handleCancelProfile = () => {
+    // Force reset to initial values
+    window.location.reload()
+  }
+
+  const handleAvatarSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    setSelectedFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+  }
+
+  const handleCancelUpload = () => {
+    setPreviewUrl(null)
+    setSelectedFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleSaveAvatar = async () => {
+    if (!selectedFile) return
 
     setUploading(true)
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${initialProfile.user_id}-${Math.random()}.${fileExt}`
-    const filePath = `avatars/${fileName}`
+    const fileExt = selectedFile.name.split('.').pop()
+    const fileName = `${Date.now()}.${fileExt}`
+    const filePath = `avatars/${initialProfile.user_id}/${fileName}`
 
     try {
+      // 1. Upload the file
       const { error: uploadError } = await supabase.storage
         .from('profiles')
-        .upload(filePath, file)
+        .upload(filePath, selectedFile)
 
       if (uploadError) throw uploadError
 
+      // 2. Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profiles')
         .getPublicUrl(filePath)
 
+      // 3. Update the database profile
       const { error: updateError } = await supabase
         .from('buyer_profiles')
         .update({ avatar_url: publicUrl })
@@ -103,30 +171,19 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
       if (updateError) throw updateError
 
       setAvatarUrl(publicUrl)
-      setToast({ message: 'Profile picture updated!', type: 'success' })
+      setPreviewUrl(null)
+      setSelectedFile(null)
+      toast.success('Portrait reconfigured.', { description: 'Your visual identity has been updated.' })
+      router.refresh()
     } catch (err: any) {
-      setToast({ message: err.message || 'Upload failed', type: 'error' })
+      toast.error('Upload failure.', { description: err.message || 'Transmission interrupted.' })
     } finally {
       setUploading(false)
-      setTimeout(() => setToast(null), 3000)
     }
   }
 
-  const onSubmitProfile = async (values: ProfileFormValues) => {
-    setLoading(true)
-    const { error } = await supabase
-      .from('buyer_profiles')
-      .update(values)
-      .eq('user_id', initialProfile.user_id)
 
-    if (error) {
-      setToast({ message: 'Failed to update profile', type: 'error' })
-    } else {
-      setToast({ message: 'Profile updated successfully!', type: 'success' })
-    }
-    setLoading(false)
-    setTimeout(() => setToast(null), 3000)
-  }
+
 
   const handleDeleteAccount = async () => {
     setLoading(true)
@@ -152,12 +209,12 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
           <span className="text-[11px] font-black text-green-700 dark:text-green-500 uppercase tracking-[0.4em] mb-4 block">
             Account Management
           </span>
-          <h1 className="text-5xl lg:text-7xl font-playfair leading-[0.9] tracking-tight dark:text-white">
-            Manage your <span className="text-green-700 italic dark:text-green-500">market profile</span>
+          <h1 className="text-5xl lg:text-7xl font-sans font-black leading-[0.9] tracking-tight dark:text-white">
+            Your <span className="text-green-700 italic dark:text-green-500">Account</span> Settings
           </h1>
         </div>
-        <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400 max-w-xl font-medium leading-relaxed uppercase tracking-tight">
-          Update your personal information, security settings, and communication preferences for the Butuan City digital marketplace.
+        <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400 max-w-xl font-medium leading-relaxed">
+          Update your personal info, change your password, and manage your account settings here.
         </p>
       </div>
 
@@ -166,34 +223,58 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
         <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
           {/* Avatar Section */}
           <div className="relative">
-            <div className="w-44 h-44 rounded-[4rem] overflow-hidden ring-[12px] ring-green-50 dark:ring-green-950/20 shadow-2xl relative">
-              {avatarUrl ? (
-                <Image src={avatarUrl} alt="Profile" fill className="object-cover" />
+            <div className="w-44 h-44 rounded-[4rem] overflow-hidden ring-[12px] ring-green-50 dark:ring-green-950/20 shadow-2xl relative bg-white flex items-center justify-center">
+              {previewUrl || avatarUrl ? (
+                <Image src={previewUrl || avatarUrl} alt="Profile" fill className="object-cover" />
               ) : (
                 <div className="w-full h-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-700 dark:text-green-400 text-5xl font-black">
                   {initialProfile.full_name?.charAt(0).toUpperCase()}
                 </div>
               )}
               {uploading && (
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-20">
                   <Loader2 className="w-8 h-8 text-white animate-spin" />
                 </div>
               )}
             </div>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-2 -right-2 w-12 h-12 bg-green-700 hover:bg-green-800 text-white rounded-2xl flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all outline-none border-4 border-white dark:border-[#1e1e1e]"
-            >
-              <Edit2 className="w-5 h-5" />
-            </button>
+
+            {previewUrl ? (
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 z-30 animate-in fade-in slide-in-from-bottom-4 duration-500 w-max">
+                <Button
+                  onClick={handleSaveAvatar}
+                  disabled={uploading}
+                  className="h-12 px-6 bg-[#1b6b3e] hover:bg-green-800 text-white rounded-2xl shadow-2xl transition-all border-none font-black uppercase tracking-widest text-[10px] flex items-center gap-2"
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Save Portrait</>}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelUpload}
+                  disabled={uploading}
+                  className="h-12 px-6 bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white border-red-200 dark:border-red-900/30 rounded-2xl shadow-xl transition-all font-black uppercase tracking-widest text-[10px] flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" /> Cancel
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-2 -left-2 w-12 h-12 bg-green-700 hover:bg-green-800 text-white rounded-2xl flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all outline-none border-4 border-white dark:border-[#1e1e1e]"
+              >
+                <Edit2 className="w-5 h-5" />
+              </button>
+            )}
+
             <input
               type="file"
               ref={fileInputRef}
               className="hidden"
               accept="image/*"
-              onChange={handleAvatarUpload}
+              onChange={handleAvatarSelection}
             />
           </div>
+
 
           <div className="text-center md:text-left space-y-6 flex-1">
             <div className="space-y-4">
@@ -209,8 +290,8 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
                 </Badge>
               </div>
             </div>
-            <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] max-w-sm leading-relaxed">
-              Update your photo to personalize your vendor interactions.
+            <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+              Click the edit button to upload a new profile picture.
             </p>
           </div>
         </div>
@@ -219,20 +300,24 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
         {/* Personal Information */}
-        <Card className="rounded-[3rem] p-10 lg:p-14 border-none shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] dark:bg-[#1e1e1e] group overflow-hidden relative">
+        <Card className="rounded-3xl p-8 lg:p-10 border-none shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] dark:bg-[#1e1e1e] group overflow-hidden relative">
           <div className="flex items-center gap-4 mb-12">
             <div className="w-12 h-12 rounded-2xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-700 dark:text-green-500 group-hover:rotate-12 transition-transform duration-500">
               <User className="w-6 h-6" />
             </div>
-            <h3 className="text-2xl font-serif font-black text-gray-900 dark:text-white tracking-tight uppercase leading-none">Personal Information</h3>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase leading-none">Your Details</h3>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmitProfile)} className="space-y-10">
+          <form id="buyer-profile-form" onSubmit={handleSubmit(onUpdateProfile)} className="space-y-10">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">Full Name</label>
               <Input
                 {...register('full_name')}
-                className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-gray-100 dark:border-gray-800 focus:bg-white dark:focus:bg-black/40 focus:ring-4 focus:ring-green-100 dark:focus:ring-green-900/20 font-bold transition-all px-8 border-none dark:text-white"
+                disabled={!isEditing}
+                className={cn(
+                  "h-16 rounded-2xl border-none font-bold transition-all px-8 dark:text-white",
+                  isEditing ? "bg-white dark:bg-black/40 ring-4 ring-green-100 dark:ring-green-900/20" : "bg-gray-50 dark:bg-black/20 opacity-70"
+                )}
               />
             </div>
 
@@ -241,7 +326,7 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
               <Input
                 value={userEmail}
                 disabled
-                className="h-16 rounded-2xl bg-gray-50/50 dark:bg-black/10 border-none font-bold text-gray-400 px-8 cursor-not-allowed"
+                className="h-16 rounded-2xl bg-gray-50/50 dark:bg-black/10 border-none font-bold text-gray-400 px-8 cursor-not-allowed opacity-50"
               />
             </div>
 
@@ -249,74 +334,79 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">Mobile</label>
                 <Input
-                  {...register('mobile_number')}
-                  className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-none focus:bg-white dark:focus:bg-black/40 focus:ring-4 focus:ring-green-100 dark:focus:ring-green-900/20 font-bold transition-all px-8 dark:text-white"
+                  {...register('contact_number')}
+                  disabled={!isEditing}
+                  className={cn(
+                    "h-14 rounded-xl border-none font-bold transition-all px-6 dark:text-white",
+                    isEditing ? "bg-white dark:bg-black/40 ring-4 ring-green-100 dark:ring-green-900/20" : "bg-gray-50 dark:bg-black/20 opacity-70"
+                  )}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">Barangay</label>
                 <Input
                   {...register('barangay')}
-                  className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-none focus:bg-white dark:focus:bg-black/40 focus:ring-4 focus:ring-green-100 dark:focus:ring-green-900/20 font-bold transition-all px-8 dark:text-white"
+                  disabled={!isEditing}
+                  className={cn(
+                    "h-14 rounded-xl border-none font-bold transition-all px-6 dark:text-white",
+                    isEditing ? "bg-white dark:bg-black/40 ring-4 ring-green-100 dark:ring-green-900/20" : "bg-gray-50 dark:bg-black/20 opacity-70"
+                  )}
                 />
               </div>
             </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full md:w-auto h-16 px-12 bg-green-700 hover:bg-green-800 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-2xl active:scale-95 transition-all"
-            >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
-              <Check className="ml-3 w-4 h-4" />
-            </Button>
           </form>
+
+          <div className="flex flex-wrap items-center gap-6 pt-10">
+            {!isEditing ? (
+              <Button
+                type="button"
+                onClick={handleStartEdit}
+                className="h-14 px-12 bg-black dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-3"
+              >
+                <Edit2 className="w-4 h-4" />
+                <span>Edit Profile</span>
+              </Button>
+            ) : (
+              <>
+                <Button
+                  form="buyer-profile-form"
+                  type="submit"
+                  disabled={loading}
+                  className="h-14 px-12 bg-green-700 hover:bg-green-800 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-green-900/10 active:scale-95 transition-all flex items-center justify-center gap-3"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                    <>
+                      <span>Save Changes</span>
+                      <Check className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleCancelEdit}
+                  className="h-14 px-10 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-white/5 rounded-2xl transition-all active:scale-95"
+                >
+                  Cancel
+                </Button>
+              </>
+            )}
+          </div>
         </Card>
 
         {/* Security Section */}
-        <Card className="rounded-[3rem] p-10 lg:p-14 border-none shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] dark:bg-[#1e1e1e] group overflow-hidden relative">
+        <Card className="rounded-3xl p-8 lg:p-10 border-none shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] dark:bg-[#1e1e1e] group overflow-hidden relative">
           <div className="flex items-center gap-4 mb-12">
             <div className="w-12 h-12 rounded-2xl bg-black dark:bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:-rotate-12 transition-transform duration-500">
               <Shield className="w-6 h-6" />
             </div>
-            <h3 className="text-2xl font-serif font-black text-gray-900 dark:text-white tracking-tight uppercase leading-none">Security Settings</h3>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase leading-none">Security</h3>
           </div>
 
           <div className="space-y-10">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">Current Password</label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-none font-bold px-8 dark:text-white hover:bg-white dark:hover:bg-black/40 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">New Password</label>
-              <Input
-                type="password"
-                placeholder="Min. 8 characters"
-                className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-none font-bold px-8 dark:text-white hover:bg-white dark:hover:bg-black/40 transition-colors"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">Confirm New Password</label>
-              <Input
-                type="password"
-                placeholder="Repeat new password"
-                className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-none font-bold px-8 dark:text-white hover:bg-white dark:hover:bg-black/40 transition-colors"
-              />
-            </div>
-
-            <Button
-              variant="outline"
-              className="w-full md:w-auto h-16 px-12 border-gray-100 dark:border-gray-800 text-gray-400 font-black uppercase tracking-widest text-[11px] rounded-2xl hover:bg-green-700 hover:text-white transition-all shadow-lg active:scale-95"
-            >
-              Update Password
-            </Button>
+            <PasswordOverrideFlow email={userEmail} />
           </div>
+
         </Card>
       </div>
 
@@ -360,19 +450,184 @@ export default function BuyerProfileManager({ initialProfile, userEmail }: { ini
         </div>
       </Card>
 
-      {/* Global Toast */}
-      {toast && (
-        <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-8 duration-500">
-          <div className={cn(
-            "px-10 py-5 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex items-center gap-4 backdrop-blur-3xl border border-white/20 dark:border-white/5",
-            toast.type === 'success' ? "bg-green-700 text-white" : "bg-red-600 text-white"
-          )}>
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-              {toast.type === 'success' ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-            </div>
-            <span className="text-xs font-black uppercase tracking-widest">{toast.message}</span>
-          </div>
+    </div>
+  )
+}
+
+function PasswordOverrideFlow({ email }: { email: string }) {
+  const [stage, setStage] = useState<'idle' | 'otp' | 'password'>('idle')
+  const [token, setToken] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [showPass, setShowPass] = useState(false)
+
+  async function handleInitiate() {
+    setLoading(true)
+    const res = await initiatePasswordReset(email)
+    setLoading(false)
+    if (res.error) {
+      toast.error('Failed to send code', { description: res.error })
+    } else {
+      setStage('otp')
+      toast.success('Verification code sent', { description: 'Please check your Gmail inbox.' })
+    }
+  }
+
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault()
+    if (token.length < 6) return
+    setStage('password')
+    toast.success('Code verified', { description: 'You can now set your new password.' })
+  }
+
+  async function handleFinalSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match', { description: 'Please re-type your password.' })
+      return
+    }
+    if (newPassword.length < 8) {
+      toast.error('Password too short', { description: 'Must be at least 8 characters.' })
+      return
+    }
+
+    setLoading(true)
+    const res = await verifyOtpAndChangePassword({ email, token, newPassword })
+    setLoading(false)
+
+    if (res.error) {
+      toast.error('Update failed', { description: res.error })
+    } else {
+      toast.success('Password updated successfully', { description: 'You can now use your new password to sign in.' })
+      setStage('idle')
+      setToken('')
+      setNewPassword('')
+      setConfirmPassword('')
+    }
+  }
+
+  return (
+    <div className="space-y-8 py-2">
+      <div className="flex -space-x-2 pb-2">
+        <div className={cn("h-1 w-12 rounded-full transition-all duration-700", stage === 'idle' ? "bg-amber-500" : "bg-green-500")} />
+        <div className={cn("h-1 w-12 rounded-full transition-all duration-700 ml-2", stage === 'otp' ? "bg-amber-500" : stage === 'password' ? "bg-green-500" : "bg-gray-100 dark:bg-white/5")} />
+        <div className={cn("h-1 w-12 rounded-full transition-all duration-700 ml-2", stage === 'password' ? "bg-amber-500" : "bg-gray-100 dark:bg-white/5")} />
+      </div>
+
+      {stage === 'idle' && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
+          <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-relaxed">
+            We will send a verification code to <span className="text-gray-900 dark:text-gray-200">{email}</span> to confirm it's really you.
+          </p>
+          <Button
+            onClick={handleInitiate}
+            disabled={loading}
+            className="w-full h-16 rounded-2xl bg-black dark:bg-white dark:text-black font-black uppercase tracking-widest text-[11px] transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+              <>
+                <span>Get Verification Code</span>
+                <Mail className="w-4 h-4" />
+              </>
+            )}
+          </Button>
         </div>
+      )}
+
+      {stage === 'otp' && (
+        <form onSubmit={handleVerify} className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">Enter 6-Digit Code</label>
+            <div className="relative">
+              <Input
+                required
+                value={token}
+                onChange={e => setToken(e.target.value)}
+                placeholder="000000"
+                className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-none font-black text-center text-lg tracking-[0.5em] px-8 focus:bg-white dark:focus:bg-black/40 transition-all placeholder:tracking-normal"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-4">
+            <Button
+              type="submit"
+              className="w-full h-16 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-black uppercase tracking-widest text-[11px] transition-all shadow-xl active:scale-95"
+            >
+              Verify Code
+            </Button>
+            <button 
+              type="button" 
+              onClick={() => setStage('idle')}
+              className="text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {stage === 'password' && (
+        <form onSubmit={handleFinalSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">New Password</label>
+              <div className="relative group">
+                <Lock className={cn("absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors", showPass ? "text-green-500" : "text-gray-300 dark:text-gray-700")} />
+                <Input
+                  type={showPass ? "text" : "password"}
+                  required
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-none font-bold px-14 focus:bg-white dark:focus:bg-black/40 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-800 hover:text-green-500 transition-colors"
+                >
+                  <ShieldCheck className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-4">Confirm Password</label>
+              <div className="relative">
+                <Check className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-700" />
+                <Input
+                  type={showPass ? "text" : "password"}
+                  required
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  className="h-16 rounded-2xl bg-gray-50 dark:bg-black/20 border-none font-bold px-14 focus:bg-white dark:focus:bg-black/40 transition-all"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-16 rounded-2xl bg-green-700 hover:bg-green-800 text-white font-black uppercase tracking-widest text-[11px] shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                <>
+                  <span>Change Password</span>
+                  <Check className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+            <button 
+              type="button" 
+              onClick={() => setStage('idle')}
+              className="text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       )}
     </div>
   )

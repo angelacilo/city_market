@@ -110,48 +110,48 @@ export default function LoginForm() {
    }
 
    return (
-      <div className="w-full max-w-4xl transition-all duration-700">
-         <div className="bg-white dark:bg-[#0a0f0a] rounded-[4rem] border border-gray-100 dark:border-white/[0.03] shadow-[0_48px_128px_-32px_rgba(0,0,0,0.12)] p-12 lg:p-24 overflow-hidden relative group">
+      <div className="w-full max-w-2xl transition-all duration-700">
+         <div className="bg-white dark:bg-[#0a0f0a] rounded-[3rem] border border-gray-100 dark:border-white/[0.03] shadow-[0_32px_96px_-24px_rgba(0,0,0,0.1)] p-8 lg:p-16 overflow-hidden relative group">
             <div className="absolute top-0 right-0 w-96 h-96 bg-green-500/10 dark:bg-green-500/5 rounded-full -mr-48 -mt-48 blur-[100px] group-hover:bg-green-500/15 transition-all duration-1000" />
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-green-700/5 dark:bg-green-900/5 rounded-full -ml-48 -mb-48 blur-[100px]" />
 
 
-            <div className="flex flex-col items-center mb-16 text-center">
-               <div className="w-20 h-1.5 bg-green-700 rounded-full mb-12 opacity-80" />
-               <h2 className="text-5xl lg:text-7xl font-black text-gray-900 dark:text-white mb-6 tracking-tighter leading-none italic font-serif">Sign <span className="text-green-700 dark:text-green-500 underline decoration-green-100 dark:decoration-green-900/30 underline-offset-8">In</span></h2>
-               <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.4em] mt-2 px-6 leading-relaxed">
-                  Authentication Protocol Required
+            <div className="flex flex-col items-center mb-10 text-center">
+               <div className="w-16 h-1 bg-green-700 rounded-full mb-8 opacity-80" />
+               <h2 className="text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tighter leading-none italic font-serif">Sign <span className="text-green-700 dark:text-green-500 underline decoration-green-100 dark:decoration-green-900/30 underline-offset-8">In</span></h2>
+               <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.3em] px-6">
+                  Log in to your account
                </p>
             </div>
 
 
             {/* Pill Toggle */}
-            <div className="bg-gray-100/50 dark:bg-white/[0.03] rounded-[3rem] p-3 flex mb-16 shadow-inner border border-gray-100 dark:border-white/5 max-w-xl mx-auto backdrop-blur-md relative z-10">
+            <div className="bg-gray-100/50 dark:bg-white/[0.03] rounded-[2rem] p-2 flex mb-10 shadow-inner border border-gray-100 dark:border-white/5 max-w-md mx-auto backdrop-blur-md relative z-10">
                <button
                   type="button"
                   onClick={() => setSelectedRole('buyer')}
-                  className={`flex-1 h-20 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.25em] flex items-center justify-center gap-4 transition-all duration-700 ${selectedRole === 'buyer' ? 'bg-[#1b6b3e] text-white shadow-2xl shadow-green-900/50 scale-[1.02]' : 'text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white'
+                  className={`flex-1 h-14 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all duration-700 ${selectedRole === 'buyer' ? 'bg-[#1b6b3e] text-white shadow-xl shadow-green-900/30 scale-[1.02]' : 'text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white'
                      }`}
                >
-                  <ShoppingBag className={`w-5 h-5 ${selectedRole === 'buyer' ? 'scale-110' : 'opacity-40'}`} />
-                  Buyer Node
+                  <ShoppingBag className={`w-4 h-4 ${selectedRole === 'buyer' ? 'scale-110' : 'opacity-40'}`} />
+                  Buyer
                </button>
                <button
                   type="button"
                   onClick={() => setSelectedRole('vendor')}
-                  className={`flex-1 h-20 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.25em] flex items-center justify-center gap-4 transition-all duration-700 ${selectedRole === 'vendor' ? 'bg-[#1b6b3e] text-white shadow-2xl shadow-green-900/50 scale-[1.02]' : 'text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white'
+                  className={`flex-1 h-14 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all duration-700 ${selectedRole === 'vendor' ? 'bg-[#1b6b3e] text-white shadow-xl shadow-green-900/30 scale-[1.02]' : 'text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white'
                      }`}
                >
-                  <Store className={`w-5 h-5 ${selectedRole === 'vendor' ? 'scale-110' : 'opacity-40'}`} />
-                  Vendor Stall
+                  <Store className={`w-4 h-4 ${selectedRole === 'vendor' ? 'scale-110' : 'opacity-40'}`} />
+                  Vendor
                </button>
             </div>
 
-            <div className="mb-12 text-center px-4">
-               <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-relaxed opacity-80">
+            <div className="mb-8 text-center px-4">
+               <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-relaxed opacity-80">
                   {selectedRole === 'buyer'
-                     ? 'Enter the premium marketplace ecosystem.'
-                     : 'Access your commercial dashboard interface.'}
+                     ? 'Find the best deals in Butuan.'
+                     : 'Manage your store and orders.'}
                </p>
             </div>
 
@@ -165,39 +165,39 @@ export default function LoginForm() {
 
             <form onSubmit={handleLogin} className="space-y-8">
                <div className="space-y-6">
-                  <div className="space-y-3">
-                     <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">System Identity (Email)</label>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Email Address</label>
                      <div className="relative group">
-                        <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                        <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                         <Input
                            required
                            type="email"
-                           placeholder="auth@bcmis.cloud"
-                           className="h-20 pl-16 pr-8 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm tracking-tight placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                           placeholder="your@email.com"
+                           className="h-14 pl-14 pr-6 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm tracking-tight placeholder:text-gray-400 dark:placeholder:text-gray-600"
                            value={email}
                            onChange={e => setEmail(e.target.value)}
                         />
                      </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                      <div className="flex justify-between items-center px-4 mb-2">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block">Secure Access Key</label>
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block">Password</label>
                         <button 
                            type="button" 
                            onClick={() => router.push('/forgot-password')}
                            className="text-[10px] font-black text-green-700 dark:text-green-500 uppercase tracking-widest hover:underline hover:underline-offset-4 transition-all"
                         >
-                           Recovery
+                           Forgot?
                         </button>
                      </div>
                      <div className="relative group">
-                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                         <Input
                            required
                            type={showPassword ? 'text' : 'password'}
                            placeholder="••••••••••••"
-                           className="h-20 pl-16 pr-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm tracking-tight placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                           className="h-14 pl-14 pr-14 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm tracking-tight placeholder:text-gray-400 dark:placeholder:text-gray-600"
                            value={password}
                            onChange={e => setPassword(e.target.value)}
                         />
@@ -206,7 +206,7 @@ export default function LoginForm() {
                            onClick={() => setShowPassword(!showPassword)}
                            className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 hover:text-green-700 dark:hover:text-green-500 transition-colors"
                         >
-                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                      </div>
                   </div>
@@ -216,31 +216,31 @@ export default function LoginForm() {
                <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-20 rounded-[2rem] bg-green-700 hover:bg-green-800 text-white font-black text-[11px] uppercase tracking-[0.3em] shadow-[0_20px_40px_-15px_rgba(21,128,61,0.4)] transition-all active:scale-[0.98] flex items-center justify-center gap-4 group"
+                  className="w-full h-14 rounded-2xl bg-green-700 hover:bg-green-800 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-green-700/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 group"
                >
-                  {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                      <>
-                        <span>Initiate Authorization</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        <span>Sign In</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                      </>
                   )}
                </Button>
             </form>
 
-            <div className="mt-16 mb-2 pt-10 border-t border-gray-100 dark:border-white/5 text-center">
+            <div className="mt-8 mb-2 pt-8 border-t border-gray-100 dark:border-white/5 text-center">
                <button
                   type="button"
                   onClick={() => router.push('/register')}
-                  className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[.2em] hover:text-green-700 dark:hover:text-white transition-all duration-300 group"
+                  className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[.15em] hover:text-green-700 dark:hover:text-white transition-all duration-300 group"
                >
-                  Security ID not recognized? <span className="text-green-700 dark:text-green-500 ml-2 group-hover:underline">Register New Profile</span>
+                  Don't have an account? <span className="text-green-700 dark:text-green-500 ml-2 group-hover:underline">Create one here</span>
                </button>
             </div>
          </div>
 
          <div className="mt-10 flex items-center justify-center gap-10 opacity-30">
             <ShieldCheck className="w-5 h-5 text-gray-400 dark:text-gray-600" />
-            <div className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 dark:text-gray-600">Encrypted Enterprise Gateway</div>
+         <div className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 dark:text-gray-600">Protected by Secure Encryption</div>
          </div>
       </div>
    )

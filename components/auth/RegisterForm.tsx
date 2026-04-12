@@ -247,13 +247,13 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
             </div>
 
             <h2 className="text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-none italic font-serif uppercase">
-               {selectedRole === 'buyer' ? 'Access Granted' : 'Request Logged'}
+               {selectedRole === 'buyer' ? 'Account Created!' : 'Registration Sent'}
             </h2>
-            <p className="text-[11px] font-black tracking-[0.3em] text-[#1b6b3e] dark:text-green-500 uppercase mb-4">Identity Matrix Synchronized</p>
+            <p className="text-[11px] font-black tracking-[0.3em] text-[#1b6b3e] dark:text-green-500 uppercase mb-4">Registration complete</p>
             <p className="text-gray-500 dark:text-gray-400 font-medium text-base leading-relaxed mb-12 max-w-md">
                {selectedRole === 'buyer'
-                  ? 'Your biometric profile has been successfully integrated into the system. You may now initiate procurement activities.'
-                  : 'Your commercial entity credentials have been verified. Your request is now pending final administrative validation.'}
+                  ? 'Your account is now ready. You can now start browsing the market and messaging vendors.'
+                  : 'Your stall registration has been sent. Please wait for the admin to verify and approve your account.'}
             </p>
 
             <div className="w-full max-w-sm space-y-4">
@@ -261,13 +261,13 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                   onClick={() => router.push('/login')}
                   className="w-full h-18 rounded-3xl bg-green-700 hover:bg-green-800 text-white font-black text-[11px] uppercase tracking-[0.3em] shadow-2xl shadow-green-700/30 transition-all active:scale-[0.98] flex items-center justify-center gap-4 group"
                >
-                  <span>Access Gateway</span>
+                  <span>Go to Login</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                </Button>
             </div>
             <div className="mt-12 pt-10 border-t border-gray-100 dark:border-white/5 w-full">
                <p className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.4em] leading-relaxed">
-                  System Encryption Active <br /> Core Identity Secured
+                  Your account is secure <br /> and protected.
                </p>
             </div>
          </div>
@@ -287,7 +287,7 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                   className="absolute top-12 left-12 flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-green-700 uppercase tracking-widest transition-all group/back"
                >
                   <ChevronLeft className="w-4 h-4 group-hover/back:-translate-x-1 transition-transform" />
-                  Exit Matrix
+                   Exit Registration
                </button>
 
                <div className="flex flex-col items-center mb-12">
@@ -334,14 +334,14 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                >
                   {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : (
                      <div className="flex items-center justify-center gap-4">
-                        <span>Verify Secure Sequence</span>
+                         <span>Verify Code</span>
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                      </div>
                   )}
                </Button>
 
                <div className="mt-12 flex flex-col items-center gap-4">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[.2em]">Sequence not received?</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[.2em]">Didn't get the code?</p>
                   <button
                      type="button"
                      onClick={handleResendOtp}
@@ -353,7 +353,7 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                            : "text-[#1b6b3e] dark:text-green-500 hover:underline hover:underline-offset-8"
                      )}
                   >
-                     {resendLoading ? "Re-Broadcasting..." : resendCooldown > 0 ? `Retry in ${resendCooldown}s` : "Re-Transmit Code"}
+                     {resendLoading ? "Sending..." : resendCooldown > 0 ? `Retry in ${resendCooldown}s` : "Resend Code"}
                   </button>
                </div>
             </div>
@@ -362,36 +362,36 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
    }
 
    return (
-      <div className="w-full max-w-4xl transition-all duration-700">
-         <div className="bg-white dark:bg-[#0a0f0a] rounded-[4rem] border border-gray-100 dark:border-white/[0.03] shadow-[0_48px_128px_-32px_rgba(0,0,0,0.12)] p-12 lg:p-24 overflow-hidden relative group">
+      <div className="w-full max-w-2xl transition-all duration-700">
+         <div className="bg-white dark:bg-[#0a0f0a] rounded-[2.5rem] border border-gray-100 dark:border-white/[0.03] shadow-[0_32px_96px_-24px_rgba(0,0,0,0.1)] p-6 lg:p-10 overflow-hidden relative group">
             <div className="absolute top-0 right-0 w-96 h-96 bg-green-500/10 dark:bg-green-500/5 rounded-full -mr-48 -mt-48 blur-[100px] group-hover:bg-green-500/15 transition-all duration-1000" />
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-green-700/5 dark:bg-green-900/5 rounded-full -ml-48 -mb-48 blur-[100px]" />
 
-            <div className="flex flex-col items-center mb-20 text-center">
-               <div className="w-32 h-2 bg-[#1b6b3e] dark:bg-green-600 rounded-full mb-12 opacity-80" />
-               <h2 className="text-6xl lg:text-8xl font-black text-gray-900 dark:text-white mb-8 tracking-tighter leading-none italic font-serif uppercase">Create <span className="text-[#1b6b3e] dark:text-green-500 underline decoration-green-100 dark:decoration-green-900/30 underline-offset-8">Profile</span></h2>
-               <p className="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.5em]">Identity Module Selection Required</p>
+            <div className="flex flex-col items-center mb-10 text-center">
+               <div className="w-16 h-1 bg-[#1b6b3e] dark:bg-green-600 rounded-full mb-6 opacity-80" />
+            <h2 className="text-3xl lg:text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tighter leading-none italic font-serif uppercase">Create <span className="text-[#1b6b3e] dark:text-green-500 underline decoration-green-100 dark:decoration-green-900/30 underline-offset-8">Account</span></h2>
+               <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.4em]">Choose your account type</p>
             </div>
 
             {/* Pill Toggle */}
-            <div className="bg-gray-100/50 dark:bg-white/[0.03] rounded-[3rem] p-3 flex mb-20 shadow-inner border border-gray-100 dark:border-white/5 max-w-xl mx-auto backdrop-blur-md">
+            <div className="bg-gray-100/50 dark:bg-white/[0.03] rounded-[2rem] p-2 flex mb-10 shadow-inner border border-gray-100 dark:border-white/5 max-w-md mx-auto backdrop-blur-md">
                <button
                   type="button"
                   onClick={() => setSelectedRole('buyer')}
-                  className={`flex-1 h-20 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.25em] flex items-center justify-center gap-4 transition-all duration-700 ${selectedRole === 'buyer' ? 'bg-[#1b6b3e] text-white shadow-2xl shadow-green-900/50 scale-[1.02]' : 'text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white'
+                  className={`flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all duration-700 ${selectedRole === 'buyer' ? 'bg-[#1b6b3e] text-white shadow-xl shadow-green-900/30' : 'text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white'
                      }`}
                >
-                  <ShoppingBag className={`w-5 h-5 ${selectedRole === 'buyer' ? 'scale-110' : 'opacity-40'}`} />
-                  Buyer Node
+                  <ShoppingBag className={`w-4 h-4 ${selectedRole === 'buyer' ? 'scale-110' : 'opacity-40'}`} />
+                  Buyer
                </button>
                <button
                   type="button"
                   onClick={() => setSelectedRole('vendor')}
-                  className={`flex-1 h-20 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.25em] flex items-center justify-center gap-4 transition-all duration-700 ${selectedRole === 'vendor' ? 'bg-[#1b6b3e] text-white shadow-2xl shadow-green-900/50 scale-[1.02]' : 'text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white'
+                  className={`flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all duration-700 ${selectedRole === 'vendor' ? 'bg-[#1b6b3e] text-white shadow-xl shadow-green-900/30' : 'text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white'
                      }`}
                >
-                  <Store className={`w-5 h-5 ${selectedRole === 'vendor' ? 'scale-110' : 'opacity-40'}`} />
-                  Vendor Stall
+                  <Store className={`w-4 h-4 ${selectedRole === 'vendor' ? 'scale-110' : 'opacity-40'}`} />
+                  Vendor
                </button>
             </div>
 
@@ -399,42 +399,42 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                /* BUYER FORM */
                <form onSubmit={handleBuyerSubmit} className="space-y-10">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">Full Identity Name</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Full Name</label>
                         <div className="relative group">
-                           <User className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
-                              placeholder="JUAN DELA CRUZ"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              placeholder="Juan Dela Cruz"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={buyerData.fullName}
                               onChange={e => setBuyerData(prev => ({ ...prev, fullName: e.target.value }))}
                            />
                         </div>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.3em] block ml-4">Communication Address (Email)</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] block ml-4">Email Address</label>
                         <div className="relative group">
-                           <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
                               type="email"
-                              placeholder="juan@bcmis.cloud"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              placeholder="juan@example.com"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={buyerData.email}
                               onChange={e => setBuyerData(prev => ({ ...prev, email: e.target.value }))}
                            />
                         </div>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">Access Password</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Password</label>
                         <div className="relative group">
-                           <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
                               type={showPassword ? 'text' : 'password'}
                               placeholder="••••••••••••"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={buyerData.password}
                               onChange={e => setBuyerData(prev => ({ ...prev, password: e.target.value }))}
                            />
@@ -443,28 +443,28 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                               onClick={() => setShowPassword(!showPassword)}
                               className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 hover:text-green-700 transition-colors"
                            >
-                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                            </button>
                         </div>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">Confirm Identity Key</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Confirm Password</label>
                         <div className="relative group">
-                           <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
                               type={showConfirmPassword ? 'text' : 'password'}
                               placeholder="••••••••••••"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={buyerData.confirmPassword}
                               onChange={e => setBuyerData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                            />
                            <button
                               type="button"
                               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                              className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 hover:text-green-700 transition-colors"
+                              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 hover:text-green-700 transition-colors"
                            >
-                              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                            </button>
                         </div>
                      </div>
@@ -473,12 +473,12 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                   <Button
                      type="submit"
                      disabled={loading}
-                     className="w-full h-20 rounded-[2rem] bg-green-700 hover:bg-green-800 text-white font-black text-[11px] uppercase tracking-[0.3em] shadow-[0_20px_40px_-15px_rgba(21,128,61,0.4)] transition-all active:scale-[0.98] group"
+                     className="w-full h-14 rounded-xl bg-green-700 hover:bg-green-800 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-green-700/20 transition-all active:scale-[0.98] group"
                   >
-                     {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : (
-                        <div className="flex items-center justify-center gap-4">
-                           <span>Initialize Buyer Profile</span>
-                           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                     {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (
+                        <div className="flex items-center justify-center gap-3">
+                           <span>Create Account</span>
+                           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                      )}
                   </Button>
@@ -487,84 +487,84 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                /* VENDOR FORM */
                <form onSubmit={handleVendorSubmit} className="space-y-10">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">Entity/Business Name</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Store Name</label>
                         <div className="relative group">
-                           <Building className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <Building className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
-                              placeholder="STALL NI JUAN"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              placeholder="e.g. Juan's Variety Store"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={vendorData.businessName}
                               onChange={e => setVendorData(prev => ({ ...prev, businessName: e.target.value }))}
                            />
                         </div>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">Market Registration Site</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Market Location</label>
                         <Select
                            onValueChange={v => setVendorData(prev => ({ ...prev, marketId: v }))}
                            required
                         >
-                           <SelectTrigger className="h-20 px-8 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus:ring-2 focus:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm">
-                              <SelectValue placeholder="LOCATE UNIT" />
+                           <SelectTrigger className="h-12 px-8 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus:ring-2 focus:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm">
+                              <SelectValue placeholder="Select Market" />
                            </SelectTrigger>
-                           <SelectContent className="rounded-[2rem] border-gray-100 dark:border-white/10 shadow-3xl bg-white dark:bg-[#111111] p-2 overflow-hidden">
+                           <SelectContent className="rounded-2xl border-gray-100 dark:border-white/10 shadow-3xl bg-white dark:bg-[#111111] p-2 overflow-hidden">
                               {markets.map(m => (
-                                 <SelectItem key={m.id} value={m.id} className="rounded-2xl text-gray-900 dark:text-white font-bold h-12 uppercase text-[10px] tracking-widest focus:bg-green-50 dark:focus:bg-green-900/20 cursor-pointer">{m.name}</SelectItem>
+                                 <SelectItem key={m.id} value={m.id} className="rounded-xl text-gray-900 dark:text-white font-bold h-10 uppercase text-[9px] tracking-widest focus:bg-green-50 dark:focus:bg-green-900/20 cursor-pointer">{m.name}</SelectItem>
                               ))}
                            </SelectContent>
                         </Select>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">Administrative Owner Name</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Owner Name</label>
                         <div className="relative group">
-                           <User className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
-                              placeholder="JUAN C. DOGMOC"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              placeholder="Juan Dela Cruz"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={vendorData.ownerName}
                               onChange={e => setVendorData(prev => ({ ...prev, ownerName: e.target.value }))}
                            />
                         </div>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">Operational Unit (Stall #)</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Stall Number</label>
                         <div className="relative group">
-                           <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
-                              placeholder="UNIT 101-B"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              placeholder="e.g. 101-B"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={vendorData.stallNumber}
                               onChange={e => setVendorData(prev => ({ ...prev, stallNumber: e.target.value }))}
                            />
                         </div>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">System Identity (Email)</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Email Address</label>
                         <div className="relative group">
-                           <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
                               type="email"
-                              placeholder="vendor@bcmis.cloud"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              placeholder="vendor@example.com"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={vendorData.email}
                               onChange={e => setVendorData(prev => ({ ...prev, email: e.target.value }))}
                            />
                         </div>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.3em] block ml-4">Encryption Logic (Password)</label>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Password</label>
                         <div className="relative group">
-                           <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
+                           <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                            <Input
                               required
                               type="password"
                               placeholder="••••••••••••"
-                              className="h-20 pl-16 rounded-[2rem] bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                              className="h-12 pl-14 rounded-xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm placeholder:text-gray-400 dark:placeholder:text-gray-600"
                               value={vendorData.password}
                               onChange={e => setVendorData(prev => ({ ...prev, password: e.target.value }))}
                            />
@@ -575,25 +575,25 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                   <Button
                      type="submit"
                      disabled={loading}
-                     className="w-full h-20 rounded-[2rem] bg-green-700 hover:bg-green-800 text-white font-black text-[11px] uppercase tracking-[0.3em] shadow-[0_20px_40px_-15px_rgba(21,128,61,0.4)] transition-all active:scale-[0.98] group"
+                     className="w-full h-14 rounded-xl bg-green-700 hover:bg-green-800 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-green-700/20 transition-all active:scale-[0.98] group"
                   >
-                     {loading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : (
-                        <div className="flex items-center justify-center gap-4">
-                           <span>Register Commercial Entity</span>
-                           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                     {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (
+                        <div className="flex items-center justify-center gap-3">
+                           <span>Register My Store</span>
+                           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                      )}
                   </Button>
                </form>
             )}
 
-            <div className="mt-16 pt-10 border-t border-gray-100 dark:border-white/5 text-center">
+            <div className="mt-8 pt-8 border-t border-gray-100 dark:border-white/5 text-center">
                <button
                   type="button"
                   onClick={() => router.push('/login')}
-                  className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[.2em] hover:text-green-700 dark:hover:text-white transition-all duration-300 group"
+                  className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[.15em] hover:text-green-700 dark:hover:text-white transition-all duration-300 group"
                >
-                  Already part of the network? <span className="text-green-700 dark:text-green-500 ml-2 group-hover:underline">Access Login Gateway</span>
+                  Already have an account? <span className="text-green-700 dark:text-green-500 ml-2 group-hover:underline">Sign in here</span>
                </button>
             </div>
          </div>

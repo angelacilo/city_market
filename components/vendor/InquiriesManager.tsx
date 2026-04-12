@@ -66,7 +66,7 @@ const ProductInquiryCard = ({ product, text, isMe }: { product: any, text: strin
   )
 }
 
-const MessageStatusIndicator = ({ status }: { status: string }) => {
+const MessageStatusIndicator = ({ status, avatarUrl }: { status: string, avatarUrl?: string }) => {
   if (status === 'sent') {
     return (
       <div className="flex items-center gap-1 text-gray-400 dark:text-gray-600">
@@ -81,13 +81,22 @@ const MessageStatusIndicator = ({ status }: { status: string }) => {
     )
   } else if (status === 'seen') {
     return (
-      <div className="flex items-center gap-1 text-green-500">
-        <CheckCheck className="w-3.5 h-3.5" />
+      <div className="flex items-center gap-1">
+        {avatarUrl ? (
+          <div className="relative w-4 h-4 rounded-full overflow-hidden border border-green-500/20">
+             <NextImage src={avatarUrl} alt="" fill className="object-cover" />
+          </div>
+        ) : (
+          <div className="text-green-500">
+            <CheckCheck className="w-3.5 h-3.5" />
+          </div>
+        )}
       </div>
     )
   }
   return null
 }
+
 
 export default function InquiriesManager({ initialConversations, vendorId: initialVendorId }: { initialConversations: any[], vendorId: string }) {
   const [vendorId, setVendorId] = useState<string>(initialVendorId)
@@ -135,9 +144,10 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
             // Fetch the full record with buyer profile
             const { data } = await supabase
               .from('conversations')
-              .select('*, buyer_profiles:buyer_id(id, full_name, contact_number, barangay)')
+              .select('*, buyer_profiles:buyer_id(id, full_name, contact_number, barangay, avatar_url)')
               .eq('id', payload.new.id)
               .single()
+
 
             if (data) {
               setConversations(prev => [data, ...prev])
@@ -492,8 +502,13 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
                           ? "bg-green-700 text-white"
                           : "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-600"
                       )}>
-                        {(c.buyer_profiles?.full_name || 'B')[0]}
+                        {c.buyer_profiles?.avatar_url ? (
+                          <NextImage src={c.buyer_profiles.avatar_url} alt="" fill className="object-cover" />
+                        ) : (
+                          (c.buyer_profiles?.full_name || 'B')[0]
+                        )}
                       </div>
+
                       <div className={cn(
                         "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4 border-white dark:border-[#0a0f0a] transition-colors",
                         isOnline ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.5)]" : "bg-gray-300 dark:bg-gray-800"
@@ -689,7 +704,11 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
 
                             {isMe && (
                               <div className="flex justify-end mt-1.5 px-2">
-                                <MessageStatusIndicator status={m.status || 'sent'} />
+                                <MessageStatusIndicator 
+                      status={m.status || 'sent'} 
+                      avatarUrl={activeConversation?.buyer_profiles?.avatar_url}
+                    />
+
                               </div>
                             )}
                           </div>
