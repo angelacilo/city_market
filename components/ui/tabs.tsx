@@ -2,27 +2,14 @@
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Tabs as TabsPrimitive } from "@radix-ui/react-tabs"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "@/lib/utils"
 
-function Tabs({
-  className,
-  orientation = "horizontal",
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
-  return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      data-orientation={orientation}
-      className={cn(
-        "group/tabs flex gap-2 data-horizontal:flex-col",
-        className
-      )}
-      {...props}
-    />
-  )
-}
+/**
+ * Root Tabs component - Handles orientation and global layout state for tabs.
+ */
+const Tabs = TabsPrimitive.Root
 
 const tabsListVariants = cva(
   "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none",
@@ -39,6 +26,9 @@ const tabsListVariants = cva(
   }
 )
 
+/**
+ * Navigation container for tab trigger buttons.
+ */
 function TabsList({
   className,
   variant = "default",
@@ -55,6 +45,9 @@ function TabsList({
   )
 }
 
+/**
+ * Individual tab trigger/button.
+ */
 function TabsTrigger({
   className,
   ...props
@@ -74,6 +67,9 @@ function TabsTrigger({
   )
 }
 
+/**
+ * Container for the content associated with a specific tab.
+ */
 function TabsContent({
   className,
   ...props
