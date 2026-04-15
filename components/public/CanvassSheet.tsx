@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   ShoppingBasket,
   Trash2,
@@ -27,10 +27,12 @@ import { Input } from '@/components/ui/input'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose
+  DialogClose,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
@@ -45,6 +47,19 @@ interface ProductSearchResult {
   category: {
     name: string
   } | null
+}
+
+function getCategoryColor(name: string | undefined): string {
+  if (!name) return 'bg-gray-100 text-gray-600'
+  const lowerName = name.toLowerCase()
+  if (lowerName === 'fruits') return 'bg-orange-100 text-orange-700'
+  if (lowerName === 'vegetables') return 'bg-green-100 text-green-700'
+  if (lowerName === 'meat' || lowerName === 'meats') return 'bg-red-100 text-red-700'
+  if (lowerName === 'seafood') return 'bg-blue-100 text-blue-700'
+  if (lowerName === 'rice' || lowerName === 'rice and grains' || lowerName === 'rice & grains') return 'bg-yellow-100 text-yellow-700'
+  if (lowerName === 'dry goods') return 'bg-gray-100 text-gray-600'
+  if (lowerName === 'condiments') return 'bg-purple-100 text-purple-700'
+  return 'bg-gray-100 text-gray-600'
 }
 
 export default function CanvassSheet({
@@ -63,30 +78,56 @@ export default function CanvassSheet({
   const [isSearching, setIsSearching] = useState(false)
   const [isProductSearchOpen, setIsProductSearchOpen] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)
-  
-  const supabase = createClient()
+
+  // Stable supabase client ref — prevents stale closures in Realtime subscriptions
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
   const router = useRouter()
+
+  // Track resolved userId & listId in refs for use inside Realtime callbacks
+  const userIdRef = useRef<string | null>(null)
+  const listIdRef = useRef<string | null>(null)
 
   const fetchCanvassData = useCallback(async (userId: string) => {
     setLoading(true)
     try {
+      // 1. Get the profile for this user
+      const { data: profile } = await supabase
+        .from('buyer_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (!profile) {
+        console.warn('No buyer profile found for user:', userId)
+        return
+      }
+
+      // 2. Get or create the canvass list using the profile ID
       let { data: list } = await supabase
         .from('canvass_lists')
         .select('id')
-        .eq('buyer_id', userId)
-        .single()
+        .eq('buyer_id', profile.id)
+        .maybeSingle()
 
       if (!list) {
-        const { data: newList } = await supabase
+        const { data: newList, error: createError } = await supabase
           .from('canvass_lists')
-          .insert({ buyer_id: userId, name: 'My Canvass List' })
+          .insert({ buyer_id: profile.id, name: 'My Canvass List' })
           .select('id')
-          .single()
+          .maybeSingle()
+          
+        if (createError) {
+           console.error('Error creating canvass list:', createError)
+           return
+        }
         list = newList
       }
 
       if (list) {
         setListId(list.id)
+        listIdRef.current = list.id
+
         const { data: canvassItems } = await supabase
           .from('canvass_items')
           .select(`
@@ -96,12 +137,11 @@ export default function CanvassSheet({
               name,
               category_id,
               categories:category_id (
-                name,
-                color
+                name
               )
             )
           `)
-          .eq('list_id', list.id)
+          .eq('canvass_list_id', list.id)
 
         if (canvassItems) {
           const itemsWithPrice = await Promise.all(canvassItems.map(async (item: any) => {
@@ -136,15 +176,66 @@ export default function CanvassSheet({
     }
   }, [supabase])
 
+  // ── Initial load + Realtime subscription ──────────────────────────────────
   useEffect(() => {
+    let realtimeChannel: ReturnType<typeof supabase.channel> | null = null
+
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       setSession(session)
-      if (session?.user) {
-        fetchCanvassData(session.user.id)
+
+      if (!session?.user?.id) return
+
+      const userId = session.user.id
+      userIdRef.current = userId
+      
+      // Get profile ID for realtime filter
+      const { data: profile } = await supabase
+        .from('buyer_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (!profile) {
+        // Still try fetching data (it will log warning)
+        await fetchCanvassData(userId)
+        return
       }
+
+      await fetchCanvassData(userId)
+
+      // Subscribe to canvass_items changes for this user's list
+      // We use the new buyer_id column for high-performance server-side filtering
+      realtimeChannel = supabase
+        .channel('canvass-items-realtime')
+        .on(
+          'postgres_changes',
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'canvass_items',
+            filter: `buyer_id=eq.${profile.id}`
+          },
+          () => {
+            if (userIdRef.current) fetchCanvassData(userIdRef.current)
+          }
+        )
+        .subscribe()
     }
+
     init()
+
+    // Also listen to the custom cross-component event dispatched when adding from
+    // ProductCard, Navbar, SearchResultsGrid, etc. — zero-refresh UX.
+    const handleExternalAdd = () => {
+      if (userIdRef.current) fetchCanvassData(userIdRef.current)
+    }
+    window.addEventListener('canvass:updated', handleExternalAdd)
+
+    return () => {
+      if (realtimeChannel) supabase.removeChannel(realtimeChannel)
+      window.removeEventListener('canvass:updated', handleExternalAdd)
+    }
   }, [supabase, fetchCanvassData])
 
   const bestMarket = useMemo(() => {
@@ -177,6 +268,7 @@ export default function CanvassSheet({
     const res = await removeFromCanvass(itemId)
     if (res.status === 'success' && session?.user) {
       fetchCanvassData(session.user.id)
+      window.dispatchEvent(new CustomEvent('canvass:updated'))
     }
   }
 
@@ -185,6 +277,7 @@ export default function CanvassSheet({
       if (confirm('Are you sure you want to clear your entire canvass list?')) {
         await clearCanvass(listId)
         fetchCanvassData(session.user.id)
+        window.dispatchEvent(new CustomEvent('canvass:updated'))
       }
     }
   }
@@ -230,7 +323,11 @@ export default function CanvassSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-[440px] p-0 flex flex-col bg-white dark:bg-[#0d0d0d] border-none shadow-2xl transition-colors duration-500">
-        
+        <SheetHeader className="sr-only">
+          <SheetTitle>Canvass Basket</SheetTitle>
+          <SheetDescription>Your product canvass list for price comparison across market hubs.</SheetDescription>
+        </SheetHeader>
+
         {/* Header */}
         <div className="p-8 border-b dark:border-white/5 flex justify-between items-center bg-white/80 dark:bg-black/20 backdrop-blur-3xl sticky top-0 z-10">
           <div className="flex items-center gap-4">
@@ -256,7 +353,7 @@ export default function CanvassSheet({
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 gap-3 opacity-40">
               <Loader2 className="w-8 h-8 text-green-700 dark:text-green-500 animate-spin" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Syncing database...</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Loading your basket...</p>
             </div>
           ) : items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full px-12 text-center gap-6 opacity-80">
@@ -289,7 +386,10 @@ export default function CanvassSheet({
                            {item.products?.name}
                          </h4>
                       </div>
-                      <Badge variant="secondary" className="text-[8px] h-5 px-2 font-black uppercase tracking-[0.1em] bg-white dark:bg-white/5 text-gray-500 dark:text-gray-400 border-none rounded-lg mb-3 shadow-sm">
+                      <Badge variant="secondary" className={cn(
+                        "text-[8px] h-5 px-2 font-black uppercase tracking-[0.1em] border-none rounded-lg mb-3 shadow-sm",
+                        getCategoryColor(Array.isArray(item.products?.categories) ? item.products?.categories[0]?.name : item.products?.categories?.name)
+                      )}>
                         {Array.isArray(item.products?.categories) ? item.products?.categories[0]?.name : item.products?.categories?.name}
                       </Badge>
                       
@@ -363,15 +463,18 @@ export default function CanvassSheet({
                 Add New Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="p-0 sm:max-w-[480px] overflow-hidden border-none shadow-3xl dark:bg-[#121212] rounded-[3rem]">
+            <DialogContent className="p-0 sm:max-w-[480px] overflow-hidden border-none shadow-3xl dark:bg-[#121212] rounded-[3rem]" aria-describedby="canvass-search-desc">
               <div className="p-8 bg-green-800 dark:bg-green-900 text-white flex flex-col gap-2">
-                <h3 className="text-3xl font-black uppercase tracking-tight">Search Supply</h3>
-                <p className="text-[11px] font-black text-green-300 uppercase tracking-widest">Instant lookup across all markets</p>
+                <DialogTitle className="text-3xl font-black uppercase tracking-tight">Search Supply</DialogTitle>
+                <DialogDescription id="canvass-search-desc" className="text-[11px] font-black text-green-300 uppercase tracking-widest border-none"> Instant lookup across all markets</DialogDescription>
               </div>
               <div className="flex flex-col gap-6 p-8">
                 <div className="relative">
+                  <label htmlFor="canvass-search" className="sr-only">Search for products</label>
                   <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
+                    id="canvass-search"
+                    name="search-query"
                     placeholder="E.g. Chicken, Rice, Mango..."
                     className="h-16 pl-14 pr-8 bg-gray-50 dark:bg-[#1a1a1a] border-none rounded-2xl focus:bg-white dark:focus:bg-[#222] dark:text-white font-bold transition-all text-sm placeholder:text-gray-300 dark:placeholder:text-gray-700"
                     value={searchQuery}
@@ -384,7 +487,7 @@ export default function CanvassSheet({
                   {isSearching ? (
                     <div className="py-20 flex flex-col items-center justify-center gap-4 opacity-40">
                       <Loader2 className="w-8 h-8 text-green-700 animate-spin" />
-                      <span className="text-[9px] font-black uppercase tracking-[0.3em]">Querying Index</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.3em]">Looking up supplies</span>
                     </div>
                   ) : searchResults.length > 0 ? (
                     searchResults.map((p) => {

@@ -15,7 +15,7 @@ export default async function VendorDashboardPage() {
     .from('vendors')
     .select('id, business_name, is_approved')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
   if (!vendor) redirect('/register')
 

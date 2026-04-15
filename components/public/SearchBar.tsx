@@ -1,54 +1,15 @@
 'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
-type Props = {
-  variant?: 'default' | 'hero'
-  className?: string
-}
-
-export default function SearchBar({ variant = 'default', className }: Props) {
-  const [query, setQuery] = useState('')
-  const router = useRouter()
-
-  const go = () => {
-    const q = query.trim()
-    if (q) router.push(`/search?q=${encodeURIComponent(q)}`)
-  }
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    go()
-  }
-
-  const isHero = variant === 'hero'
-
+export default function SearchBar() {
   return (
-    <form
-      onSubmit={handleSearch}
-      className={cn(
-        'flex w-full items-center gap-3 bg-white shadow-sm',
-        isHero
-          ? 'h-16 rounded-full border border-gray-100 px-7 shadow-xl shadow-green-900/5 text-lg'
-          : 'min-h-12 rounded-full border border-gray-100 px-4 py-2 shadow-sm',
-        className
-      )}
-      role="search"
-    >
-      <div className="shrink-0 text-gray-400">
-        <Search className={isHero ? "h-5 w-5" : "h-4 w-4"} />
-      </div>
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search for rice, pork, bangus..."
-        className="min-w-0 flex-1 border-0 bg-transparent py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none"
-        aria-label="Search for products"
+    <div className="relative group w-full max-w-xl">
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <input 
+        type="text" 
+        placeholder="Search for products or stalls..."
+        className="w-full h-12 pl-12 pr-6 rounded-2xl bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 outline-none focus:ring-2 focus:ring-green-500 transition-all font-bold text-sm"
       />
-    </form>
+    </div>
   )
 }

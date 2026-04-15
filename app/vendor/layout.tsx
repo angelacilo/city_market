@@ -50,7 +50,7 @@ export default async function VendorLayout({ children }: { children: React.React
 
     `)
     .eq('id', mainVendor.id)
-    .single()
+    .maybeSingle()
 
   if (!vendor) {
     redirect('/register')

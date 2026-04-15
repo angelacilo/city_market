@@ -31,13 +31,13 @@ export default function VendorCTA() {
               href="/about"
               className="inline-flex items-center justify-center rounded-2xl border-2 border-white/20 hover:border-white/40 px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-white/10 transition-all active:scale-95"
             >
-              Protocol Details
+              View Details
             </Link>
           </div>
         </div>
         <div className="relative h-64 w-full overflow-hidden md:h-auto md:w-[45%] md:min-h-[320px]">
           <NextImage
-            src="https://images.unsplash.com/photo-1588964895597-cfb1b3ebf378?w=600&q=80"
+            src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80"
             alt="Vendor at a fresh produce stall"
             fill
             className="object-cover object-top scale-105 md:scale-110 md:-mb-4"

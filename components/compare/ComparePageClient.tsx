@@ -211,7 +211,7 @@ function ProductSearchBar({
           ) : (
             <>
               <div className="px-4 py-2 mb-1">
-                 <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 text-left">Database Results ({totalResults})</p>
+                 <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 text-left">Comparison Results ({totalResults})</p>
               </div>
               {filteredCategories.map((cat) => (
                 <div key={cat} className="mb-2 last:mb-0">

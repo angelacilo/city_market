@@ -62,14 +62,18 @@ export default async function LandingPage() {
     .limit(3)
 
   const tickerIds = (tickerListings || []).map((l) => l.id)
-  const { data: tickerHistories } =
+  const { data: tickerHistories, error: historyError } =
     tickerIds.length > 0
       ? await supabase
         .from('price_history')
         .select('listing_id, price, recorded_at')
         .in('listing_id', tickerIds)
         .order('recorded_at', { ascending: false })
-      : { data: [] as { listing_id: string; price: number; recorded_at: string }[] }
+      : { data: [] as { listing_id: string; price: number; recorded_at: string }[], error: null }
+
+  if (historyError) {
+    console.warn('[PRICE_HISTORY_TICKER]', historyError.message)
+  }
 
   const groupedHistory = new Map<string, { price: number; recorded_at: string }[]>()
   for (const h of tickerHistories || []) {

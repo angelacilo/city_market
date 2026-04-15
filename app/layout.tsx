@@ -35,8 +35,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
+        suppressHydrationWarning
         className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white dark:bg-[#050a05] text-gray-900 dark:text-gray-100 font-sans transition-colors duration-500 selection:bg-green-500/30`}
       >
         <ThemeProvider

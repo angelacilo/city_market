@@ -1,7 +1,6 @@
 'use client'
  
 import { useState } from 'react'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, AlertCircle, TrendingUp, Save, Loader2 } from 'lucide-react'
@@ -92,7 +91,7 @@ export default function PricesManager({ listings }: Props) {
                <CheckCircle2 className="w-6 h-6" />
             </div>
             <div>
-               <p className="text-base font-black text-gray-900 dark:text-white leading-none font-serif italic tracking-tight">System Synchronized</p>
+               <p className="text-base font-black text-gray-900 dark:text-white leading-none font-serif italic tracking-tight">Prices Updated</p>
                <p className="text-[10px] font-black text-green-600 dark:text-green-400 uppercase tracking-[0.2em] mt-2">Price updates live {savedAt ? `at ${savedAt}` : ''}</p>
             </div>
           </div>

@@ -11,10 +11,10 @@ import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 
 import { Button } from '@/components/ui/button'
-import { Lock, CheckCircle2, User, Phone, MapPin, Store, ShieldCheck, KeyRound, Loader2, ArrowRight, Activity, Trash2 } from 'lucide-react'
+import { Lock, CheckCircle2, User, Phone, MapPin, Store, ShieldCheck, Loader2, ArrowRight, Trash2, Activity } from 'lucide-react'
 
 import { updateVendorProfile } from '@/lib/actions/vendor'
-import { initiatePasswordReset, verifyOtpAndChangePassword } from '@/lib/actions/auth'
+import { changePassword } from '@/lib/actions/auth'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
  
@@ -120,7 +120,7 @@ export default function ProfileForm({ vendorId, email, initialData, marketName }
       setAvatarUrl(publicUrl)
       setPreviewUrl(null)
       setSelectedFile(null)
-      toast.success('Identity visual updated.')
+      toast.success('Profile picture updated.')
       router.refresh()
     } catch (err: any) {
       toast.error('Upload failed', { description: err.message })
@@ -148,7 +148,7 @@ export default function ProfileForm({ vendorId, email, initialData, marketName }
  
   return (
     <div className="max-w-7xl space-y-8 pb-32 transition-colors duration-500">
-      {/* Identity Visual Node */}
+      {/* Profile Picture */}
       <div className="bg-white dark:bg-[#0a0f0a] rounded-[2.5rem] p-8 border border-gray-100 dark:border-white/[0.03] shadow-sm relative overflow-hidden group">
         <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
           <div className="relative">
@@ -212,7 +212,7 @@ export default function ProfileForm({ vendorId, email, initialData, marketName }
                 {initialData.business_name}
               </h2>
               <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
-                <span className="text-[8px] font-black text-[#1b6b3e] dark:text-green-500 uppercase tracking-widest bg-green-50 dark:bg-green-500/10 px-3 py-1 rounded-full border border-green-100 dark:border-green-500/20">Operational Node</span>
+                <span className="text-[8px] font-black text-[#1b6b3e] dark:text-green-500 uppercase tracking-widest bg-green-50 dark:bg-green-500/10 px-3 py-1 rounded-full border border-green-100 dark:border-green-500/20">Active</span>
                 <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest bg-amber-50 dark:bg-amber-500/10 px-3 py-1 rounded-full border border-amber-100 dark:border-amber-500/20">Verified Merchant</span>
               </div>
             </div>
@@ -250,7 +250,7 @@ export default function ProfileForm({ vendorId, email, initialData, marketName }
           onSubmit={handleSubmit(onSubmit)} 
           className="flex flex-col lg:flex-row items-stretch gap-6 flex-[2]"
         >
-          {/* Core Identity Section */}
+          {/* Store Information Section */}
           <div className="flex-1 bg-white dark:bg-[#0a0f0a] rounded-3xl border border-gray-100 dark:border-white/[0.03] shadow-sm p-5 space-y-5 transition-all relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-10 transition-opacity">
               <Store className="w-16 h-16 rotate-12 text-gray-400 dark:text-green-500" />
@@ -300,7 +300,7 @@ export default function ProfileForm({ vendorId, email, initialData, marketName }
             </div>
           </div>
 
-          {/* Logistics & Protocols Section */}
+          {/* Business Information Section */}
           <div className="flex-1 bg-white dark:bg-[#0a0f0a] rounded-3xl border border-gray-100 dark:border-white/[0.03] shadow-sm p-5 space-y-5 transition-all relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-10 transition-opacity">
               <MapPin className="w-16 h-16 -rotate-12 text-gray-400 dark:text-green-500" />
@@ -438,38 +438,22 @@ export default function ProfileForm({ vendorId, email, initialData, marketName }
 
 function PasswordChangeSection({ email }: { email: string }) {
   const [stage, setStage] = useState<'idle' | 'otp' | 'password'>('idle')
-  const [token, setToken] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
   const [showPass, setShowPass] = useState(false)
 
-  async function handleInitiate() {
-    setLoading(true)
-    setStatus(null)
-    const res = await initiatePasswordReset(email)
-    setLoading(false)
-    if (res.error) {
-      setStatus({ type: 'error', msg: res.error })
-      toast.error('Dispatch Failure', { description: res.error })
-    } else {
-      setStage('otp')
-      setStatus({ type: 'success', msg: 'Security code dispatched to your Gmail.' })
-      toast.success('8-Digit Sequence Transmitted', { description: 'Check your relay (Gmail).' })
-    }
-  }
+
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault()
-    if (token.length < 8) {
-      toast.warning('Sequence incomplete.')
-      return
-    }
     setStage('password')
     setStatus(null)
-    toast.success('Handshake Verified', { description: 'Proceed to credential reconfiguration.' })
+    toast.success('Identity Challenge Verified')
   }
+
 
   async function handleFinalSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -485,7 +469,12 @@ function PasswordChangeSection({ email }: { email: string }) {
     }
 
     setLoading(true)
-    const res = await verifyOtpAndChangePassword({ email, token, newPassword })
+    
+    const res = await changePassword({ 
+      currentPassword, 
+      newPassword 
+    })
+    
     setLoading(false)
 
     if (res.error) {
@@ -495,7 +484,7 @@ function PasswordChangeSection({ email }: { email: string }) {
       setStatus({ type: 'success', msg: 'Credential registry updated.' })
       toast.success('Access Key Reconfigured', { description: 'Identity profile remains secure.' })
       setStage('idle')
-      setToken('')
+      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     }
@@ -530,20 +519,15 @@ function PasswordChangeSection({ email }: { email: string }) {
 
       {stage === 'idle' && (
         <div className="space-y-4 py-2">
-          <p className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-widest leading-relaxed">
-            Verification via <span className="text-gray-900 dark:text-gray-200">{email}</span> is required to reconfigure your node access keys.
+          <p className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-widest leading-relaxed pr-8">
+            Verify your current credentials to access security reconfiguration.
           </p>
           <Button
-            onClick={handleInitiate}
-            disabled={loading}
+            onClick={() => setStage('otp')}
             className="w-full rounded-xl h-10 font-black uppercase tracking-[0.2em] text-[10px] bg-amber-600 hover:bg-amber-700 text-white transition-all active:scale-95 flex items-center justify-center gap-2 group/btn"
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-              <>
-                <span>Initiate Challenge</span>
-                <Activity className="w-3.5 h-3.5 group-hover/btn:rotate-12 transition-transform" />
-              </>
-            )}
+            <span>Update Password</span>
+            <ShieldCheck className="w-3.5 h-3.5 group-hover/btn:rotate-12 transition-transform" />
           </Button>
         </div>
       )}
@@ -551,15 +535,15 @@ function PasswordChangeSection({ email }: { email: string }) {
       {stage === 'otp' && (
         <form onSubmit={handleVerify} className="space-y-4">
           <div className="space-y-2 text-center">
-            <label className="text-[7px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block">Enter 8-Digit Sequence</label>
+            <label className="text-[7px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block">Enter Current Password</label>
             <div className="relative group/input flex justify-center mt-2">
               <Input
                 required
-                maxLength={8}
-                value={token}
-                onChange={e => setToken(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                placeholder="00000000"
-                className="rounded-xl border-none bg-gray-50 dark:bg-white/[0.02] focus:bg-white dark:focus:bg-white/[0.05] h-10 w-full text-center text-[12px] font-black text-gray-900 dark:text-white transition-all shadow-inner tracking-[1em] placeholder:tracking-normal"
+                type="password"
+                value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
+                className="rounded-xl border-none bg-gray-50 dark:bg-white/[0.02] focus:bg-white dark:focus:bg-white/[0.05] h-10 w-full text-center text-[12px] font-black text-gray-900 dark:text-white transition-all shadow-inner tracking-[0.5em] placeholder:tracking-normal"
               />
             </div>
           </div>
@@ -567,14 +551,15 @@ function PasswordChangeSection({ email }: { email: string }) {
             type="submit"
             className="w-full rounded-xl h-10 font-black uppercase tracking-[0.2em] text-[9px] bg-amber-600 hover:bg-amber-700 text-white transition-all"
           >
-            Verify Signature
+            Verify Password
           </Button>
+
           <button 
             type="button" 
             onClick={() => setStage('idle')}
             className="w-full text-[8px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-widest transition-colors"
           >
-            Cancel Protocol
+            Cancel Changes
           </button>
         </form>
       )}

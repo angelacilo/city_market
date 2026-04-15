@@ -36,6 +36,13 @@ export default function LoginForm() {
 
    const handleLogin = async (e: React.FormEvent) => {
       e.preventDefault()
+      // Network Check
+      if (typeof window !== 'undefined' && !window.navigator.onLine) {
+         setError('Check internet connection.')
+         setLoading(false)
+         return
+      }
+
       setLoading(true)
       setError(null)
 
@@ -50,34 +57,47 @@ export default function LoginForm() {
          if (data.user) {
             // Check for redirect param first
             if (redirectPath && redirectPath.startsWith('/')) {
-               router.push(redirectPath)
+               await router.push(redirectPath)
+               router.refresh()
                return
             }
 
             // Sequential Role Check
 
             // 1. Check Admin
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
                .from('profiles')
                .select('role')
                .eq('id', data.user.id)
-               .single()
+               .maybeSingle()
+
+            if (profileError) {
+               console.error('[AUTH] Profile query error:', profileError)
+               throw new Error('Failed to fetch user profile')
+            }
 
             if (profile && profile.role === 'admin') {
-               router.push('/admin/dashboard')
+               await router.push('/admin/dashboard')
+               router.refresh()
                return
             }
 
             // 2. Check Vendor
-            const { data: vendor } = await supabase
+            const { data: vendor, error: vendorError } = await supabase
                .from('vendors')
                .select('id, is_approved')
                .eq('user_id', data.user.id)
-               .single()
+               .maybeSingle()
+
+            if (vendorError) {
+               console.error('[AUTH] Vendor query error:', vendorError)
+               throw new Error('Failed to fetch vendor profile')
+            }
 
             if (vendor) {
                if (vendor.is_approved) {
-                  router.push('/vendor/dashboard')
+                  await router.push('/vendor/dashboard')
+                  router.refresh()
                } else {
                   setError('Account pending approval. Please wait for the market administrator to verify your stall.')
                   await supabase.auth.signOut()
@@ -86,14 +106,20 @@ export default function LoginForm() {
             }
 
             // 3. Check Buyer
-            const { data: buyer } = await supabase
+            const { data: buyer, error: buyerError } = await supabase
                .from('buyer_profiles')
                .select('id')
                .eq('user_id', data.user.id)
-               .single()
+               .maybeSingle()
+
+            if (buyerError) {
+               console.error('[AUTH] Buyer profile query error:', buyerError)
+               throw new Error('Failed to fetch buyer profile')
+            }
 
             if (buyer) {
-               router.push('/')
+               await router.push('/')
+               router.refresh()
                return
             }
 
@@ -102,8 +128,19 @@ export default function LoginForm() {
             setError('Account type could not be determined. Please contact support.')
          }
       } catch (error: any) {
-         console.error(error)
-         setError(error.message || 'Login failed. Please check your credentials.')
+         console.warn('[AUTH] Login attempt failed:', error.message)
+         
+         if (error.message?.includes('Invalid login credentials') || error.message?.includes('invalid_credentials')) {
+            setError("The email or password you entered is incorrect. Please try again.")
+         } else if (error.message?.includes('Email not confirmed')) {
+            setError("Please verify your email before logging in. Check your inbox for a confirmation link.")
+         } else if (error.message?.includes('rate limit') || error.message?.includes('over_request_rate_limit')) {
+            setError("Too many login attempts. Please wait a few minutes and try again.")
+         } else if (error.message?.includes('fetch') || error.name === 'TypeError' || error.message?.includes('NetworkError')) {
+            setError("CRITICAL: SSL Handshake Failed or Connection Blocked. If you are using a local development server, ensure your Supabase certificate is trusted. Try refreshing or checking your network firewall.")
+         } else {
+            setError("Login failed. Please check your connection and try again.")
+         }
       } finally {
          setLoading(false)
       }
@@ -157,21 +194,23 @@ export default function LoginForm() {
 
 
             {error && (
-               <div className="mb-10 p-6 bg-red-50 dark:bg-red-950/20 rounded-3xl border border-red-100 dark:border-red-900/20 flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
-                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                  <p className="text-[11px] font-black text-red-900 dark:text-red-200 leading-relaxed uppercase tracking-widest">{error}</p>
+               <div className="mb-10 bg-red-50 border-l-4 border-red-500 rounded-r-lg p-3 flex items-start gap-2 animate-in slide-in-from-top-4 duration-500">
+                  <AlertCircle className="w-[14px] h-[14px] text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700 leading-relaxed">{error}</p>
                </div>
             )}
 
             <form onSubmit={handleLogin} className="space-y-8">
                <div className="space-y-6">
                   <div className="space-y-2">
-                     <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Email Address</label>
+                     <label htmlFor="login-email" className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block ml-4">Email Address</label>
                      <div className="relative group">
                         <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                         <Input
+                           id="login-email"
                            required
                            type="email"
+                           autoComplete="email"
                            placeholder="your@email.com"
                            className="h-14 pl-14 pr-6 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm tracking-tight placeholder:text-gray-400 dark:placeholder:text-gray-600"
                            value={email}
@@ -182,7 +221,7 @@ export default function LoginForm() {
 
                   <div className="space-y-2">
                      <div className="flex justify-between items-center px-4 mb-2">
-                        <label className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block">Password</label>
+                        <label htmlFor="login-password" icon-role="password" className="text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase tracking-[0.2em] block">Password</label>
                         <button 
                            type="button" 
                            onClick={() => router.push('/forgot-password')}
@@ -194,8 +233,10 @@ export default function LoginForm() {
                      <div className="relative group">
                         <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 dark:text-gray-600 group-focus-within:text-green-700 dark:group-focus-within:text-green-500 transition-colors" />
                         <Input
+                           id="login-password"
                            required
                            type={showPassword ? 'text' : 'password'}
+                           autoComplete="current-password"
                            placeholder="••••••••••••"
                            className="h-14 pl-14 pr-14 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border-none focus-visible:ring-2 focus-visible:ring-green-700/20 text-gray-900 dark:text-white transition-all font-bold text-sm tracking-tight placeholder:text-gray-400 dark:placeholder:text-gray-600"
                            value={password}

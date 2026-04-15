@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
   Package,
-  Tag,
   MessageSquare,
   User,
   LogOut,
@@ -20,6 +19,8 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetTitle,
+  SheetDescription,
 } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
  
@@ -105,7 +106,7 @@ function NavContent({
     <div className="flex flex-col h-full bg-white dark:bg-[#0a0f0a] transition-colors duration-500">
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 border-b border-gray-100 dark:border-white/5">
-        <Link href="/" className="flex items-center gap-3 active:scale-95 transition-transform group">
+        <Link href="/vendor/dashboard" className="flex items-center gap-3 active:scale-95 transition-transform group">
           <div className="relative">
             <div className="bg-[#1b6b3e] dark:bg-green-600 p-1.5 rounded-xl shadow-lg shadow-green-900/10 rotate-3 group-hover:rotate-0 transition-all duration-500">
               <Store className="w-5 h-5 text-white" />
@@ -208,6 +209,8 @@ export default function VendorSidebarNav({ vendor, unreadCount, userId, mobileOn
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[85%] sm:w-80 p-0 border-none bg-white dark:bg-[#0a0f0a]" showCloseButton={false}>
+          <SheetTitle className="sr-only">Vendor Navigation Menu</SheetTitle>
+          <SheetDescription className="sr-only">Main navigation for vendor dashboard.</SheetDescription>
           <NavContent
             vendor={vendor}
             unreadCount={unreadCount}

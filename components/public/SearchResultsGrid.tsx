@@ -46,8 +46,12 @@ export default function SearchResultsGrid({
     const res = await addToCanvass(productId, session.user.id)
     if (res.status === 'success') {
       setToast({ message: 'Added to canvass list', type: 'success' })
+      // Notify CanvassSheet to re-fetch in real-time, and open it
+      window.dispatchEvent(new CustomEvent('canvass:updated'))
+      window.dispatchEvent(new CustomEvent('open-canvass'))
     } else if (res.status === 'already_exists') {
       setToast({ message: 'Already in your canvass', type: 'info' })
+      window.dispatchEvent(new CustomEvent('open-canvass'))
     }
     setTimeout(() => setToast(null), 2000)
   }

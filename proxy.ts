@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
  
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -66,10 +66,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/login?redirect=${request.nextUrl.pathname}`, request.url))
   }
  
-  // 3. If logged in and trying to access auth pages, redirect to home or dash
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
-    return NextResponse.redirect(new URL('/', request.url))
+  // 3. If trying to access admin routes without login
+  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
+    return NextResponse.redirect(new URL(`/login?redirect=${request.nextUrl.pathname}`, request.url))
   }
+ 
+  // Note: Do NOT redirect logged-in users away from /login or /register here.
+  // The auth layout handles that redirect to ensure the correct destination
+  // based on user type (vendor dashboard, buyer home, or admin dashboard).
  
   return response
 }

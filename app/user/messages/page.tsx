@@ -156,7 +156,7 @@ function MessagesContent() {
    useEffect(() => {
       async function init() {
          const { data: { user } } = await supabase.auth.getUser()
-         if (!user) {
+         if (!user?.id) {
             router.push('/login?redirect=/user/messages')
             return
          }

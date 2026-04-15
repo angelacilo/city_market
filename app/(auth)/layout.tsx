@@ -1,13 +1,76 @@
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { ShoppingBasket, CheckCircle2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+const features = [
+  'Reach buyers searching for your products online',
+  'Update your prices anytime from your phone',
+  'Get direct inquiries from interested buyers.',
+]
 
-  const features = [
-    'Reach buyers searching for your products online',
-    'Update your prices anytime from your phone',
-    'Get direct inquiries from interested buyers.',
-  ]
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {}
+        },
+      },
+    }
+  )
+
+  const { data: { session }, error } =
+    await supabase.auth.getSession()
+
+  if (error) {
+    console.warn('[AUTH_LAYOUT] Session error:', error.message)
+  }
+
+  // Only redirect if session definitely exists AND user has a confirmed profile
+  if (session?.user?.id) {
+    const { data: vendorData } = await supabase
+      .from('vendors')
+      .select('id, is_approved')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+
+    if (vendorData?.is_approved) {
+      redirect('/vendor/dashboard')
+    }
+
+    const { data: buyerData } = await supabase
+      .from('buyer_profiles')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+
+    if (buyerData?.id) {
+      redirect('/')
+    }
+
+    const { data: adminData } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+
+    if (adminData?.id) {
+      redirect('/admin/dashboard')
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#f8faf8] dark:bg-[#0a0f0a] transition-colors duration-500">

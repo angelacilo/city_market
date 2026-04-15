@@ -4,8 +4,6 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
 import NextImage from 'next/image'
 import {
   Dialog,
@@ -33,7 +31,6 @@ import {
   Sparkles,
   Eye,
   Camera,
-  Coins,
 } from 'lucide-react'
 import {
   addListing,
@@ -311,20 +308,21 @@ function EditListingDialog({
       </button>
       <DialogContent 
         className="max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-[0_32px_128px_-32px_rgba(0,0,0,0.4)] dark:shadow-none bg-white dark:bg-[#050a05]"
+        aria-describedby="edit-listing-desc"
       >
+        <div className="px-8 pt-6 pb-0">
+          <DialogTitle className="text-lg font-black text-gray-900 dark:text-white tracking-tight font-serif italic uppercase leading-none mb-1">Edit <span className="text-[#1b6b3e] dark:text-green-500">Product</span></DialogTitle>
+          <DialogDescription id="edit-listing-desc" className="text-[8px] text-gray-400 dark:text-gray-700 font-black uppercase tracking-[0.2em]">Update your item details and availability</DialogDescription>
+        </div>
         <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[90vh] no-scrollbar">
           <div className="p-8 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-black text-gray-900 dark:text-white tracking-tight font-serif italic uppercase leading-none mb-1">Edit <span className="text-[#1b6b3e] dark:text-green-500">Product</span></h2>
-                <p className="text-[8px] text-gray-400 dark:text-gray-700 font-black uppercase tracking-[0.2em]">Update your item details and availability</p>
-              </div>
-            </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2.5">
-                <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Product Name</label>
+                <label htmlFor="edit-product-name" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Product Name</label>
                 <Input
+                  id="edit-product-name"
+                  name="product-name"
                   required
                   value={productName}
                   onChange={e => setProductName(e.target.value)}
@@ -333,9 +331,11 @@ function EditListingDialog({
               </div>
 
               <div className="space-y-2.5">
-                <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Category</label>
+                <label htmlFor="edit-category" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Category</label>
                 <div className="relative">
                   <select
+                    id="edit-category"
+                    name="category"
                     required
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
@@ -353,8 +353,10 @@ function EditListingDialog({
             </div>
 
             <div className="space-y-2.5">
-              <label className="text-[7.5px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Product Image</label>
+              <label htmlFor="edit-product-image" className="text-[7.5px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Product Image</label>
               <input
+                id="edit-product-image"
+                name="product-image"
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
@@ -387,10 +389,12 @@ function EditListingDialog({
 
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2.5">
-                <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Price</label>
+                <label htmlFor="edit-price" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Price</label>
                 <div className="flex items-center h-12 rounded-2xl border-none bg-gray-50 dark:bg-white/[0.02] focus-within:bg-white dark:focus-within:bg-white/[0.05] pl-6 pr-2 transition-all shadow-inner">
                   <span className="text-sm font-black text-gray-300 dark:text-gray-800 mr-2.5 font-serif">₱</span>
                   <input
+                    id="edit-price"
+                    name="price"
                     required
                     type="number"
                     step="0.01"
@@ -405,8 +409,10 @@ function EditListingDialog({
                 </div>
               </div>
               <div className="space-y-2.5">
-                <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Current Stock</label>
+                <label htmlFor="edit-stock" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Current Stock</label>
                 <Input
+                  id="edit-stock"
+                  name="stock"
                   required
                   type="number"
                   value={stockQuantity}
@@ -496,9 +502,9 @@ function DeleteDialog({
       <DialogContent className="max-w-md rounded-[3.5rem] p-12 bg-white dark:bg-[#050a05] border-none shadow-[0_32px_128px_-32px_rgba(0,0,0,0.4)] dark:shadow-none overflow-hidden" aria-describedby="delete-dialog-desc">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-red-600/50 shadow-[0_4px_15px_rgba(220,38,38,0.3)]" />
         <DialogHeader className="pt-4">
-          <DialogTitle className="text-3xl font-black text-gray-900 dark:text-white mb-4 font-serif italic tracking-tight uppercase leading-none">Purge <span className="text-red-600">Entity?</span></DialogTitle>
+          <DialogTitle className="text-3xl font-black text-gray-900 dark:text-white mb-4 font-serif italic tracking-tight uppercase leading-none">Delete <span className="text-red-600">Product?</span></DialogTitle>
           <DialogDescription id="delete-dialog-desc" className="text-gray-400 dark:text-gray-700 text-[11px] font-black uppercase tracking-[0.2em] leading-relaxed">
-            Irreversible deletion Protocol initiated for <span className="text-[#1b6b3e] dark:text-green-500">{productName}</span>. This will permanently detach the node from the commerce storefront.
+            Deleting <span className="text-[#1b6b3e] dark:text-green-500">{productName}</span>... This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-5 mt-12">
@@ -507,7 +513,7 @@ function DeleteDialog({
             onClick={handleDelete}
             disabled={loading}
           >
-            {loading ? 'Executing Purge...' : 'Confirm Destruction'}
+            {loading ? 'Deleting...' : 'Delete Product'}
           </Button>
           <Button
             variant="ghost"
@@ -636,12 +642,13 @@ function AddListingDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent 
           className="max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-[0_32px_128px_-32px_rgba(0,0,0,0.4)] dark:shadow-none bg-white dark:bg-[#050a05]"
+          aria-describedby="add-listing-desc"
         >
+          <div className="px-8 pt-6 pb-0">
+            <DialogTitle className="text-lg font-black text-gray-900 dark:text-white tracking-tight font-serif italic uppercase leading-none mb-1">Add New <span className="text-[#1b6b3e] dark:text-green-500">Product</span></DialogTitle>
+            <DialogDescription id="add-listing-desc" className="text-[8px] text-gray-400 dark:text-gray-700 font-black uppercase tracking-[0.2em]">List a new item in your stall's inventory</DialogDescription>
+          </div>
           <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[90vh] no-scrollbar">
-            <div className="px-8 pt-6 pb-0">
-              <DialogTitle className="text-lg font-black text-gray-900 dark:text-white tracking-tight font-serif italic uppercase leading-none mb-1">Add New <span className="text-[#1b6b3e] dark:text-green-500">Product</span></DialogTitle>
-              <DialogDescription id="add-listing-desc" className="text-[8px] text-gray-400 dark:text-gray-700 font-black uppercase tracking-[0.2em]">List a new item in your stall's inventory</DialogDescription>
-            </div>
 
             {serverError && (
               <div className="mx-12 mt-6 p-4 bg-red-500/10 text-red-500 font-black text-[10px] rounded-2xl border border-red-500/20 uppercase tracking-[0.2em]">
@@ -651,8 +658,10 @@ function AddListingDialog({
 
             <div className="px-8 py-8 space-y-6">
               <div className="space-y-2.5">
-                <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Product Image</label>
+                <label htmlFor="add-product-image" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Product Image</label>
                 <input
+                  id="add-product-image"
+                  name="product-image"
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
@@ -681,8 +690,10 @@ function AddListingDialog({
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2.5">
-                  <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Product Name</label>
+                  <label htmlFor="add-product-name" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Product Name</label>
                   <Input
+                    id="add-product-name"
+                    name="product-name"
                     required
                     value={productName}
                     onChange={e => setProductName(e.target.value)}
@@ -692,9 +703,11 @@ function AddListingDialog({
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Category</label>
+                  <label htmlFor="add-category" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Category</label>
                   <div className="relative">
                     <select
+                      id="add-category"
+                      name="category"
                       required
                       value={categoryId}
                       onChange={(e) => setCategoryId(e.target.value)}
@@ -714,10 +727,12 @@ function AddListingDialog({
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2.5">
-                  <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Price</label>
+                  <label htmlFor="add-price" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Price</label>
                   <div className="flex items-center h-12 rounded-2xl border-none bg-gray-50 dark:bg-white/[0.02] focus-within:bg-white dark:focus-within:bg-white/[0.05] pl-6 pr-2 transition-all shadow-inner">
                     <span className="text-sm font-black text-gray-300 dark:text-gray-800 mr-2.5 font-serif">₱</span>
                     <input
+                      id="add-price"
+                      name="price"
                       required
                       type="number"
                       step="0.01"
@@ -735,9 +750,11 @@ function AddListingDialog({
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Initial Stock</label>
+                  <label htmlFor="add-stock" className="text-[9px] font-black text-gray-400 dark:text-gray-700 uppercase tracking-[0.2em] block ml-4">Initial Stock</label>
                   <div className="flex items-center h-12 rounded-2xl border-none bg-gray-50 dark:bg-white/[0.02] focus-within:bg-white dark:focus-within:bg-white/[0.05] px-6 transition-all shadow-inner">
                     <input
+                      id="add-stock"
+                      name="stock"
                       required
                       type="number"
                       value={stockQuantity}
@@ -884,7 +901,7 @@ export default function ProductsManager({ listings: initialListings, allProducts
               <Package className="w-12 h-12 text-gray-200 dark:text-gray-800" />
             </div>
             <h3 className="text-2xl font-black text-gray-900 dark:text-white font-serif mb-3 italic tracking-tight uppercase">Inventory <span className="text-[#1b6b3e] dark:text-green-500">Empty</span></h3>
-            <p className="text-[11px] text-gray-400 dark:text-gray-600 max-w-xs mb-12 leading-relaxed font-black uppercase tracking-[0.2em]">Deploy your first product listing to activate the commerce node.</p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-600 max-w-xs mb-12 leading-relaxed font-black uppercase tracking-[0.2em]">Add your first product to start selling.</p>
 
             <div className="flex flex-col gap-6">
               <AddListingDialog
@@ -916,12 +933,12 @@ export default function ProductsManager({ listings: initialListings, allProducts
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50/50 dark:bg-white/[0.01] hover:bg-gray-50/50 dark:hover:bg-white/[0.01] border-b border-gray-100 dark:border-white/5">
-                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] pl-12 py-8">Product Terminal</TableHead>
-                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] py-8">Procurement</TableHead>
-                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] py-8">Resources</TableHead>
-                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] py-8 text-center">Protocol</TableHead>
-                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] py-8">Last Sync</TableHead>
-                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] text-right pr-12 py-8">Controls</TableHead>
+                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] pl-12 py-8">Product Listing</TableHead>
+                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] py-8">Product</TableHead>
+                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] py-8">Details</TableHead>
+                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] py-8 text-center">Actions</TableHead>
+                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] py-8">Last Updated</TableHead>
+                  <TableHead className="font-black text-gray-400 dark:text-gray-700 text-[11px] uppercase tracking-[0.2em] text-right pr-12 py-8">Management</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

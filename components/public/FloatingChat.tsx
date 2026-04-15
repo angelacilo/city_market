@@ -134,7 +134,7 @@ export default function FloatingChat() {
   useEffect(() => {
     async function init() {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
+      if (!session?.user?.id) return
       setUserId(session.user.id)
       fetchConversations(session.user.id)
     }
@@ -477,8 +477,12 @@ export default function FloatingChat() {
             >
               <div className="relative">
                 <MessageCircle className="w-7 h-7" />
-                {conversations.some(c => c.buyer_unread_count > 0) && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full" />
+                {conversations.reduce((acc, c) => acc + (c.buyer_unread_count || 0), 0) > 0 && (
+                  <div className="absolute -top-2 -right-2 min-w-[20px] h-5 bg-red-500 border-2 border-white dark:border-[#050a05] rounded-full flex items-center justify-center px-1">
+                    <span className="text-[10px] font-black text-white leading-none">
+                      {conversations.reduce((acc, c) => acc + (c.buyer_unread_count || 0), 0)}
+                    </span>
+                  </div>
                 )}
               </div>
             </button>
@@ -809,13 +813,17 @@ export default function FloatingChat() {
             conversations.some(c => c.buyer_unread_count > 0) && "ring-4 ring-green-100 ring-offset-0"
           )}
         >
-          <div className="absolute top-0 right-0 w-5 h-5 bg-black rounded-full flex items-center justify-center text-[8px] font-black text-white translate-x-1 -translate-y-1 shadow-md">
+          <div className="absolute top-0 right-0 w-5 h-5 bg-black rounded-full flex items-center justify-center text-[8px] font-black text-white translate-x-1 -translate-y-1 shadow-md" title="Active Conversations">
             {conversations.length}
           </div>
           <MessageCircle className="w-7 h-7 text-white fill-current group-hover:scale-110 transition-transform" />
 
-          {conversations.some(c => c.buyer_unread_count > 0) && (
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-green-700 rounded-full" />
+          {conversations.reduce((acc, c) => acc + (c.buyer_unread_count || 0), 0) > 0 && (
+            <div className="absolute -top-1 -right-1 min-w-[22px] h-[22px] bg-red-500 border-2 border-white dark:border-green-700 rounded-full flex items-center justify-center px-1 shadow-lg ring-2 ring-red-500/20">
+              <span className="text-[10px] font-black text-white leading-none">
+                {conversations.reduce((acc, c) => acc + (c.buyer_unread_count || 0), 0)}
+              </span>
+            </div>
           )}
         </button>
       )}

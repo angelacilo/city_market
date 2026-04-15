@@ -3,48 +3,56 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function addToCanvass(productId: string, buyerId: string) {
+export async function addToCanvass(productId: string, userId: string) {
   const supabase = await createClient()
 
-  // 1. Get or create canvass list for the buyer
-  let { data: list, error: listError } = await supabase
+  // 1. Get the profile for this user
+  const { data: profile } = await supabase
+    .from('buyer_profiles')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (!profile) return { error: 'Buyer profile not found.' }
+
+  // 2. Get or create canvass list for the profile
+  const { data: list, error: listError } = await supabase
     .from('canvass_lists')
     .select('id')
-    .eq('buyer_id', buyerId)
-    .single()
+    .eq('buyer_id', profile.id)
+    .maybeSingle()
 
-  if (listError && listError.code !== 'PGRST116') {
-    return { error: listError.message }
-  }
+  if (listError) return { error: listError.message }
 
   let listId: string
   if (!list) {
     const { data: newList, error: createError } = await supabase
       .from('canvass_lists')
-      .insert({ buyer_id: buyerId, name: 'My Canvass List' })
+      .insert({ buyer_id: profile.id, name: 'My Canvass List' })
       .select('id')
-      .single()
+      .maybeSingle()
 
     if (createError) return { error: createError.message }
+    if (!newList) return { error: 'Failed to create list.' }
     listId = newList.id
   } else {
     listId = list.id
   }
 
-  // 2. Check if product already exists in the list
-  const { data: existing, error: checkError } = await supabase
+  // 3. Check if product already exists in the list
+  const { data: existing } = await supabase
     .from('canvass_items')
     .select('id')
-    .eq('list_id', listId)
+    .eq('canvass_list_id', listId)
     .eq('product_id', productId)
-    .single()
+    .maybeSingle()
 
   if (existing) return { status: 'already_exists' }
 
-  // 3. Insert into canvass_items
+  // 4. Insert into canvass_items
   const { error: insertError } = await supabase
     .from('canvass_items')
-    .insert({ list_id: listId, product_id: productId })
+    .insert({ canvass_list_id: listId, product_id: productId })
 
   if (insertError) return { error: insertError.message }
 
@@ -69,7 +77,7 @@ export async function clearCanvass(listId: string) {
   const { error } = await supabase
     .from('canvass_items')
     .delete()
-    .eq('list_id', listId)
+    .eq('canvass_list_id', listId)
 
   if (error) return { error: error.message }
   revalidatePath('/')

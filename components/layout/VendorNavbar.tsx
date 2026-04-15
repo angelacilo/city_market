@@ -60,7 +60,7 @@ export default function VendorNavbar({ vendor }: VendorNavbarProps) {
     <header className="sticky top-0 z-50 h-16 bg-white border-none shadow-none flex-shrink-0">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-8">
         {/* Brand Name */}
-        <Link href="/" className="font-serif text-xl font-bold text-green-800">
+        <Link href="/vendor/dashboard" className="font-serif text-xl font-bold text-green-800">
           Butuan City Market
         </Link>
 
@@ -102,7 +102,7 @@ export default function VendorNavbar({ vendor }: VendorNavbarProps) {
               <DropdownMenuLabel className="mb-2">
                 <div className="flex flex-col space-y-1">
                   <p className="text-base font-bold text-gray-900 leading-none">{vendor.business_name}</p>
-                  <p className="text-xs font-bold uppercase tracking-widest text-green-700">Vendor Node</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-green-700">Vendor Account</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

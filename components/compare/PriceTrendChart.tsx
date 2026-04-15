@@ -76,14 +76,17 @@ export default function PriceTrendChart({ productId }: PriceTrendChartProps) {
         }
       })
 
-      const { data: history } = await supabase
+      const { data: history, error: historyError } = await supabase
         .from('price_history')
         .select('listing_id, price, recorded_at')
         .in('listing_id', listingIds)
         .gte('recorded_at', thirtyDaysAgo.toISOString())
         .order('recorded_at', { ascending: true })
 
-      if (!history || history.length === 0) {
+      if (historyError || !history || history.length === 0) {
+        if (historyError) {
+          console.warn('[PRICE_HISTORY_FETCH]', historyError.message)
+        }
         setChartData([])
         setMarketNames([])
         setLoading(false)

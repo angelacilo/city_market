@@ -22,7 +22,7 @@ export default function LoginRequiredDialog({ isOpen, onClose }: LoginRequiredDi
  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md rounded-[2rem] border-gray-100 dark:border-white/10 dark:bg-[#0a0f0a] shadow-2xl dark:shadow-[0_0_50px_rgba(27,107,62,0.2)] p-8 transition-all">
+      <DialogContent className="sm:max-w-md rounded-[2rem] border-gray-100 dark:border-white/10 dark:bg-[#0a0f0a] shadow-2xl dark:shadow-[0_0_50px_rgba(27,107,62,0.2)] p-8 transition-all" aria-describedby="login-required-desc">
         <div className="flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-green-50 dark:bg-green-500/10 rounded-3xl flex items-center justify-center mb-6 border border-green-100 dark:border-green-500/20 shadow-sm">
              <MessageCircle className="w-8 h-8 text-[#1b6b3e] dark:text-green-500" />
@@ -31,7 +31,7 @@ export default function LoginRequiredDialog({ isOpen, onClose }: LoginRequiredDi
           <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white mb-3 tracking-tight">
              Sign in to contact vendors
           </DialogTitle>
-          <DialogDescription className="text-gray-500 dark:text-gray-400 font-medium text-sm leading-relaxed mb-10 max-w-[300px]">
+          <DialogDescription id="login-required-desc" className="text-gray-500 dark:text-gray-400 font-medium text-sm leading-relaxed mb-10 max-w-[300px]">
              You need a buyer account to send messages to vendors. It is free and only takes a minute to set up.
           </DialogDescription>
  

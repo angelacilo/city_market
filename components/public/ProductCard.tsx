@@ -23,7 +23,7 @@ export function ProductCard({
   vendor_name, 
   stall_number, 
   last_updated,
-  category 
+  category,
 }: ProductCardProps) {
   const formattedPrice = new Intl.NumberFormat('en-PH', {
     style: 'currency',

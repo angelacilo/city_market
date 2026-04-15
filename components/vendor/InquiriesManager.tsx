@@ -15,12 +15,10 @@ import {
   ShoppingBag,
   Loader2,
   Inbox,
-  Clock,
   MoreVertical,
-  Check,
   AlertCircle,
+  Check,
   CheckCheck,
-  Image as ImageIcon,
   Plus,
   FileText
 } from 'lucide-react'
@@ -37,7 +35,7 @@ const ProductInquiryCard = ({ product, text, isMe }: { product: any, text: strin
         <div className="flex items-center gap-4">
           <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-50 dark:bg-black/20 flex-shrink-0 border border-gray-50 dark:border-white/5">
             {product.image ? (
-              <img src={product.image} alt={product.name} className="object-cover w-full h-full" />
+              <NextImage src={product.image} alt={product.name} fill className="object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <ShoppingBag className="w-6 h-6 text-gray-200 dark:text-gray-700" />
@@ -99,7 +97,7 @@ const MessageStatusIndicator = ({ status, avatarUrl }: { status: string, avatarU
 
 
 export default function InquiriesManager({ initialConversations, vendorId: initialVendorId }: { initialConversations: any[], vendorId: string }) {
-  const [vendorId, setVendorId] = useState<string>(initialVendorId)
+  const [vendorId] = useState<string>(initialVendorId)
   const [conversations, setConversations] = useState<any[]>(initialConversations)
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [messages, setMessages] = useState<any[]>([])
@@ -107,7 +105,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [sending, setSending] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error] = useState<string | null>(null)
   const [buyerOnlineStatuses, setBuyerOnlineStatuses] = useState<Record<string, { is_online: boolean, last_seen_at: string }>>({})
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -146,7 +144,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
               .from('conversations')
               .select('*, buyer_profiles:buyer_id(id, full_name, contact_number, barangay, avatar_url)')
               .eq('id', payload.new.id)
-              .single()
+              .maybeSingle()
 
 
             if (data) {
@@ -433,7 +431,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
       <div className="bg-white dark:bg-[#0a0f0a] rounded-none border-gray-100 dark:border-white/5 shadow-2xl overflow-hidden flex items-center justify-center h-[calc(100vh-100px)]">
         <div className="flex flex-col items-center justify-center p-8 text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-          <p className="text-gray-900 dark:text-white font-semibold mb-2">Protocol Error</p>
+          <p className="text-gray-900 dark:text-white font-semibold mb-2">Something went wrong</p>
           <p className="text-gray-500 dark:text-gray-400 text-sm italic">{error}</p>
         </div>
       </div>
@@ -460,7 +458,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-600 group-focus-within:text-[#1b6b3e] transition-colors" />
             <input
               type="text"
-              placeholder="Search transmissions..."
+              placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-12 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-2xl pl-11 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:ring-1 focus:ring-[#1b6b3e] dark:text-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-700"
@@ -538,7 +536,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
                         )}>
                           {c.last_sender_type === 'vendor' && <span className="text-green-700 font-black mr-1 uppercase text-[8px]">Me:</span>}
                           {(() => {
-                            if (!c.last_message_content) return 'Waiting for synchronization...'
+                            if (!c.last_message_content) return 'No messages yet'
                             try {
                               const data = JSON.parse(c.last_message_content)
                               if (data.type === 'product_inquiry') return data.text
@@ -607,7 +605,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
                       buyerOnlineStatuses[activeConversation?.buyer_id]?.is_online ? "text-green-600 dark:text-green-500" : "text-gray-400 dark:text-gray-600"
                     )}>
                       {buyerOnlineStatuses[activeConversation?.buyer_id]?.is_online 
-                        ? 'Active Node Connection' 
+                        ? 'Active Chat' 
                         : `Last active: ${activeConversation?.buyer_profiles?.last_seen_at ? formatDistanceToNow(new Date(activeConversation.buyer_profiles.last_seen_at), { addSuffix: true }) : 'Offline'}`}
                     </p>
                   </div>
@@ -627,7 +625,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-10 h-10 text-[#1b6b3e] animate-spin" />
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Deciphering Content</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Loading messages...</span>
                   </div>
                 </div>
               ) : (
@@ -750,7 +748,7 @@ export default function InquiriesManager({ initialConversations, vendorId: initi
                   <Textarea
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
-                    placeholder="Provide procurement signal response..."
+                    placeholder="Type a reply..."
                     className="w-full bg-gray-50/50 dark:bg-white/[0.03] border-none rounded-3xl pl-6 pr-16 py-6 text-base font-medium focus:ring-2 focus:ring-[#1b6b3e]/10 transition-all resize-none min-h-[80px] max-h-48 scrollbar-hide text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-700 shadow-inner"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {

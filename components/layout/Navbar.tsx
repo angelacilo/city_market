@@ -26,7 +26,7 @@ import {
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
@@ -99,80 +99,138 @@ export default function Navbar() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [user, userType])
 
-  const fetchStats = useCallback(async (userId: string, type: 'buyer' | 'vendor' | 'admin') => {
+  const fetchStats = useCallback(async (resolvedId: string, type: 'buyer' | 'vendor' | 'admin') => {
+    if (!resolvedId) return
+
     if (type === 'buyer') {
-      // Unread messages
+      // Unread messages - buyer_id in conversations is the profile ID
       const { data: convs } = await supabase
         .from('conversations')
         .select('buyer_unread_count')
-        .eq('buyer_id', userId)
+        .eq('buyer_id', resolvedId)
 
       const unread = convs?.reduce((acc, c) => acc + (c.buyer_unread_count || 0), 0) || 0
       setUnreadCount(unread)
 
-      // Canvass items
-      const { data: list } = await supabase
+      // Canvass items - buyer_id in canvass_lists is the profile ID
+      let { data: list } = await supabase
         .from('canvass_lists')
         .select('id')
-        .eq('buyer_id', userId)
-        .single()
+        .eq('buyer_id', resolvedId)
+        .maybeSingle()
+
+      if (!list) {
+        // Try creating one if it doesn't exist
+        const { data: newList } = await supabase
+          .from('canvass_lists')
+          .insert({ buyer_id: resolvedId, name: 'My Canvass List' })
+          .select('id')
+          .maybeSingle()
+        list = newList
+      }
 
       if (list) {
         const { count } = await supabase
           .from('canvass_items')
           .select('*', { count: 'exact', head: true })
-          .eq('list_id', list.id)
+          .eq('canvass_list_id', list.id)
         setCanvassCount(count || 0)
       }
     } else if (type === 'vendor') {
       const { data: convs } = await supabase
         .from('conversations')
         .select('vendor_unread_count')
-        .filter('vendor_id', 'in', `(select id from vendors where user_id = '${userId}')`)
+        .eq('vendor_id', resolvedId)
 
       const unread = convs?.reduce((acc, c) => acc + (c.vendor_unread_count || 0), 0) || 0
       setUnreadCount(unread)
     }
   }, [supabase])
 
-  const identifyUser = useCallback(async (userId: string) => {
-    // Parallel queries to check user type
-    const [buyerRes, vendorRes, adminRes] = await Promise.all([
-      supabase.from('buyer_profiles').select('*').eq('user_id', userId).single(),
-      supabase.from('vendors').select('*').eq('user_id', userId).single(),
-      supabase.from('admin_users').select('*').eq('user_id', userId).single()
-    ])
 
-    if (adminRes.data) {
-      setUserType('admin')
-      setProfile(adminRes.data)
-      fetchStats(userId, 'admin')
-    } else if (vendorRes.data) {
+  const identifyUser = useCallback(async (userId: string) => {
+    if (!userId) {
+      setLoading(false)
+      return
+    }
+
+    // 1. Try to identify as Vendor first
+    const { data: vProfile } = await supabase
+      .from('vendors')
+      .select('*, markets(id, name)')
+      .eq('user_id', userId)
+      .maybeSingle()
+    
+    if (vProfile) {
       setUserType('vendor')
-      setProfile(vendorRes.data)
-      fetchStats(userId, 'vendor')
-    } else if (buyerRes.data) {
+      setProfile(vProfile)
+      fetchStats(vProfile.id, 'vendor')
+      setLoading(false)
+      return
+    }
+
+    // 2. Try to identify as Buyer
+    const { data: bProfile } = await supabase
+      .from('buyer_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle()
+    
+    if (bProfile) {
       setUserType('buyer')
-      setProfile(buyerRes.data)
-      fetchStats(userId, 'buyer')
+      setProfile(bProfile)
+      fetchStats(bProfile.id, 'buyer')
       
-      // Load active status from localStorage or database
+      // Load active status
       const savedStatus = localStorage.getItem('bcmis_buyer_active')
       if (savedStatus !== null) {
         setIsActive(savedStatus === 'true')
-      } else if (buyerRes.data.is_online !== undefined) {
-        setIsActive(buyerRes.data.is_online)
-        localStorage.setItem('bcmis_buyer_active', buyerRes.data.is_online ? 'true' : 'false')
+      } else {
+        const isOnline = (bProfile as any).is_online
+        if (isOnline !== undefined) {
+          setIsActive(isOnline)
+          localStorage.setItem('bcmis_buyer_active', isOnline ? 'true' : 'false')
+        }
       }
+      setLoading(false)
+      return
     }
+
+    // 3. Fallback to profiles (for admins or untyped users)
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('role, id')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (profileData?.role === 'admin') {
+      setUserType('admin')
+      setProfile(profileData)
+      fetchStats(userId, 'admin')
+    } else {
+      setUserType('buyer') // Safe default
+    }
+    
     setLoading(false)
   }, [supabase, fetchStats])
 
   useEffect(() => {
     const handleOpenCanvass = () => setIsCanvassOpen(true)
     window.addEventListener('open-canvass', handleOpenCanvass)
-    return () => window.removeEventListener('open-canvass', handleOpenCanvass)
-  }, [])
+
+    // Re-fetch canvass count badge when any component adds/removes an item
+    const handleCanvassUpdated = () => {
+      if (profile?.id && userType === 'buyer') {
+        fetchStats(profile.id, 'buyer')
+      }
+    }
+    window.addEventListener('canvass:updated', handleCanvassUpdated)
+
+    return () => {
+      window.removeEventListener('open-canvass', handleOpenCanvass)
+      window.removeEventListener('canvass:updated', handleCanvassUpdated)
+    }
+  }, [profile, userType, fetchStats])
 
   useEffect(() => {
     const initAuth = async () => {
@@ -203,6 +261,59 @@ export default function Navbar() {
     }
   }, [supabase, identifyUser])
 
+  // Realtime subscription for unread messages and canvass updates
+  useEffect(() => {
+    if (!profile?.id || !userType) return
+
+    const channel = supabase
+      .channel('navbar_stats')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'conversations',
+        filter: userType === 'buyer' ? `buyer_id=eq.${profile.user_id}` : `vendor_id=eq.${profile.id}`
+      }, () => {
+        // Re-fetch counts when conversations change
+        fetchStats(profile.id, userType)
+      })
+      .subscribe()
+
+    // Also listen for message inserts to be safe
+    const msgChannel = supabase
+      .channel('navbar_msgs')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages'
+      }, () => {
+        fetchStats(profile.id, userType)
+      })
+      .subscribe()
+
+    // Canvass updates real-time
+    let canvassChannel: any = null
+    if (userType === 'buyer') {
+      canvassChannel = supabase
+        .channel('navbar_canvass')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'canvass_items',
+          filter: `buyer_id=eq.${profile.id}`
+        }, () => {
+          fetchStats(profile.id, 'buyer')
+        })
+        .subscribe()
+    }
+
+    return () => {
+      supabase.removeChannel(channel)
+      supabase.removeChannel(msgChannel)
+      if (canvassChannel) supabase.removeChannel(canvassChannel)
+    }
+  }, [profile?.id, profile?.user_id, userType, supabase, fetchStats])
+
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
@@ -225,7 +336,10 @@ export default function Navbar() {
       <header className="sticky top-0 z-50 h-20 bg-white/95 dark:bg-[#050a05]/95 backdrop-blur-3xl border-b border-gray-100 dark:border-white/5 shadow-sm dark:shadow-[0_0_30px_rgba(27,107,62,0.15)] transition-all duration-500">
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-8 relative">
           {/* Brand Name */}
-          <Link href="/" className="font-serif text-2xl font-black text-[#1b6b3e] dark:text-green-500 tracking-tight shrink-0 italic hover:opacity-80 transition-opacity">
+          <Link 
+            href={userType === 'vendor' ? '/vendor/dashboard' : '/'} 
+            className="font-serif text-2xl font-black text-[#1b6b3e] dark:text-green-500 tracking-tight shrink-0 italic hover:opacity-80 transition-opacity"
+          >
             Butuan City Market
           </Link>
 
@@ -254,6 +368,19 @@ export default function Navbar() {
           <div className="hidden items-center gap-8 lg:flex shrink-0">
             {userType === 'buyer' && profile ? (
               <div className="flex items-center gap-6">
+                {/* Messages Icon */}
+                <div 
+                  className="relative cursor-pointer group p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-all" 
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-chat'))}
+                >
+                  <MessageCircle className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-green-700 dark:group-hover:text-green-500 transition-colors" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-[#050a05] shadow-lg shadow-red-900/20 px-1">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+
                 {/* Canvass Icon */}
                 <div 
                   className="relative cursor-pointer group p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-all" 
@@ -283,7 +410,7 @@ export default function Navbar() {
                       <p className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-[0.2em] truncate mb-2">{user.email}</p>
                       <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20">
                         <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[8px] font-black text-green-700 dark:text-green-500 uppercase tracking-widest">Buyer Node</span>
+                        <span className="text-[8px] font-black text-green-700 dark:text-green-500 uppercase tracking-widest">Verified Buyer</span>
                       </div>
                     </DropdownMenuLabel>
 
@@ -291,7 +418,7 @@ export default function Navbar() {
                       <Link href="/user/profile">
                         <DropdownMenuItem className="rounded-xl h-11 px-3 cursor-pointer group hover:bg-green-50 dark:hover:bg-green-500/10 transition-colors">
                           <UserIcon className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500 group-hover:text-[#1b6b3e] dark:group-hover:text-green-500 transition-colors" />
-                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Personal Control</span>
+                          <span className="text-xs font-bold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Profile Settings</span>
                         </DropdownMenuItem>
                       </Link>
                       
@@ -364,6 +491,15 @@ export default function Navbar() {
               </div>
             ) : userType === 'vendor' ? (
               <div className="flex items-center gap-6">
+                {/* Vendor Dashboard Link */}
+                <Link 
+                  href="/vendor/dashboard" 
+                  className="p-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-all group cursor-pointer"
+                  title="Vendor Dashboard"
+                >
+                  <Store className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-green-700 dark:group-hover:text-green-500 transition-colors" />
+                </Link>
+
                 <VendorAccountDropdown 
                   vendor={profile} 
                   trigger={
@@ -382,16 +518,16 @@ export default function Navbar() {
               </div>
             ) : !loading && (
               <div className="flex items-center gap-3">
-                <Link href="/login">
-                  <Button variant="ghost" className="h-11 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:text-[#1b6b3e] dark:hover:text-green-500 hover:bg-[#1b6b3e]/5 dark:hover:bg-green-500/10 transition-all">
+                <Button asChild variant="ghost" className="h-11 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:text-[#1b6b3e] dark:hover:text-green-500 hover:bg-[#1b6b3e]/5 dark:hover:bg-green-500/10 transition-all">
+                  <Link href="/login">
                     Sign In
-                  </Button>
-                </Link>
-                <Link href="/register">
-                  <Button className="h-11 px-8 rounded-2xl bg-[#1b6b3e] dark:bg-[#1b6b3e] hover:bg-[#155430] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-95">
+                  </Link>
+                </Button>
+                <Button asChild className="h-11 px-8 rounded-2xl bg-[#1b6b3e] dark:bg-[#1b6b3e] hover:bg-[#155430] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-900/10 transition-all active:scale-95">
+                  <Link href="/register">
                     Join Network
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             )}
           </div>
@@ -405,7 +541,10 @@ export default function Navbar() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[85%] sm:w-80 border-none bg-white dark:bg-[#050a05] p-0">
-                <VisuallyHidden.Root><SheetTitle>Mobile Menu</SheetTitle></VisuallyHidden.Root>
+                <VisuallyHidden.Root>
+                  <SheetTitle>Mobile Menu</SheetTitle>
+                  <SheetDescription>Main navigation links for Butuan City Market.</SheetDescription>
+                </VisuallyHidden.Root>
                 <div className="p-8 flex flex-col h-full">
                   <div className="flex items-center gap-3 mb-12">
                     <div className="w-10 h-10 rounded-xl bg-[#1b6b3e] flex items-center justify-center shadow-lg shadow-green-900/20">
@@ -434,31 +573,31 @@ export default function Navbar() {
                   <div className="mt-auto pt-8 border-t border-gray-100 dark:border-white/5">
                     {!user ? (
                       <div className="flex flex-col gap-3">
-                        <Link href="/login" className="w-full">
-                          <Button variant="outline" className="w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest border-gray-100 dark:border-white/10 dark:text-white">
+                        <Button asChild variant="outline" className="w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest border-gray-100 dark:border-white/10 dark:text-white">
+                          <Link href="/login" className="w-full">
                             Sign In
-                          </Button>
-                        </Link>
-                        <Link href="/register" className="w-full">
-                          <Button className="w-full h-14 rounded-2xl bg-[#1b6b3e] text-white text-xs font-black uppercase tracking-widest">
+                          </Link>
+                        </Button>
+                        <Button asChild className="w-full h-14 rounded-2xl bg-[#1b6b3e] text-white text-xs font-black uppercase tracking-widest">
+                          <Link href="/register" className="w-full">
                             Join Network
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                       </div>
                     ) : (
                       <div className="flex flex-col gap-3">
-                        <Link href={userType === 'vendor' ? '/vendor/dashboard' : '/user/profile'} className="w-full">
-                          <Button className="w-full h-14 rounded-2xl bg-[#1b6b3e] text-white text-xs font-black uppercase tracking-widest">
-                            Command Center
-                          </Button>
-                        </Link>
+                        <Button asChild className="w-full h-14 rounded-2xl bg-[#1b6b3e] text-white text-xs font-black uppercase tracking-widest">
+                          <Link href={userType === 'vendor' ? '/vendor/dashboard' : '/user/profile'} className="w-full">
+                            Dashboard
+                          </Link>
+                        </Button>
                         <Button 
                           variant="ghost" 
                           onClick={handleLogout} 
                           className="w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
                         >
                           <LogOut className="w-4 h-4 mr-3" />
-                          Terminate Session
+                          Sign Out
                         </Button>
                       </div>
                     )}
@@ -471,7 +610,9 @@ export default function Navbar() {
       </header>
 
       {/* Canvass Sheet */}
-      <CanvassSheet open={isCanvassOpen} onOpenChange={setIsCanvassOpen} />
+      {!loading && user && userType === 'buyer' && (
+        <CanvassSheet open={isCanvassOpen} onOpenChange={setIsCanvassOpen} />
+      )}
     </>
   )
 }

@@ -15,10 +15,10 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
           currentUserId = session.user.id
-        } else {
-          return
         }
       }
+
+      if (!currentUserId) return
 
       const now = new Date().toISOString()
 

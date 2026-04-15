@@ -52,13 +52,13 @@ export async function startConversation({
         market_name: marketName,
         price: price,
         unit: unit,
-        vendor_unread_count: 1,
+        vendor_unread_count: 0, // Trigger will handle increment
         last_message_at: new Date().toISOString(),
         last_message_content: firstMessage,
         last_sender_type: 'buyer'
       })
       .select()
-      .single()
+      .maybeSingle()
 
     if (convError) throw convError
     conversationId = conversation.id
@@ -71,10 +71,7 @@ export async function startConversation({
         product_name: productName,
         price: price,
         unit: unit,
-        last_message_at: new Date().toISOString(),
-        last_message_content: firstMessage,
-        last_sender_type: 'buyer',
-        vendor_unread_count: (existing?.vendor_unread_count || 0) + 1
+        // Trigger will handle last_message_at, content, sender_type and counts
       })
       .eq('id', conversationId)
   }
@@ -135,7 +132,7 @@ export async function sendMessage({
       status: 'sent'
     })
     .select()
-    .single()
+    .maybeSingle()
 
   if (msgError) throw msgError
 
@@ -151,7 +148,7 @@ export async function sendMessage({
     .from('conversations')
     .select('buyer_unread_count, vendor_unread_count')
     .eq('id', conversationId)
-    .single()
+    .maybeSingle()
 
   if (conv) {
     if (senderType === 'buyer') {
@@ -193,7 +190,7 @@ export async function sendVendorMessage({
     .from('vendors')
     .select('id')
     .eq('user_id', vendorUserId)
-    .single()
+    .maybeSingle()
 
   if (vendorError || !vendor) throw new Error('Vendor not found')
 
@@ -212,25 +209,9 @@ export async function sendVendorMessage({
 
   if (msgError) throw msgError
 
-  // 3. Update conversation
-  const { data: conv } = await supabase
-    .from('conversations')
-    .select('buyer_unread_count')
-    .eq('id', conversationId)
-    .single()
-
-  const { error: convUpdateError } = await supabase
-    .from('conversations')
-    .update({
-      last_message_at: new Date().toISOString(),
-      last_message_content: content,
-      last_sender_type: 'vendor',
-      buyer_unread_count: (conv?.buyer_unread_count || 0) + 1
-    })
-    .eq('id', conversationId)
-
-  if (convUpdateError) throw convUpdateError
-
+  // 3. Update conversation - counts and metadata now handled by database trigger
+  // No need for manual update here unless we want to update non-trigger fields
+  
   revalidatePath('/user/messages')
   revalidatePath('/vendor/inquiries')
 

@@ -36,10 +36,12 @@ export async function changePassword({ currentPassword, newPassword }: { current
   }
 }
 
-export async function initiatePasswordReset(email: string) {
+export async function initiatePasswordReset(email: string, redirectTo?: string) {
   try {
     const supabase = await createClient()
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectTo
+    })
     if (error) return { error: error.message }
     return { success: true }
   } catch (error: any) {
@@ -76,3 +78,41 @@ export async function verifyOtpAndChangePassword({ email, token, newPassword }: 
     return { error: error.message || 'An unexpected error occurred.' }
   }
 }
+
+export async function initiateReauthentication() {
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.reauthenticate()
+    if (error) return { error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'Failed to send security code.' }
+  }
+}
+
+export async function verifyReauthAndChangePassword({ email, token, newPassword }: { email: string, token: string, newPassword: string }) {
+  try {
+    const supabase = await createClient()
+    
+    // First verify the reauthentication OTP using email + token
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'reauthentication' as any
+    })
+
+    if (verifyError) return { error: 'Invalid or expired code. Please try again.' }
+
+    // Once verified, we can update the password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    })
+
+    if (updateError) return { error: updateError.message }
+
+    return { success: true }
+  } catch (error: any) {
+    return { error: error.message || 'Password update failed.' }
+  }
+}
+

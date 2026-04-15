@@ -156,6 +156,7 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
 
     if (res.status === 'success') {
       setToast({ message: 'Added to canvass list', type: 'success' })
+      window.dispatchEvent(new CustomEvent('canvass:updated'))
       window.dispatchEvent(new CustomEvent('open-canvass'))
     } else if (res.status === 'already_exists') {
       window.dispatchEvent(new CustomEvent('open-canvass'))

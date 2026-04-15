@@ -7,6 +7,7 @@ import { startConversation } from '@/lib/actions/messenger'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -95,7 +96,7 @@ export default function InquiryForm({
  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl dark:bg-[#0a0f0a]">
+      <DialogContent className="sm:max-w-md rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl dark:bg-[#0a0f0a]" aria-describedby="inquiry-form-desc">
         <DialogHeader className="px-10 pt-12 pb-8 bg-[#1b6b3e] dark:bg-green-600 text-white relative">
           <div className="flex items-center gap-5 mb-8 relative z-10">
              <div className="p-4 bg-white/10 rounded-[1.5rem] backdrop-blur-sm border border-white/5 shadow-xl">
@@ -103,10 +104,10 @@ export default function InquiryForm({
              </div>
              <div className="flex flex-col">
                 <DialogTitle className="text-3xl font-black tracking-tight font-serif italic">Contact Vendor</DialogTitle>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Establish secure connection</p>
+                <DialogDescription id="inquiry-form-desc" className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Establish secure connection</DialogDescription>
              </div>
           </div>
-          
+
           <div className="bg-black/15 dark:bg-black/30 rounded-[2rem] p-6 border border-white/5 space-y-4 relative z-10 backdrop-blur-md">
              <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0 pr-4">
@@ -147,15 +148,17 @@ export default function InquiryForm({
                   <Loader2 className="w-12 h-12 text-[#1b6b3e] dark:text-green-500 animate-spin mb-8" />
                   <div className="absolute inset-0 w-12 h-12 text-[#1b6b3e]/20 animate-ping rounded-full" />
                </div>
-               <p className="text-[10px] font-black text-gray-300 dark:text-gray-800 uppercase tracking-[0.4em] animate-pulse">Scanning server nodes…</p>
+               <p className="text-[10px] font-black text-gray-300 dark:text-gray-800 uppercase tracking-[0.4em] animate-pulse">Connecting to vendor…</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.3em] block ml-2">
-                  Encrypted Message
+                <label htmlFor="inquiry-message" className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.3em] block ml-2">
+                  Your Message
                 </label>
                 <Textarea
+                  id="inquiry-message"
+                  name="message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Ask about availability, current price, or stock..."
@@ -172,7 +175,7 @@ export default function InquiryForm({
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Synchronizing…</span>
+                    <span>Sending…</span>
                   </>
                 ) : (
                   <>
@@ -184,7 +187,7 @@ export default function InquiryForm({
  
               <div className="pt-4 border-t border-gray-50 dark:border-white/5 text-center">
                 <p className="text-[10px] font-bold text-gray-400 dark:text-gray-700 uppercase tracking-widest leading-relaxed">
-                  Identity verification active. <br /> Security protocols enabled for this session.
+                  Your connection is secure.
                 </p>
               </div>
             </form>

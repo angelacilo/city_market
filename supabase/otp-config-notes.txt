@@ -1,0 +1,5 @@
+Supabase OTP Configuration Notes:
+1. Go to Authentication -> Providers -> Email
+2. Enable "Enable Email OTP"
+3. Set OTP expiry to 600 seconds
+4. customize templates for "Password Recovery" using {{ .Token }} for the 6-digit code

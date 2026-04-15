@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Store, LogOut, UserCircle, Moon, Sun, Activity } from 'lucide-react'
+import { Store, LogOut, Moon, Sun, Activity } from 'lucide-react'
 import NextImage from 'next/image'
 import { useTheme } from 'next-themes'
 
@@ -41,7 +41,7 @@ export default function VendorAccountDropdown({ vendor, trigger }: VendorAccount
   const [isActive, setIsActive] = useState(vendor.is_active)
   const [isOnline, setIsOnline] = useState(false)
   const [user, setUser] = useState<any>(null)
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
   const [isTogglingOnline, setIsTogglingOnline] = useState(false)
 
   // Initialize user and fetch online status

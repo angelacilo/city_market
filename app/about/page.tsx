@@ -1,201 +1,173 @@
-import type { Metadata } from 'next'
-import { Eye, TrendingUp, Users, Mail, MapPin } from 'lucide-react'
-
-export const metadata: Metadata = {
-  title: 'About Us - Butuan City Market Information System',
-  description:
-    'Learn about the Butuan City Market Information System, our mission to connect buyers and vendors, and our commitment to transparent market pricing in Butuan City, Agusan del Norte.',
-}
+import NextImage from 'next/image'
+import Link from 'next/link'
+import { ArrowRight, Shield, TrendingUp, Users, CheckCircle2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import StatsSection from '@/components/about/StatsSection'
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-[#050a05] transition-colors duration-500">
-      <div className="mx-auto max-w-5xl px-6 sm:px-8">
-        {/* ── Page Hero ──────────────────────────────────────── */}
-        <section className="pb-24 pt-32 text-center lg:pt-40">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-[#1b6b3e] dark:text-green-500 mb-6 px-4 py-1.5 bg-green-50 dark:bg-green-500/10 rounded-full inline-block">
-            Our Story
-          </p>
-          <h1 className="mt-4 leading-[1.1]">
-            <span className="text-5xl md:text-7xl font-black text-gray-900 dark:text-white font-sans tracking-tight">
-              About{' '}
-            </span>
-            <span className="text-5xl md:text-7xl font-black text-[#1b6b3e] dark:text-green-500 font-serif italic">
-              Butuan Market IS
-            </span>
-          </h1>
-          <p className="mx-auto mt-8 max-w-2xl text-lg md:text-xl leading-relaxed text-gray-500 dark:text-gray-400 font-medium">
-            The Butuan City Market Information System is an official digital
-            initiative of the City Government of Butuan to bring transparency,
-            accessibility, and real-time accuracy to market pricing across
-            Agusan del Norte.
-          </p>
-        </section>
-
-        {/* ── Mission Section ────────────────────────────────── */}
-        <section className="mt-24 grid grid-cols-1 gap-16 md:grid-cols-2 items-center py-20 border-t border-gray-100 dark:border-white/5">
-          <div>
-            <div className="border-l-4 border-[#1b6b3e] dark:border-green-500 pl-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1b6b3e] dark:text-green-500">
-                Our Mission
-              </p>
-            </div>
-            <h2 className="mt-6 leading-none">
-              <span className="block text-4xl font-black text-gray-900 dark:text-white font-sans tracking-tight mb-2">
-                Empowering
-              </span>
-              <span className="block text-4xl font-black text-[#1b6b3e] dark:text-green-500 font-serif italic">
-                every shopper
-              </span>
-            </h2>
-          </div>
-          <div className="space-y-6">
-            <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-300 font-medium italic font-serif">
-              "We believe every buyer deserves to know where the best prices are
-              before they leave their home."
-            </p>
-            <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-              Butuan City Market Maintain a live, verified, and publicly accessible
-              database of prices, supplies, and vendor information across all
-              six public markets in Butuan City.
-            </p>
-          </div>
-        </section>
-
-        {/* ── Three Pillars ──────────────────────────────────── */}
-        <section className="mt-32 grid grid-cols-1 gap-8 md:grid-cols-3">
-          {/* Pillar 1 */}
-          <div className="rounded-[2.5rem] border border-gray-100 dark:border-white/5 bg-white dark:bg-[#0a0f0a] p-10 shadow-sm dark:shadow-[0_0_50px_-10px_rgba(27,107,62,0.1)] hover:-translate-y-2 transition-all duration-500 group">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-50 dark:bg-green-500/10 mb-8 group-hover:bg-[#1b6b3e] transition-colors">
-              <Eye className="h-7 w-7 text-[#1b6b3e] dark:text-green-500 group-hover:text-white" />
-            </div>
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white font-serif italic tracking-tight">
-              Transparency
-            </h3>
-            <p className="mt-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400 font-medium">
-              All prices, vendor information, and stock availability are
-              publicly accessible without any account or registration required.
-            </p>
-          </div>
-
-          {/* Pillar 2 */}
-          <div className="rounded-[2.5rem] border border-gray-100 dark:border-white/5 bg-white dark:bg-[#0a0f0a] p-10 shadow-sm dark:shadow-[0_0_50px_-10px_rgba(27,107,62,0.1)] hover:-translate-y-2 transition-all duration-500 group">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-500/10 mb-8 group-hover:bg-blue-600 transition-colors">
-              <TrendingUp className="h-7 w-7 text-blue-600 dark:text-blue-400 group-hover:text-white" />
-            </div>
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white font-serif italic tracking-tight">
-              Real-time
-            </h3>
-            <p className="mt-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400 font-medium">
-              Vendors update their prices directly from their phones. Buyers
-              always see current information, not outdated data.
-            </p>
-          </div>
-
-          {/* Pillar 3 */}
-          <div className="rounded-[2.5rem] border border-gray-100 dark:border-white/5 bg-white dark:bg-[#0a0f0a] p-10 shadow-sm dark:shadow-[0_0_50px_-10px_rgba(27,107,62,0.1)] hover:-translate-y-2 transition-all duration-500 group">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-500/10 mb-8 group-hover:bg-amber-600 transition-colors">
-              <Users className="h-7 w-7 text-amber-600 dark:text-amber-400 group-hover:text-white" />
-            </div>
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white font-serif italic tracking-tight">
-              Community
-            </h3>
-            <p className="mt-4 text-sm leading-relaxed text-gray-500 dark:text-gray-400 font-medium">
-              Built for Butuanons by Butuanons. Every vendor on this
-              platform strengthens the local market economy.
-            </p>
-          </div>
-        </section>
-
-        {/* ── Six Markets ────────────────────────────────────── */}
-        <section className="mt-40 text-center py-20 bg-gray-50/50 dark:bg-white/[0.02] rounded-[3rem] border border-gray-100 dark:border-white/5">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 dark:text-gray-600 mb-6">
-            Our Covered Markets
-          </p>
-          <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white font-serif italic tracking-tight">
-            Comprehensive City Coverage
-          </h2>
-          <div className="mt-12 flex flex-wrap justify-center gap-4 max-w-4xl mx-auto px-6">
-            {[
-              'Agora Market',
-              'Cogon Market',
-              'Divisoria Market',
-              'Libertad Public Market',
-              'Pili Market',
-              'Robinsons Wet Market',
-            ].map((name) => (
-              <span
-                key={name}
-                className="inline-block rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-[#0a0f0a] px-8 py-4 text-sm font-black text-gray-900 dark:text-white shadow-sm hover:border-[#1b6b3e] dark:hover:border-green-500 transition-all uppercase tracking-tight"
-              >
-                {name}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Stats ───────────────────────────────────── */}
-        <section className="mt-40 text-center pb-20">
-          <h2 className="text-4xl font-black text-gray-900 dark:text-white font-sans tracking-tight mb-6">
-            Built with purpose
-          </h2>
-          <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-500 dark:text-gray-400 font-medium">
-            This system was designed as a flagship e-governance project to
-            address real information gaps in Butuan City&apos;s public market
-            ecosystem.
-          </p>
-          <div className="mt-16 flex flex-wrap items-center justify-center gap-8">
-            <div className="rounded-3xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#0a0f0a] px-16 py-10 shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(27,107,62,0.2)]">
-              <p className="font-serif text-6xl font-black text-[#1b6b3e] dark:text-green-500 italic">
-                6
-              </p>
-              <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                Markets covered
-              </p>
-            </div>
-            <div className="rounded-3xl border border-gray-100 dark:border-white/5 bg-white dark:bg-[#0a0f0a] px-16 py-10 shadow-2xl dark:shadow-[0_0_60px_-15px_rgba(27,107,62,0.2)]">
-              <p className="font-serif text-6xl font-black text-[#1b6b3e] dark:text-green-500 italic">
-                Free
-              </p>
-              <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-600">
-                For all buyers
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      {/* ── Contact CTA ──────────────────────────────────────── */}
-      <section className="mx-auto mt-40 max-w-5xl px-6 sm:px-8 pb-40">
-        <div className="rounded-[3.5rem] bg-[#1b6b3e] dark:bg-[#0a0f0a] p-16 text-center relative overflow-hidden shadow-2xl dark:shadow-[0_0_80px_-20px_rgba(34,197,94,0.3)] border border-white/5">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-green-300 dark:text-green-500/60 mb-6">
-            Get In Touch
-          </p>
-          <h2 className="font-serif text-4xl md:text-5xl font-black text-white italic tracking-tight">
-            Questions or concerns?
-          </h2>
-          <p className="mx-auto mt-6 max-w-md text-sm leading-relaxed text-green-100 dark:text-gray-400 font-medium">
-            Reach out to the City Government of Butuan&apos;s Department of Trade and Market Operations.
-          </p>
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-12">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                <Mail className="h-6 w-6 text-green-300 dark:text-green-500" />
+    <main className="min-h-screen bg-white dark:bg-[#050a05] transition-colors duration-500">
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        <div className="container mx-auto px-6 max-w-7xl">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="flex-1 space-y-8">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-700 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-green-900/20">
+                Verified by City Government
               </div>
-              <span className="text-xs font-black uppercase tracking-widest text-white">trade@butuan.gov.ph</span>
-            </div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                <MapPin className="h-6 w-6 text-green-300 dark:text-green-500" />
+              <h1 className="text-6xl md:text-8xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter">
+                About <span className="font-serif italic text-green-700 dark:text-green-500">BCMS</span>
+              </h1>
+              <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-xl">
+                The digital bridge for transparency in agriculture. We connect Butuanon farmers directly to the heartbeat of the city's economy through data-driven insight.
+              </p>
+              <div className="pt-4">
+                <Button className="h-16 px-10 rounded-2xl bg-[#1b6b3e] hover:bg-[#155430] text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-green-900/20 transition-all active:scale-95 group">
+                  Explore Market Data
+                  <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                </Button>
               </div>
-              <span className="text-xs font-black uppercase tracking-widest text-white">
-                Butuan City Hall Complex
-              </span>
+            </div>
+            <div className="flex-1 relative">
+              <div className="relative z-10 rounded-[3rem] overflow-hidden shadow-2xl shadow-green-900/10 border-8 border-white dark:border-white/5">
+                <NextImage 
+                  src="/images/about/hero_veggies.png" 
+                  alt="Fresh local produce"
+                  width={800}
+                  height={1000}
+                  className="w-full h-auto object-cover"
+                  priority
+                />
+                <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent">
+                  <p className="text-white font-serif italic text-sm text-center">
+                    "Empowering the local food system through digital transparency."
+                  </p>
+                </div>
+              </div>
+              <div className="absolute -top-20 -right-20 w-80 h-80 bg-green-700/5 rounded-full blur-3xl" />
+              <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-green-700/5 rounded-full blur-3xl" />
             </div>
           </div>
         </div>
       </section>
-    </div>
+
+      {/* Mission & Vision Section */}
+      <section className="py-24 bg-gray-50/50 dark:bg-white/[0.02] border-y border-gray-100 dark:border-white/5">
+        <div className="container mx-auto px-6 max-w-7xl">
+          <div className="grid md:grid-cols-2 gap-20">
+            <div className="space-y-6">
+              <div className="w-16 h-1 bg-green-700 rounded-full" />
+              <h2 className="text-4xl font-black text-gray-900 dark:text-white">
+                Our <span className="font-serif italic">Mission</span>
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                To digitalize the Butuan City market ecosystem, ensuring every farmer has access to fair pricing and every citizen has transparency in their local food supply chain. We strive to eliminate information asymmetry through real-time data.
+              </p>
+            </div>
+            <div className="space-y-6">
+              <div className="w-16 h-1 bg-amber-600 rounded-full" />
+              <h2 className="text-4xl font-black text-gray-900 dark:text-white">
+                Our <span className="font-serif italic">Vision</span>
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                A thriving, tech-enabled agricultural hub where economic growth is inclusive, data is public, and the "Farm-to-Butuanon" connection is stronger than ever before.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pillars of Trust */}
+      <section className="py-32">
+        <div className="container mx-auto px-6 max-w-7xl text-center">
+          <div className="max-w-3xl mx-auto space-y-6 mb-20">
+            <h2 className="text-5xl font-black text-gray-900 dark:text-white leading-tight">
+              The Pillars of <span className="font-serif italic text-green-700 dark:text-green-500">Trust</span>
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">
+              Our framework is built on three core values that drive every update to the BCMS platform.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <CheckCircle2 className="w-8 h-8 text-green-700" />,
+                title: "Verification",
+                desc: "Every vendor listed is verified by the City Government, ensuring origin traceability and standard compliance."
+              },
+              {
+                icon: <TrendingUp className="w-8 h-8 text-amber-600" />,
+                title: "Transparency",
+                desc: "Real-time price monitoring prevents price gouging and allows for informed purchasing decisions by consumers."
+              },
+              {
+                icon: <Users className="w-8 h-8 text-indigo-600" />,
+                title: "Community",
+                desc: "A shared platform that fosters direct relationships between the city's urban consumers and rural producers."
+              }
+            ].map((pillar, i) => (
+              <div key={i} className="p-12 rounded-[2.5rem] bg-white dark:bg-[#0a0f0a] border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none text-left space-y-6 hover:translate-y-[-8px] transition-all duration-300">
+                <div className="w-20 h-20 rounded-2xl bg-gray-50 dark:bg-white/[0.03] flex items-center justify-center">
+                  {pillar.icon}
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white">{pillar.title}</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{pillar.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* United Front Section */}
+      <section className="bg-[#1b6b3e] py-32 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-white/[0.03] skew-x-[-20deg] translate-x-1/2" />
+        <div className="container mx-auto px-6 max-w-7xl relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-20">
+            <div className="flex-1 space-y-12">
+              <h2 className="text-5xl font-black text-white leading-[1.1]">
+                A United Front for <span className="font-serif italic text-green-200">Butuan's Future</span>
+              </h2>
+              
+              <div className="space-y-8">
+                <div className="flex gap-6">
+                  <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0 text-white font-black text-xs">01</div>
+                  <div className="space-y-2">
+                    <h4 className="text-xl font-black text-white">Department of Agriculture</h4>
+                    <p className="text-green-100/70 text-sm leading-relaxed">Providing technical support, farm-gate data, and quality standard oversight for all participating farmers.</p>
+                  </div>
+                </div>
+                <div className="flex gap-6">
+                  <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center shrink-0 text-white font-black text-xs">02</div>
+                  <div className="space-y-2">
+                    <h4 className="text-xl font-black text-white">Butuan City Government</h4>
+                    <p className="text-green-100/70 text-sm leading-relaxed">Infrastructure management, digital platform governance, and local policy implementation for fair trade.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 text-center">
+              <div className="relative inline-block">
+                <div className="rounded-[3rem] overflow-hidden shadow-2xl shadow-black/30 border-8 border-white/10">
+                  <NextImage 
+                    src="/images/about/united_front.png" 
+                    alt="Market analyst"
+                    width={500}
+                    height={600}
+                    className="w-full h-auto"
+                  />
+                </div>
+                <p className="mt-8 text-green-100 font-serif italic text-lg opacity-80">
+                  "Through synergy, we transform data into livelihoods."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <StatsSection />
+    </main>
   )
 }
