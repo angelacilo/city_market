@@ -1,10 +1,9 @@
-import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm'
-
-export const metadata = {
-  title: 'Forgot Password — Butuan Market IS',
-  description: 'Reset your vendor account password.',
-}
+import ForgotPasswordFlow from '@/components/auth/ForgotPasswordFlow'
 
 export default function ForgotPasswordPage() {
-  return <ForgotPasswordForm />
+  return (
+    <div className="w-full flex justify-center py-12">
+      <ForgotPasswordFlow />
+    </div>
+  )
 }

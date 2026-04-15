@@ -2,42 +2,43 @@ import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-100 bg-white px-6 py-10">
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
-        <div>
-          <p className="text-sm font-bold text-gray-900">Butuan City Market</p>
-          <div className="mt-3 space-y-1 text-xs leading-relaxed text-gray-400">
-            <p>© 2026 All rights reserved.</p>
-            <p>Verified official information.</p>
-            <p>
-              The Butuan Market Information System is a flagship initiative of the Department of Agriculture
-              and City Hall.
+    <footer className="bg-white dark:bg-[#050a05] py-12 border-t border-gray-100 dark:border-white/5 transition-colors duration-500">
+      <div className="container mx-auto px-6 max-w-7xl">
+        <div className="flex flex-col md:flex-row justify-between gap-12 md:gap-8">
+          {/* Brand Section */}
+          <div className="max-w-xs space-y-4">
+            <h3 className="text-xl font-black text-green-700 dark:text-green-500 font-serif italic tracking-tight">
+              Butuan City Market
+            </h3>
+            <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-relaxed uppercase tracking-widest opacity-70">
+              Verified official market data portal for the City of Butuan. Empowering citizens through transparency and digital agricultural synergy.
             </p>
+            <div className="pt-4">
+              <p className="text-[8px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-[0.2em]">
+                © 2024 BUTUAN CITY GOVERNMENT. VERIFIED OFFICIAL MARKET DATA.
+              </p>
+            </div>
           </div>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Resources</p>
-          <ul className="mt-3 space-y-2">
-            {['Privacy Policy', 'Terms of Service', 'Market Data'].map((label) => (
-              <li key={label}>
-                <Link href="#" className="text-xs text-gray-400 hover:text-gray-600">
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Contact Us</p>
-          <ul className="mt-3 space-y-2">
-            {['City Hall Contact', 'Department of Agriculture', 'Report an Issue'].map((label) => (
-              <li key={label}>
-                <Link href="#" className="text-xs text-gray-400 hover:text-gray-600">
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+
+          {/* Links Section */}
+          <div className="grid grid-cols-2 gap-8 md:gap-20">
+            <div className="space-y-6">
+              <h4 className="text-[9px] font-black text-gray-900 dark:text-white uppercase tracking-[0.4em] mb-4">Legal & Policy</h4>
+              <ul className="space-y-3">
+                <li><Link href="/privacy" className="text-[10px] font-bold text-gray-400 hover:text-green-700 dark:hover:text-green-500 transition-colors uppercase tracking-widest">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-[10px] font-bold text-gray-400 hover:text-green-700 dark:hover:text-green-500 transition-colors uppercase tracking-widest">Terms of Service</Link></li>
+                <li><Link href="/ordinances" className="text-[10px] font-bold text-gray-400 hover:text-green-700 dark:hover:text-green-500 transition-colors uppercase tracking-widest">City Ordinances</Link></li>
+              </ul>
+            </div>
+            <div className="space-y-6">
+              <h4 className="text-[9px] font-black text-gray-900 dark:text-white uppercase tracking-[0.4em] mb-4">Connect</h4>
+              <ul className="space-y-3">
+                <li><Link href="/contact" className="text-[10px] font-bold text-gray-400 hover:text-green-700 dark:hover:text-green-500 transition-colors uppercase tracking-widest">Contact Treasury</Link></li>
+                <li><Link href="/pio" className="text-[10px] font-bold text-gray-400 hover:text-green-700 dark:hover:text-green-500 transition-colors uppercase tracking-widest">Public Information Office</Link></li>
+                <li><Link href="/emergency" className="text-[10px] font-bold text-gray-400 hover:text-green-700 dark:hover:text-green-500 transition-colors uppercase tracking-widest">Emergency Hotline</Link></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

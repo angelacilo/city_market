@@ -2,9 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Info, ArrowDown, History, Store, Users, ShoppingBag } from 'lucide-react'
+import { MapPin, Navigation, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import SupplyListings from '@/components/public/SupplyListings'
 import { cn } from '@/lib/utils'
@@ -13,59 +12,27 @@ interface MarketDetailPageProps {
   params: Promise<{ id: string }>
 }
 
-const marketColors: Record<string, string> = {
-  'Divisoria Market': 'bg-green-100/50 text-green-600',
-  'Cogon Market': 'bg-orange-100/50 text-orange-600',
-  'Pili Market': 'bg-blue-100/50 text-blue-600',
-  'Libertad Public Market': 'bg-purple-100/50 text-purple-600',
-  'Agora Market': 'bg-teal-100/50 text-teal-600',
-  'Robinsons Wet Market': 'bg-indigo-100/50 text-indigo-600',
-}
 
-const defaultColor = 'bg-gray-100 text-gray-600'
 
 export default async function MarketDetailPage({ params }: MarketDetailPageProps) {
   const { id } = await params
   const supabase = await createClient()
 
   // Fetch all relevant data in parallel
-  const [marketResult, listingsResult, vendorsResult, productsCountResult] = await Promise.all([
+  const [marketResult, vendorsCountResult, productsCountResult] = await Promise.all([
     supabase
       .from('markets')
       .select('id, name, barangay, address, description, image_url')
       .eq('id', id)
       .single(),
     supabase
-      .from('price_listings')
-      .select(`
-        id, 
-        price, 
-        is_available, 
-        vendor_id,
-        products (
-          name, 
-          unit,
-          image_url,
-          categories ( name )
-        ),
-        vendors (
-          id,
-          business_name,
-          stall_number,
-          contact_number
-        )
-      `)
-      .eq('market_id', id)
-      .eq('is_available', true),
-    supabase
       .from('vendors')
-      .select('id, business_name, owner_name, stall_number, contact_number')
+      .select('id', { count: 'exact', head: true })
       .eq('market_id', id)
-      .eq('is_approved', true)
-      .order('business_name', { ascending: true }),
+      .eq('is_approved', true),
     supabase
       .from('price_listings')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('market_id', id)
       .eq('is_available', true),
   ])
@@ -75,127 +42,89 @@ export default async function MarketDetailPage({ params }: MarketDetailPageProps
     notFound()
   }
 
-  const listings = listingsResult.data || []
-  const vendors = vendorsResult.data || []
-  const vendorsCount = vendors.length
+  const vendorsCount = vendorsCountResult.count || 0
   const productsCount = productsCountResult.count || 0
 
-  const colorClass = marketColors[market.name] || defaultColor
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Full-width Hero Section */}
-      <section className="relative h-[25vh] sm:h-[40vh] w-full group overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#050a05] flex flex-col transition-colors duration-500">
+      {/* Cinematic Hero Section */}
+      <section className="relative h-[65vh] w-full overflow-hidden">
         {market.image_url ? (
           <Image
             src={market.image_url}
             alt={market.name}
             fill
             priority
-            className="object-cover group-hover:scale-110 transition-transform duration-[20s] ease-linear"
+            className="object-cover scale-105"
           />
         ) : (
-          <div className={cn("w-full h-full flex flex-col items-center justify-center gap-4", colorClass.split(' ')[0])}>
-             <Store className={cn("w-20 h-20 sm:w-32 sm:h-32 opacity-30", colorClass.split(' ')[1])} />
-          </div>
+          <div className="w-full h-full bg-green-900" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-gray-50/10" />
-      </section>
+        
+        {/* Dark Overlay/Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-      {/* Info Card Overlay Container */}
-      <section className="relative max-w-6xl mx-auto w-full px-4 -mt-32 sm:-mt-52 z-10 pb-20">
-        <Card className="rounded-[2.5rem] bg-white border-transparent shadow-2xl overflow-hidden p-8 sm:p-16 space-y-12">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12">
-            <div className="space-y-6 flex-1">
-              <div className="inline-flex items-center gap-2 text-green-600 font-bold text-xs uppercase tracking-widest italic">
-                 <Store className="w-4 h-4" />
-                 Market Details
-              </div>
-              
-              <div className="space-y-4">
-                <h1 className="text-5xl font-black text-gray-900 uppercase tracking-tight italic sm:text-7xl">
-                  {market.name}
-                </h1>
-                
-                <div className="flex flex-wrap gap-4 items-center sm:gap-6">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-50 text-gray-400 font-bold uppercase tracking-widest text-[10px] italic">
-                    <MapPin className="w-4 h-4 text-green-600" />
+        <div className="absolute inset-0 max-w-7xl mx-auto px-6 flex flex-col justify-center">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
+            
+            {/* Left Side Info */}
+            <div className="space-y-6 max-w-2xl animate-in fade-in slide-in-from-left-8 duration-700">
+               <Badge className="bg-[#1d631d] text-white hover:bg-[#1d631d] border-none px-4 py-1 rounded-full font-black uppercase text-[10px] tracking-widest shadow-xl">
+                 Official Verified Market
+               </Badge>
+
+               <div className="space-y-4 text-white">
+                  <h1 className="text-6xl sm:text-8xl font-serif leading-[0.9] tracking-tight drop-shadow-2xl font-bold">
+                    {market.name}
+                  </h1>
+                  <div className="flex items-center gap-2 text-white/80 font-bold uppercase tracking-widest text-xs">
+                    <MapPin className="w-4 h-4 text-green-400" />
                     {market.barangay}, {market.address || 'Butuan City'}
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Badge className="bg-green-600/10 text-green-700 border-green-100 px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest italic flex items-center gap-1.5">
-                       <Users className="w-3 h-3" />
-                       {vendorsCount} Vendors
-                    </Badge>
-                    <Badge className="bg-green-600/10 text-green-700 border-green-100 px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest italic flex items-center gap-1.5">
-                       <ShoppingBag className="w-3 h-3" />
-                       {productsCount} Price Listings
-                    </Badge>
-                  </div>
-                </div>
-              </div>
+               </div>
 
-              {market.description && (
-                <div className="p-10 rounded-[2rem] bg-gray-50 border border-gray-50 italic group group-hover:bg-white transition-all shadow-inner">
-                  <p className="text-lg text-gray-500 font-medium leading-relaxed italic text-justify">
-                    &quot;{market.description}&quot;
-                  </p>
-                </div>
-              )}
+               {/* Stat Boxes */}
+               <div className="flex gap-4 pt-4">
+                  <div className="bg-black/40 backdrop-blur-md border border-white/10 p-5 rounded-xl min-w-[140px] shadow-2xl">
+                    <p className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Active Vendors</p>
+                    <p className="text-white text-3xl font-black">{vendorsCount}</p>
+                  </div>
+                  <div className="bg-black/40 backdrop-blur-md border border-white/10 p-5 rounded-xl min-w-[140px] shadow-2xl">
+                    <p className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Price Listings</p>
+                    <p className="text-white text-3xl font-black">{productsCount}</p>
+                  </div>
+               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-4 w-full lg:w-72 shrink-0">
+            {/* Right Side Actions */}
+            <div className="flex flex-col gap-4 w-full sm:w-72 animate-in fade-in slide-in-from-right-8 duration-700">
                <Link href={`/compare?market=${market.id}`} className="w-full">
-                  <Button className="w-full h-16 rounded-2xl bg-gray-900 hover:bg-black text-white font-black uppercase text-xs tracking-widest italic transition-all shadow-xl flex items-center justify-center gap-3">
-                    Compare prices
-                    <History className="w-4 h-4" />
-                  </Button>
+                 <Button className="w-full h-16 rounded-full bg-green-600 hover:bg-green-700 text-white font-black uppercase text-xs tracking-widest transition-all shadow-2xl flex items-center justify-between px-8 group active:scale-95">
+                   Compare prices
+                   <Navigation className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                 </Button>
                </Link>
                <Link href="#supplies-section" className="w-full">
-                 <Button 
-                  variant="outline"
-                  className="w-full h-16 rounded-2xl border-2 border-gray-900 bg-white text-gray-900 hover:bg-gray-100 font-black uppercase text-xs tracking-widest italic transition-all shadow-xl flex items-center justify-center gap-3"
-                 >
+                 <Button className="w-full h-16 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 text-white font-black uppercase text-xs tracking-widest transition-all shadow-2xl flex items-center justify-between px-8 group active:scale-95">
                    View supplies
-                   <ArrowDown className="w-4 h-4 animate-bounce" />
+                   <Package className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
                  </Button>
                </Link>
             </div>
-          </div>
 
-          {/* Vendors Section */}
-          <div className="pt-12 border-t border-gray-50">
-             <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest italic flex items-center gap-2">
-                   <Store className="w-4 h-4 text-green-600" />
-                   Registered Stalls
-                </h3>
-             </div>
-             {vendors.length === 0 ? (
-               <p className="text-xs text-gray-400 italic">No vendors registered in this market yet.</p>
-             ) : (
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 {vendors.map((v: any) => (
-                   <Link href={`/stalls/${v.id}`} key={v.id} className="block transition-transform hover:-translate-y-1">
-                     <div className="p-4 rounded-2xl bg-white shadow-sm border border-gray-100 hover:border-green-300 flex flex-col gap-2 transition-colors relative group h-full">
-                       <div className="flex items-center justify-between">
-                         <span className="text-sm font-black text-gray-900 group-hover:text-green-700 transition-colors">{v.business_name}</span>
-                         {v.stall_number && <Badge variant="outline" className="text-[10px] uppercase font-bold text-gray-500 bg-gray-50">Stall {v.stall_number}</Badge>}
-                       </div>
-                       <div className="text-xs font-bold text-gray-500 flex items-center gap-1.5 mt-auto pt-2"><Users className="w-3 h-3 text-gray-400 group-hover:text-green-500 transition-colors"/> Owner: {v.owner_name || 'N/A'}</div>
-                     </div>
-                   </Link>
-                 ))}
-               </div>
-             )}
           </div>
-
-          {/* Section Divider */}
-          <div id="supplies-section" className="pt-12 border-t border-gray-50">
-             <SupplyListings initialListings={listings} marketName={market.name} />
-          </div>
-        </Card>
+        </div>
       </section>
+
+      {/* Supplies Grid Section */}
+      <section id="supplies-section" className="max-w-7xl mx-auto w-full px-6 py-20 bg-white dark:bg-[#050a05] transition-colors duration-500">
+         <div className="scroll-mt-24">
+            <SupplyListings marketId={id} marketName={market.name} />
+         </div>
+      </section>
+
+
     </div>
   )
 }

@@ -20,7 +20,7 @@ interface PriceCompareTableProps {
 export function PriceCompareTable({ listings }: PriceCompareTableProps) {
   if (!listings || listings.length === 0) {
     return (
-      <div className="p-20 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100 italic font-medium text-gray-400">
+      <div className="p-20 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100 font-medium text-gray-400">
          No prices found for this product. 
       </div>
     )
@@ -44,7 +44,7 @@ export function PriceCompareTable({ listings }: PriceCompareTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sorted.map((listing, idx) => {
+          {sorted.map((listing) => {
             const isLowest = listing.price === lowestPrice
             const isHighest = listing.price === highestPrice && listing.price !== lowestPrice
             
@@ -59,7 +59,7 @@ export function PriceCompareTable({ listings }: PriceCompareTableProps) {
                         <Store className="w-6 h-6" />
                      </div>
                      <div>
-                        <div className="text-sm font-black text-gray-900 leading-none mb-1 group-hover:text-green-600 transition-colors uppercase italic">{listing.markets.name}</div>
+                        <div className="text-sm font-black text-gray-900 leading-none mb-1 group-hover:text-green-600 transition-colors uppercase">{listing.markets.name}</div>
                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
                            {listing.markets.barangay}
                         </div>
@@ -95,12 +95,12 @@ export function PriceCompareTable({ listings }: PriceCompareTableProps) {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {listing.is_available ? (
-                      <div className="flex items-center gap-1.5 text-green-600 text-xs font-black uppercase italic tracking-tighter">
+                      <div className="flex items-center gap-1.5 text-green-600 text-xs font-black uppercase tracking-tighter">
                         <CheckCircle2 className="w-4 h-4 fill-green-600 text-white" />
                         In Stock
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-red-400 text-xs font-black uppercase italic tracking-tighter line-through opacity-50">
+                      <div className="flex items-center gap-1.5 text-red-400 text-xs font-black uppercase tracking-tighter line-through opacity-50">
                         <XCircle className="w-4 h-4 fill-red-400 text-white" />
                         Out of Stock
                       </div>

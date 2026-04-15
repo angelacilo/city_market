@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
+import ConditionalNavbar from "@/components/layout/ConditionalNavbar";
 import BottomNav from "@/components/layout/BottomNav";
 import Footer from "@/components/layout/Footer";
 
@@ -13,16 +13,21 @@ const inter = Inter({
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  style: ["italic"],
+  style: ["normal"],
   weight: ["400", "700"],
   variable: "--font-playfair",
 });
 
 export const metadata: Metadata = {
-  title: "BCMIS | Butuan City Market Information System",
+  title: "Butuan City Market | Marketplace & Price Monitor",
   description:
     "Browse all Public Markets in Butuan City, search for products, compare prices, and connect with vendors online.",
 };
+
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { PresenceProvider } from "@/components/providers/PresenceProvider";
+import FloatingChatWrapper from "@/components/public/FloatingChatWrapper";
+import { Toaster } from 'sonner'
 
 export default function RootLayout({
   children,
@@ -30,16 +35,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white text-gray-900 font-sans`}
+        suppressHydrationWarning
+        className={`${inter.variable} ${playfair.variable} antialiased min-h-screen bg-white dark:bg-[#050a05] text-gray-900 dark:text-gray-100 font-sans transition-colors duration-500 selection:bg-green-500/30`}
       >
-        <Navbar />
-        <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
-          {children}
-        </main>
-        <BottomNav />
-        <Footer />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <PresenceProvider>
+            <ConditionalNavbar />
+            <main className="min-h-[calc(100vh-3.5rem)] overflow-x-hidden pb-16 md:pb-0">
+              {children}
+            </main>
+            <FloatingChatWrapper />
+            <BottomNav />
+            <Footer />
+            <Toaster position="top-center" richColors />
+          </PresenceProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

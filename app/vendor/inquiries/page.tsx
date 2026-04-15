@@ -1,39 +1,35 @@
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import InquiriesManager from '@/components/vendor/InquiriesManager'
-
-export const metadata = { title: 'Inquiries — Vendor Dashboard | BCMIS' }
-
+ 
 export default async function VendorInquiriesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+ 
   if (!user) redirect('/login')
-
+ 
+  // Fetch vendor id
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('id, markets(name)')
+    .select('id, user_id')
     .eq('user_id', user.id)
     .single()
-
-  if (!vendor) redirect('/register')
-
-  const { data: inquiries } = await supabase
-    .from('inquiries')
+ 
+  if (!vendor) redirect('/login')
+ 
+  // Initial fetch of conversations for the vendor
+  const { data: conversations } = await supabase
+    .from('conversations')
     .select(`
-      id, buyer_name, buyer_contact, message, created_at, is_read,
-      listing_id,
-      price_listings (
-        id, price,
-        products ( name, unit )
-      )
+      *,
+      buyer_profiles:buyer_id(id, full_name, contact_number, barangay, avatar_url)
     `)
     .eq('vendor_id', vendor.id)
-    .order('created_at', { ascending: false })
-
+    .order('last_message_at', { ascending: false })
+ 
   return (
-    <InquiriesManager
-      inquiries={(inquiries as any[]) ?? []}
-      marketName={(vendor.markets as any)?.name ?? ''}
-    />
+    <div className="h-full">
+      <InquiriesManager initialConversations={conversations || []} vendorId={vendor.id} />
+    </div>
   )
 }

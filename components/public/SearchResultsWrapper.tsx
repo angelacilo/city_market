@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import SearchFilters, { FilterState } from './SearchFilters'
 import SearchResultsGrid from './SearchResultsGrid'
 
@@ -8,6 +8,7 @@ export interface SearchListing {
   id: string
   price: number
   is_available: boolean
+  product_id?: string
   vendor_id: string
   products: {
     name: string
@@ -40,20 +41,12 @@ export default function SearchResultsWrapper({
   initialListings,
   lowestPrice,
   highestPrice,
-  marketCount,
-  vendorCount,
   availableMarkets,
 }: SearchResultsWrapperProps) {
-  const [filters, setFilters] = useState<FilterState>({
-    sortStr: 'price-low',
-    market: 'all',
-    availability: 'in-stock',
-  })
 
   const [filteredListings, setFilteredListings] = useState<SearchListing[]>(initialListings)
 
-  const handleFilterChange = (newFilters: FilterState) => {
-    setFilters(newFilters)
+  const handleFilterChange = useCallback((newFilters: FilterState) => {
 
     let results = [...initialListings]
 
@@ -82,7 +75,7 @@ export default function SearchResultsWrapper({
     }
 
     setFilteredListings(results)
-  }
+  }, [initialListings])
 
   // Calculate dynamic stats for the summary strip
   const currentLowestPrice = filteredListings.length > 0

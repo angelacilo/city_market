@@ -1,0 +1,5 @@
+﻿app/layout.tsx(27,31): error TS2307: Cannot find module '@/components/providers/ThemeProvider' or its corresponding type declarations.
+components/Footer.tsx(2,17): error TS2305: Module '"lucide-react"' has no exported member 'Facebook'.
+components/Footer.tsx(2,27): error TS2305: Module '"lucide-react"' has no exported member 'Twitter'.
+components/layout/Navbar.tsx(12,29): error TS2307: Cannot find module './ThemeToggle' or its corresponding type declarations.
+components/layout/VendorNavbar.tsx(8,29): error TS2307: Cannot find module './ThemeToggle' or its corresponding type declarations.

@@ -132,6 +132,77 @@ export async function toggleAvailability(listingId: string, isAvailable: boolean
   return { success: true }
 }
 
+export async function updateListing(
+  listingId: string,
+  data: {
+    price: number
+    is_available: boolean
+    stock_quantity: number
+    product_id: string
+    name?: string
+    category_id?: string
+    unit?: string
+    image_url?: string
+  }
+) {
+  try {
+    const supabase = await createClient()
+    const now = new Date().toISOString()
+
+    // 1. Update master product info if provided
+    if (data.name || data.category_id || data.unit || data.image_url) {
+      const updateData: any = {}
+      if (data.name) updateData.name = data.name
+      if (data.category_id) updateData.category_id = data.category_id
+      if (data.unit) updateData.unit = data.unit
+      if (data.image_url) updateData.image_url = data.image_url
+
+      const { error: prodErr } = await supabase
+        .from('products')
+        .update(updateData)
+        .eq('id', data.product_id)
+
+      if (prodErr) return { error: `Failed to update product details: ${prodErr.message}` }
+    }
+
+    const { data: currentListing } = await supabase
+      .from('price_listings')
+      .select('price')
+      .eq('id', listingId)
+      .single()
+
+    // 2. Update the listing itself
+    const { error } = await supabase
+      .from('price_listings')
+      .update({
+        price: data.price,
+        is_available: data.is_available,
+        stock_quantity: data.stock_quantity,
+        last_updated: now,
+      })
+      .eq('id', listingId)
+
+    if (error) return { error: error.message }
+
+    // If price changed, record in history
+    if (currentListing && currentListing.price !== data.price) {
+      await supabase.from('price_history').insert({
+        listing_id: listingId,
+        price: data.price,
+        recorded_at: now,
+      })
+    }
+
+    revalidatePath('/vendor/products')
+    revalidatePath('/vendor/prices')
+    revalidatePath('/vendor/dashboard')
+    revalidatePath('/stalls', 'layout') // Revalidate all stall pages
+    return { success: true }
+  } catch (e: any) {
+    return { error: e.message || 'Failed to update listing.' }
+  }
+}
+
 // ── Bulk price update ─────────────────────────────────────────────────
 
 export async function bulkUpdatePrices(
@@ -186,10 +257,13 @@ export async function markInquiryRead(inquiryId: string) {
 export async function updateVendorProfile(
   vendorId: string,
   data: {
-    business_name: string
+    business_name?: string
     owner_name?: string
     stall_number?: string
     contact_number?: string
+    opening_time?: string
+    closing_time?: string
+    is_active?: boolean
   }
 ) {
   const supabase = await createClient()
@@ -197,10 +271,13 @@ export async function updateVendorProfile(
   const { error } = await supabase
     .from('vendors')
     .update({
-      business_name: data.business_name,
+      ...(data.business_name && { business_name: data.business_name }),
       owner_name: data.owner_name || null,
       stall_number: data.stall_number || null,
       contact_number: data.contact_number || null,
+      opening_time: data.opening_time || null,
+      closing_time: data.closing_time || null,
+      ...(data.is_active !== undefined && { is_active: data.is_active }),
     })
     .eq('id', vendorId)
 
@@ -208,6 +285,9 @@ export async function updateVendorProfile(
 
   revalidatePath('/vendor/profile')
   revalidatePath('/vendor/dashboard')
+  revalidatePath(`/stalls/${vendorId}`)
+  revalidatePath('/stalls', 'layout')
+  revalidatePath('/markets', 'layout')
   return { success: true }
 }
 
@@ -231,12 +311,14 @@ export async function seedInitialCatalog() {
 
   // 1. Categories
   const categories = [
-    { name: 'Rice & grains', icon: 'Wheat' },
+    { name: 'Rice and Grains', icon: 'Wheat' },
     { name: 'Meat',          icon: 'Beef' },
     { name: 'Seafood',       icon: 'Fish' },
     { name: 'Vegetables',    icon: 'Leaf' },
     { name: 'Fruits',        icon: 'Apple' },
-    { name: 'Dry goods',     icon: 'PackageIcon' },
+    { name: 'Dry Goods',     icon: 'PackageIcon' },
+    { name: 'Condiments',    icon: 'Droplets' },
+    { name: 'Others',        icon: 'MoreHorizontal' },
   ]
 
   const { data: catData, error: catError } = await supabase

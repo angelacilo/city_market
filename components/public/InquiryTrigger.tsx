@@ -1,27 +1,29 @@
 'use client'
-
-import { useState } from 'react'
+ 
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import InquiryForm from './InquiryForm'
+import LoginRequiredDialog from './LoginRequiredDialog'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import { MessageSquare } from 'lucide-react'
-import InquiryForm, { InquiryFormProps } from './InquiryForm'
-
-interface InquiryTriggerProps extends InquiryFormProps {
+import { MessageCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+ 
+interface InquiryTriggerProps {
+  vendorId: string
+  listingId: string | null
+  productName: string
+  vendorName: string
+  marketName: string
+  price: number | null
+  unit: string | null
   triggerLabel?: string
-  triggerVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  triggerVariant?: 'solid' | 'outline' | 'ghost'
   triggerSize?: 'default' | 'sm' | 'lg' | 'icon'
+  className?: string
+  productImage?: string | null
 }
-
+ 
 export default function InquiryTrigger({
-  triggerLabel = 'Ask vendor',
-  triggerVariant = 'outline',
-  triggerSize = 'sm',
   vendorId,
   listingId,
   productName,
@@ -29,46 +31,70 @@ export default function InquiryTrigger({
   marketName,
   price,
   unit,
+  triggerLabel = 'Ask Vendor',
+  triggerVariant = 'solid',
+  triggerSize = 'default',
+  productImage,
+  className,
 }: InquiryTriggerProps) {
-  const [open, setOpen] = useState(false)
-
-  function handleSuccess() {
-    // Give the buyer 1.5 seconds to read the success message before closing
-    setTimeout(() => setOpen(false), 1500)
+  const [showInquiryForm, setShowInquiryForm] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [hasSession, setHasSession] = useState<boolean | null>(null)
+  
+  const supabase = createClient()
+ 
+  useEffect(() => {
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession()
+      setHasSession(!!session)
+    }
+    checkSession()
+  }, [supabase])
+ 
+  const handleTrigger = () => {
+    if (hasSession === false) {
+      setShowLoginPrompt(true)
+    } else if (hasSession === true) {
+      setShowInquiryForm(true)
+    }
   }
-
+ 
   return (
     <>
       <Button
-        variant={triggerVariant}
+        onClick={handleTrigger}
+        variant={triggerVariant === 'solid' ? 'default' : triggerVariant}
         size={triggerSize}
-        onClick={() => setOpen(true)}
-        className="min-h-[44px] gap-2"
+        className={cn(
+          triggerVariant === 'solid'
+            ? 'bg-[#1b6b3e] hover:bg-[#155430] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-lg shadow-green-900/10'
+            : triggerVariant === 'outline' ? 'rounded-2xl border-gray-200 text-gray-700 font-bold text-[10px] uppercase tracking-widest' : '',
+          className
+        )}
       >
-        <MessageSquare className="w-4 h-4" />
-        {triggerLabel}
+        {triggerLabel && <span>{triggerLabel}</span>}
+        <MessageCircle className={cn("w-4 h-4", triggerLabel && "ml-2")} />
       </Button>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg p-5 rounded-2xl">
-          <DialogHeader className="mb-1">
-            <DialogTitle className="text-base font-black text-gray-900">Contact vendor</DialogTitle>
-            <DialogDescription className="text-xs text-gray-400">
-              Send a message to this vendor about their product listing.
-            </DialogDescription>
-          </DialogHeader>
-          <InquiryForm
-            vendorId={vendorId}
-            listingId={listingId}
-            productName={productName}
-            vendorName={vendorName}
-            marketName={marketName}
-            price={price}
-            unit={unit}
-            onSuccess={handleSuccess}
-          />
-        </DialogContent>
-      </Dialog>
+ 
+      {/* Inquiry Form (Main Dialog) */}
+      <InquiryForm
+        isOpen={showInquiryForm}
+        onClose={() => setShowInquiryForm(false)}
+        vendorId={vendorId}
+        listingId={listingId}
+        productName={productName}
+        vendorName={vendorName}
+        marketName={marketName}
+        price={price}
+        unit={unit}
+        productImage={productImage}
+      />
+ 
+      {/* Login Gate Prompt */}
+      <LoginRequiredDialog
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+      />
     </>
   )
 }

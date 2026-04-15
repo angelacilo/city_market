@@ -36,14 +36,14 @@ export default function MarketsSection({
   const ordered = orderMarketsForHome(markets)
 
   return (
-    <section className="bg-gray-50 py-20">
+    <section className="bg-gray-50 dark:bg-[#050a05] py-20 transition-colors duration-500">
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center">
-          <h2 className="text-gray-900">
+          <h2 className="text-gray-900 dark:text-white">
             <span className="block text-3xl font-normal font-sans">Explore Local</span>
-            <span className="block text-3xl font-bold italic font-serif">Markets</span>
+            <span className="block text-3xl font-bold font-serif italic">Markets</span>
           </h2>
-          <p className="mt-3 text-sm text-gray-500 max-w-xl mx-auto">
+          <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
             Compare prices and availability across Butuan&apos;s major public and commercial trading hubs.
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function MarketsSection({
             <div className="mt-8 text-center">
               <Link
                 href={showAllHref}
-                className="text-sm font-medium text-green-700 hover:text-green-800"
+                className="text-xs font-black uppercase tracking-widest text-[#1b6b3e] dark:text-green-500 hover:text-green-800 border-b-2 border-green-700 pb-1"
               >
                 {showAllLabel}
               </Link>
