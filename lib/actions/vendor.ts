@@ -5,6 +5,11 @@ import { createClient } from '@/lib/supabase/server'
 
 // ── Listings ──────────────────────────────────────────────────────────
 
+/**
+ * Adds a new product listing for a specific vendor in a specific market.
+ * If a custom product name is provided (not in the global catalog), it first creates
+ * a new master product entry before linking it to the vendor's price listing.
+ */
 export async function addListing(formData: {
   vendor_id: string
   market_id: string
@@ -64,6 +69,10 @@ export async function addListing(formData: {
   }
 }
 
+/**
+ * Updates the image URL for a master product entry.
+ * Note: This affects the global catalog image for that product.
+ */
 export async function updateProductImage(productId: string, imageUrl: string) {
   try {
     const supabase = await createClient()
@@ -80,6 +89,10 @@ export async function updateProductImage(productId: string, imageUrl: string) {
   }
 }
 
+/**
+ * Completely removes a vendor's listing from a market.
+ * Automatically cleans up the associated price history to maintain referential integrity.
+ */
 export async function deleteListing(listingId: string) {
   const supabase = await createClient()
 
@@ -95,6 +108,10 @@ export async function deleteListing(listingId: string) {
   return { success: true }
 }
 
+/**
+ * Updates the current price of a listing and logs the change in price_history
+ * to enable trend analysis and charts.
+ */
 export async function updateListingPrice(listingId: string, newPrice: number) {
   const supabase = await createClient()
   const now = new Date().toISOString()
@@ -118,6 +135,9 @@ export async function updateListingPrice(listingId: string, newPrice: number) {
   return { success: true }
 }
 
+/**
+ * Toggles whether a product listing is currently visible/available for buyers.
+ */
 export async function toggleAvailability(listingId: string, isAvailable: boolean) {
   const supabase = await createClient()
 
@@ -132,6 +152,10 @@ export async function toggleAvailability(listingId: string, isAvailable: boolean
   return { success: true }
 }
 
+/**
+ * Comprehensive update for a listing, including both vendor-specific data (price, stock)
+ * and optional master product metadata (name, unit, image).
+ */
 export async function updateListing(
   listingId: string,
   data: {
@@ -205,6 +229,10 @@ export async function updateListing(
 
 // ── Bulk price update ─────────────────────────────────────────────────
 
+/**
+ * Handles multiple price updates in a single call.
+ * Useful for bulk inventory management features.
+ */
 export async function bulkUpdatePrices(
   updates: { listingId: string; newPrice: number }[]
 ): Promise<{ success: boolean; failed: string[] }> {
@@ -237,6 +265,9 @@ export async function bulkUpdatePrices(
 
 // ── Inquiries ─────────────────────────────────────────────────────────
 
+/**
+ * Updates the read status of a legacy inquiry entry.
+ */
 export async function markInquiryRead(inquiryId: string) {
   const supabase = await createClient()
 
@@ -254,6 +285,10 @@ export async function markInquiryRead(inquiryId: string) {
 
 // ── Profile ───────────────────────────────────────────────────────────
 
+/**
+ * Updates vendor metadata in the database and revalidates all related public pages
+ * (profile, stall page, market list) to ensure data consistency.
+ */
 export async function updateVendorProfile(
   vendorId: string,
   data: {
@@ -306,6 +341,10 @@ export async function selfApproveVendor(vendorId: string) {
   return { success: true }
 }
 
+/**
+ * Resets the master product catalog by upserting a default set of categories and products.
+ * Used for initial environment setup or manual data reset.
+ */
 export async function seedInitialCatalog() {
   const supabase = await createClient()
 
@@ -316,7 +355,7 @@ export async function seedInitialCatalog() {
     { name: 'Seafood',       icon: 'Fish' },
     { name: 'Vegetables',    icon: 'Leaf' },
     { name: 'Fruits',        icon: 'Apple' },
-    { name: 'Dry Goods',     icon: 'PackageIcon' },
+    { name: 'Dry Goods',     icon: 'Package' },
     { name: 'Condiments',    icon: 'Droplets' },
     { name: 'Others',        icon: 'MoreHorizontal' },
   ]
@@ -332,8 +371,8 @@ export async function seedInitialCatalog() {
 
   // 2. Products
   const products = [
-    { name: 'Well-milled Rice', unit: 'kg', category_id: getCatId('Rice & grains') },
-    { name: 'Premium Rice',     unit: 'kg', category_id: getCatId('Rice & grains') },
+    { name: 'Well-milled Rice', unit: 'kg', category_id: getCatId('Rice and Grains') },
+    { name: 'Premium Rice',     unit: 'kg', category_id: getCatId('Rice and Grains') },
     { name: 'Pork Liempo',      unit: 'kg', category_id: getCatId('Meat') },
     { name: 'Whole Chicken',    unit: 'kg', category_id: getCatId('Meat') },
     { name: 'Bangus (Medium)',  unit: 'kg', category_id: getCatId('Seafood') },

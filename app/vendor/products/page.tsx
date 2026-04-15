@@ -4,33 +4,41 @@ import ProductsManager from '@/components/vendor/ProductsManager'
 
 export const metadata = { title: 'Manage Products — Vendor Dashboard | Butuan City Market' }
 
+/**
+ * Vendor Products Page - Server Component
+ * Handles data fetching for the current vendor's inventory and global product assets.
+ */
 export default async function VendorProductsPage() {
   const supabase = await createClient()
+  
+  // 1. Authenticate user - Redirect to login if no session exists
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // 2. Fetch the vendor's profile associated with the authenticated user
   const { data: vendor } = await supabase
     .from('vendors')
     .select('id, market_id')
     .eq('user_id', user.id)
     .single()
 
+  // 3. Fallback: If authorized but no vendor profile exists, prompt for registration
   if (!vendor) redirect('/register')
 
-  // Fetch vendor listings
+  // 4. Data Extraction - Retrieve the vendor's specific product listings
   const { data: listings } = await supabase
     .from('price_listings')
     .select('id, price, is_available, stock_quantity, last_updated, product_id, products(id, name, unit, category_id, image_url, categories(name))')
     .eq('vendor_id', vendor.id)
     .order('last_updated', { ascending: false })
 
-  // Fetch all products (for the dropdown/autosuggest)
+  // 5. Fetch Global Asset Catalog - For product selection and dropdowns
   const { data: allProducts } = await supabase
     .from('products')
     .select('id, name, unit, category_id, image_url, categories(name)')
     .order('name')
 
-  // Fetch categories
+  // 6. Fetch available market categories
   const { data: categories } = await supabase
     .from('categories')
     .select('id, name, icon')
@@ -51,6 +59,7 @@ export default async function VendorProductsPage() {
           </p>
         </div>
 
+        {/* Client-side manager for handling interactive product CRUD operations */}
         <ProductsManager 
           listings={(listings as any[]) ?? []}
           allProducts={(allProducts as any[]) ?? []}
