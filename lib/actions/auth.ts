@@ -2,6 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server'
 
+/**
+ * Changes the password for the currently authenticated user.
+ * Validates the current password before allowing the update.
+ */
 export async function changePassword({ currentPassword, newPassword }: { currentPassword: string, newPassword: string }) {
   try {
     const supabase = await createClient()
@@ -36,6 +40,9 @@ export async function changePassword({ currentPassword, newPassword }: { current
   }
 }
 
+/**
+ * Initiates the password recovery workflow by sending a reset link to the user's email.
+ */
 export async function initiatePasswordReset(email: string, redirectTo?: string) {
   try {
     const supabase = await createClient()
@@ -49,6 +56,10 @@ export async function initiatePasswordReset(email: string, redirectTo?: string) 
   }
 }
 
+/**
+ * Verifies a password recovery OTP and updates the user's password.
+ * This is used for the direct "Enter Code" workflow.
+ */
 export async function verifyOtpAndChangePassword({ email, token, newPassword }: { email: string, token: string, newPassword: string }) {
   try {
     const supabase = await createClient()
@@ -79,6 +90,9 @@ export async function verifyOtpAndChangePassword({ email, token, newPassword }: 
   }
 }
 
+/**
+ * Sends a security code for MFA/Reauthentication purposes.
+ */
 export async function initiateReauthentication() {
   try {
     const supabase = await createClient()
@@ -90,6 +104,9 @@ export async function initiateReauthentication() {
   }
 }
 
+/**
+ * Verifies a reauthentication OTP and allows security-sensitive updates like password changes.
+ */
 export async function verifyReauthAndChangePassword({ email, token, newPassword }: { email: string, token: string, newPassword: string }) {
   try {
     const supabase = await createClient()

@@ -3,6 +3,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+/**
+ * Initiates a new conversation between a buyer and a vendor.
+ * If a conversation already exists, it updates the product context.
+ * Automatically inserts the first message as a structured product inquiry.
+ */
 export async function startConversation({
   vendorId,
   listingId,
@@ -107,6 +112,10 @@ export async function startConversation({
   return conversationId
 }
 
+/**
+ * Sends a generic text message in an existing conversation.
+ * Updates the unread count for the recipient and timestamp for the conversation header.
+ */
 export async function sendMessage({
   conversationId,
   senderType,
@@ -171,6 +180,10 @@ export async function sendMessage({
   return message
 }
 
+/**
+ * Specialized function for vendors to send messages.
+ * Maps the vendor's auth user ID to their internal vendor ID record.
+ */
 export async function sendVendorMessage({
   conversationId,
   content,
@@ -218,6 +231,10 @@ export async function sendVendorMessage({
   return message
 }
 
+/**
+ * Resets the unread message count for a specific user type (buyer or vendor)
+ * once they open a conversation.
+ */
 export async function markConversationRead(conversationId: string, readerType: 'buyer' | 'vendor') {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -243,6 +260,9 @@ export async function markConversationRead(conversationId: string, readerType: '
   revalidatePath('/vendor/inquiries')
 }
 
+/**
+ * Updates the status of messages to 'delivered' for real-time receipt indicators.
+ */
 export async function markMessagesDelivered(
   conversationId: string,
   senderType: 'buyer' | 'vendor'
@@ -266,6 +286,9 @@ export async function markMessagesDelivered(
   revalidatePath('/vendor/inquiries')
 }
 
+/**
+ * Bulk updates message statuses to 'seen'.
+ */
 export async function markMessagesSeen(messageIds: string[]) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -286,6 +309,10 @@ export async function markMessagesSeen(messageIds: string[]) {
   revalidatePath('/vendor/inquiries')
 }
 
+/**
+ * Robustly sets the online/offline status of a user.
+ * Updates the respective profile table (buyer_profiles or vendors) with heartbeat timestamps.
+ */
 export async function setUserOnlineStatus(
   userId: string,
   userType: 'buyer' | 'vendor',

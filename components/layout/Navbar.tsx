@@ -55,20 +55,26 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [canvassCount, setCanvassCount] = useState(0)
-  const [user, setUser] = useState<any>(null)
-  const [userType, setUserType] = useState<'buyer' | 'vendor' | 'admin' | null>(null)
-  const [profile, setProfile] = useState<any>(null)
-  const [isCanvassOpen, setIsCanvassOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [isActive, setIsActive] = useState(false)
-  const [isTogglingActive, setIsTogglingActive] = useState(false)
+  
+  // -- State Management --
+  const [unreadCount, setUnreadCount] = useState(0) // Tracks notification counts for messages
+  const [canvassCount, setCanvassCount] = useState(0) // Tracks items in the buyer's canvass list
+  const [user, setUser] = useState<any>(null) // Current auth user from Supabase
+  const [userType, setUserType] = useState<'buyer' | 'vendor' | 'admin' | null>(null) // Role-based type
+  const [profile, setProfile] = useState<any>(null) // Detailed profile data from respective tables
+  const [isCanvassOpen, setIsCanvassOpen] = useState(false) // Toggle for the canvass side sheet
+  const [loading, setLoading] = useState(true) // Initial identity resolution loading state
+  const [isActive, setIsActive] = useState(false) // Online/Offline status for buyers
+  const [isTogglingActive, setIsTogglingActive] = useState(false) // Loading state during status update
   const { theme, setTheme } = useTheme()
 
   const supabase = createClient()
 
   // Handle active status toggle - connect to database
+  /**
+   * Toggles the buyer's online status in the database.
+   * Persists the choice to localStorage for cross-session consistency.
+   */
   const handleActiveStatusToggle = async (newStatus: boolean) => {
     if (!user) return
     setIsTogglingActive(true)
@@ -84,7 +90,10 @@ export default function Navbar() {
     }
   }
 
-  // Setup beforeunload listener for automatic offline detection
+  /**
+   * Cleanup effect to mark user offline if the browser tab is closed.
+   * Uses navigator.sendBeacon for reliable execution during unload.
+   */
   useEffect(() => {
     if (userType !== 'buyer' || !user) return
 
@@ -99,6 +108,10 @@ export default function Navbar() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [user, userType])
 
+  /**
+   * Fetches counts for unread messages and canvass items.
+   * Automatically creates a default canvass list for new buyers.
+   */
   const fetchStats = useCallback(async (resolvedId: string, type: 'buyer' | 'vendor' | 'admin') => {
     if (!resolvedId) return
 
@@ -148,6 +161,11 @@ export default function Navbar() {
   }, [supabase])
 
 
+  /**
+   * Multi-table identity resolution flow.
+   * Sequentially checks roles (Vendor -> Buyer -> Profile/Admin)
+   * to determine navigation options and UI context.
+   */
   const identifyUser = useCallback(async (userId: string) => {
     if (!userId) {
       setLoading(false)
