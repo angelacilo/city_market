@@ -8,7 +8,6 @@ import {
   Search,
   Plus,
   Check,
-  Loader2,
   X,
   PlusCircle,
   Package,
@@ -71,7 +70,6 @@ export default function CanvassSheet({
 }) {
   const [listId, setListId] = useState<string | null>(null)
   const [items, setItems] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([])
@@ -92,7 +90,6 @@ export default function CanvassSheet({
   const listIdRef = useRef<string | null>(null)
 
   const fetchCanvassData = useCallback(async (userId: string) => {
-    setLoading(true)
     try {
       // 1. Get the profile for this user
       console.log('[CANVASS] Fetching data for userId:', userId)
@@ -207,8 +204,6 @@ export default function CanvassSheet({
       }
     } catch (error) {
       console.error('Error fetching canvass data:', error)
-    } finally {
-      setLoading(false)
     }
   }, [supabase])
 
@@ -413,12 +408,7 @@ export default function CanvassSheet({
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-6">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-3 opacity-40">
-              <Loader2 className="w-8 h-8 text-green-700 dark:text-green-500 animate-spin" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Loading your basket...</p>
-            </div>
-          ) : items.length === 0 ? (
+          {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full px-12 text-center gap-6 opacity-80">
               <div className="bg-gray-50 dark:bg-white/5 p-8 rounded-[3rem] shadow-inner">
                 <ShoppingBasket className="w-16 h-16 text-gray-200 dark:text-green-950" />
