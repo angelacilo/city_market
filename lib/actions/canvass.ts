@@ -57,7 +57,7 @@ export async function addToCanvass(productId: string, userId: string) {
   // 4. Link the product to the user's list
   const { error: insertError } = await supabase
     .from('canvass_items')
-    .insert({ canvass_list_id: listId, product_id: productId })
+    .insert({ canvass_list_id: listId, product_id: productId, buyer_id: profile.id })
 
   if (insertError) return { error: insertError.message }
 
