@@ -11,7 +11,8 @@ import {
   X,
   PlusCircle,
   Package,
-  Store
+  Store,
+  Loader2,
 } from 'lucide-react'
 import {
   Sheet,
@@ -560,10 +561,10 @@ export default function CanvassSheet({
                 Add New Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="p-0 sm:max-w-[480px] overflow-hidden border-none shadow-3xl dark:bg-[#121212] rounded-[3rem]" aria-describedby="canvass-search-desc">
+            <DialogContent className="p-0 sm:max-w-[480px] overflow-hidden border-none shadow-3xl dark:bg-[#121212] rounded-[3rem]" aria-describedby={undefined}>
               <div className="p-8 bg-green-800 dark:bg-green-900 text-white flex flex-col gap-2">
                 <DialogTitle className="text-3xl font-black uppercase tracking-tight">Search Supply</DialogTitle>
-                <DialogDescription id="canvass-search-desc" className="text-[11px] font-black text-green-300 uppercase tracking-widest border-none"> Instant lookup across all markets</DialogDescription>
+                <DialogDescription className="text-[11px] font-black text-green-300 uppercase tracking-widest border-none"> Instant lookup across all markets</DialogDescription>
               </div>
               <div className="flex flex-col gap-6 p-8">
                 <div className="relative">
