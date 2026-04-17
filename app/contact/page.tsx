@@ -21,8 +21,8 @@ export default function ContactPage() {
 
             <div className="space-y-8">
               {[
-                { icon: <Phone className="w-5 h-5" />, label: "Phone", val: "(085) 341-XXXX", sub: "Mon-Fri, 8AM - 5PM" },
-                { icon: <Mail className="w-5 h-5" />, label: "Email", val: "treasury@butuan.gov.ph", sub: "Average response: 24h" },
+                { icon: <Phone className="w-5 h-5" />, label: "Phone", val: "(085) 817-6167", sub: "Mon-Fri, 8AM - 5PM" },
+                { icon: <Mail className="w-5 h-5" />, label: "Email", val: "ctd@butuan.gov.ph", sub: "Average response: 24h" },
                 { icon: <MapPin className="w-5 h-5" />, label: "Office", val: "City Hall Complex", sub: "Doongan, Butuan City" }
               ].map((item, i) => (
                 <div key={i} className="flex gap-6 items-start">

@@ -19,12 +19,12 @@ export default function EmergencyPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: <Siren className="w-8 h-8 text-red-600" />, title: "CDRRMO", val: "911 / (085) 341-XXXX", desc: "Disaster Risk Reduction and Management Office" },
-              { icon: <ShieldAlert className="w-8 h-8 text-blue-700" />, title: "City Police", val: "117 / (085) 342-XXXX", desc: "Butuan City Police Office (BCPO) Headquarters" },
-              { icon: <Flame className="w-8 h-8 text-orange-600" />, title: "Bureau of Fire", val: "(085) 341-YYYY", desc: "Immediate Fire response and fire safety inspections" },
-              { icon: <HeartPulse className="w-8 h-8 text-red-700" />, title: "Medical / Ambulance", val: "(085) 815-ZZZZ", desc: "Emergency medical transport and hospital coordination" },
-              { icon: <AlertTriangle className="w-8 h-8 text-amber-600" />, title: "Market Security", val: "Local Stall 101", desc: "On-site market guards and security personnel" },
-              { icon: <PhoneCall className="w-8 h-8 text-green-700" />, title: "Hotline Butuan", val: "888", desc: "General city government feedback and assistance" }
+              { icon: <Siren className="w-8 h-8 text-red-600" />, title: "CDRRMO", val: "0963-816-7159", desc: "City Disaster Risk Reduction and Management Office (Disaster Response)" },
+              { icon: <ShieldAlert className="w-8 h-8 text-blue-700" />, title: "City Police", val: "0998-598-7293", desc: "Butuan City Police Office (BCPO) - Official Hotline" },
+              { icon: <Flame className="w-8 h-8 text-orange-600" />, title: "Bureau of Fire", val: "(085) 342-2703", desc: "BFP Butuan - Central Fire Station / Dial 160" },
+              { icon: <HeartPulse className="w-8 h-8 text-red-700" />, title: "Medical / Ambulance", val: "0921-768-7287", desc: "Emergency medical transport and hospital coordination" },
+              { icon: <AlertTriangle className="w-8 h-8 text-amber-600" />, title: "City Hall", val: "(085) 341-3141", desc: "General City Government hotlines and switchboard" },
+              { icon: <PhoneCall className="w-8 h-8 text-green-700" />, title: "Public Assistance", val: "888", desc: "Hotline Butuan - General citizen feedback and assistance" }
             ].map((hotline, i) => (
               <div key={i} className="group p-8 rounded-[2.5rem] bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 space-y-6 hover:bg-white dark:hover:bg-[#0a0f0a] hover:shadow-2xl hover:scale-[1.02] transition-all duration-500">
                 <div className="w-16 h-16 rounded-2xl bg-white dark:bg-black/20 flex items-center justify-center shadow-sm group-hover:bg-red-50 dark:group-hover:bg-red-900/10 transition-colors">
