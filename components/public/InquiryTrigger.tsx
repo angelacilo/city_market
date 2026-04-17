@@ -51,10 +51,23 @@ export default function InquiryTrigger({
     checkSession()
   }, [supabase])
  
-  const handleTrigger = () => {
+  const handleTrigger = async () => {
+    // If we don't know the session yet, check it now
+    if (hasSession === null) {
+      const { data: { session } } = await supabase.auth.getSession()
+      const isAuthed = !!session
+      setHasSession(isAuthed)
+      if (!isAuthed) {
+        setShowLoginPrompt(true)
+      } else {
+        setShowInquiryForm(true)
+      }
+      return
+    }
+
     if (hasSession === false) {
       setShowLoginPrompt(true)
-    } else if (hasSession === true) {
+    } else {
       setShowInquiryForm(true)
     }
   }

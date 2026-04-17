@@ -50,17 +50,19 @@ export default function InquiryForm({
   productImage,
 }: InquiryFormProps) {
   const router = useRouter()
-  const supabase = createClient()
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
-  const [existingConversationId, setExistingConversationId] = useState<string | null>(null)
   const [isCheckingConversation, setIsCheckingConversation] = useState(true)
- 
-  // 1. Check for session (Optional: we already know they have session from InquiryTrigger)
+
+  // 1. Initialize message with a default + Reset on close
   useEffect(() => {
-    if (!isOpen) return
-    setIsCheckingConversation(false)
-  }, [isOpen])
+    if (isOpen) {
+      setMessage(`Hi! I'm interested in this ${productName}. Is it currently available?`)
+      setIsCheckingConversation(false)
+    } else {
+      setMessage('')
+    }
+  }, [isOpen, productName])
  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,15 +98,15 @@ export default function InquiryForm({
  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl dark:bg-[#0a0f0a]" aria-describedby="inquiry-form-desc">
+      <DialogContent className="sm:max-w-md rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl dark:bg-[#0a0f0a]">
         <DialogHeader className="px-10 pt-12 pb-8 bg-[#1b6b3e] dark:bg-green-600 text-white relative">
           <div className="flex items-center gap-5 mb-8 relative z-10">
              <div className="p-4 bg-white/10 rounded-[1.5rem] backdrop-blur-sm border border-white/5 shadow-xl">
                 <ShoppingBag className="w-7 h-7" />
              </div>
-             <div className="flex flex-col">
-                <DialogTitle className="text-3xl font-black tracking-tight font-serif italic">Contact Vendor</DialogTitle>
-                <DialogDescription id="inquiry-form-desc" className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Establish secure connection</DialogDescription>
+             <div className="flex flex-col text-left">
+                <DialogTitle className="text-3xl font-black tracking-tight font-serif italic text-white">Contact Vendor</DialogTitle>
+                <DialogDescription className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 text-white/70">Establish secure connection</DialogDescription>
              </div>
           </div>
 
