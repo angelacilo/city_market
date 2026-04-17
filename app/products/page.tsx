@@ -51,7 +51,7 @@ export default async function ProductsPage({
   let query = supabase
     .from('price_listings')
     .select(`
-      id, price, is_available, vendor_id,
+      id, price, is_available, vendor_id, product_id,
       products!inner(name, unit, categories!inner(name)),
       vendors(business_name, stall_number, contact_number),
       markets(name, barangay)

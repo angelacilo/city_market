@@ -43,7 +43,7 @@ export default function SearchResultsGrid({
     }
 
     const productId = listing.product_id || listing.id
-    const res = await addToCanvass(productId, session.user.id)
+    const res = await addToCanvass(productId)
     if (res.status === 'success') {
       setToast({ message: 'Added to canvass list', type: 'success' })
       // Notify CanvassSheet to re-fetch in real-time, and open it

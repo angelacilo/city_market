@@ -92,25 +92,37 @@ export default function CanvassSheet({
     setLoading(true)
     try {
       // 1. Get the profile for this user
-      const { data: profile } = await supabase
+      console.log('[CANVASS] Fetching data for userId:', userId)
+      const { data: profile, error: profileError } = await supabase
         .from('buyer_profiles')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle()
 
+      if (profileError) {
+        console.error('[CANVASS] Profile fetch error:', profileError)
+        return
+      }
+
       if (!profile) {
-        console.warn('No buyer profile found for user:', userId)
+        console.warn('[CANVASS] No buyer profile found for user:', userId)
         return
       }
 
       // 2. Get or create the canvass list using the profile ID
-      let { data: list } = await supabase
+      let { data: list, error: listFetchError } = await supabase
         .from('canvass_lists')
         .select('id')
         .eq('buyer_id', profile.id)
         .maybeSingle()
 
+      if (listFetchError) {
+        console.error('[CANVASS] List fetch error:', listFetchError)
+        return
+      }
+
       if (!list) {
+        console.log('[CANVASS] Creating list for profile:', profile.id)
         const { data: newList, error: createError } = await supabase
           .from('canvass_lists')
           .insert({ buyer_id: profile.id, name: 'My Canvass List' })
@@ -118,17 +130,22 @@ export default function CanvassSheet({
           .maybeSingle()
           
         if (createError) {
-           console.error('Error creating canvass list:', createError)
+           console.error('[CANVASS] Error creating canvass list:', createError)
            return
+        }
+        if (!newList) {
+          console.error('[CANVASS] List creation returned no data')
+          return
         }
         list = newList
       }
 
       if (list) {
+        console.log('[CANVASS] Using list:', list.id)
         setListId(list.id)
         listIdRef.current = list.id
 
-        const { data: canvassItems } = await supabase
+        const { data: canvassItems, error: itemsError } = await supabase
           .from('canvass_items')
           .select(`
             id,
@@ -142,6 +159,10 @@ export default function CanvassSheet({
             )
           `)
           .eq('canvass_list_id', list.id)
+
+        if (itemsError) {
+          console.error('[CANVASS] Items fetch error:', itemsError)
+        }
 
         if (canvassItems) {
           const itemsWithPrice = await Promise.all(canvassItems.map(async (item: any) => {
@@ -309,7 +330,7 @@ export default function CanvassSheet({
   const handleAddProduct = async (productId: string) => {
     if (!session?.user) return
     setAddingId(productId)
-    const res = await addToCanvass(productId, session.user.id)
+    const res = await addToCanvass(productId)
     setAddingId(null)
     if (res.status === 'success' || res.status === 'already_exists') {
       fetchCanvassData(session.user.id)

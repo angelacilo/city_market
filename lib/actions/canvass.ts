@@ -7,29 +7,53 @@ import { revalidatePath } from 'next/cache'
  * Adds a master product to the buyer's personal canvass list for price comparison.
  * Handles automatic creation of the canvass list if it's the user's first item.
  */
-export async function addToCanvass(productId: string, userId: string) {
+export async function addToCanvass(productId: string) {
   const supabase = await createClient()
 
+  // 0. Get current user from session
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    console.error('[CANVASS] Auth error or no user:', authError)
+    return { error: 'Authentication required.' }
+  }
+  const userId = user.id
+
+  console.log('[CANVASS] addToCanvass start:', { productId, userId })
+
   // 1. Resolve the internal buyer profile ID from the user's auth ID
-  const { data: profile } = await supabase
+  const { data: profile, error: profileFetchError } = await supabase
     .from('buyer_profiles')
     .select('id')
     .eq('user_id', userId)
     .maybeSingle()
 
-  if (!profile) return { error: 'Buyer profile not found.' }
+  if (profileFetchError) {
+    console.error('[CANVASS] Profile fetch error:', profileFetchError)
+    return { error: profileFetchError.message }
+  }
+
+  if (!profile) {
+    console.warn('[CANVASS] Buyer profile not found for user_id:', userId)
+    return { error: 'Buyer profile not found.' }
+  }
+
+  console.log('[CANVASS] Resolved profile:', profile)
 
   // 2. Fetch or initialize the user's main canvass list
-  const { data: list, error: listError } = await supabase
+  let { data: list, error: listError } = await supabase
     .from('canvass_lists')
     .select('id')
     .eq('buyer_id', profile.id)
     .maybeSingle()
 
-  if (listError) return { error: listError.message }
+  if (listError) {
+    console.error('[CANVASS] List fetch error:', listError)
+    return { error: listError.message }
+  }
 
   let listId: string
   if (!list) {
+    console.log('[CANVASS] Creating new list for buyer_id:', profile.id)
     // Lazily create the list record if it doesn't exist yet
     const { data: newList, error: createError } = await supabase
       .from('canvass_lists')
@@ -37,27 +61,48 @@ export async function addToCanvass(productId: string, userId: string) {
       .select('id')
       .maybeSingle()
 
-    if (createError) return { error: createError.message }
-    if (!newList) return { error: 'Failed to create list.' }
+    if (createError) {
+      console.error('[CANVASS] List creation error:', createError)
+      return { error: createError.message }
+    }
+    if (!newList) {
+      console.error('[CANVASS] List creation returned no data')
+      return { error: 'Failed to create list.' }
+    }
     listId = newList.id
+    console.log('[CANVASS] Created new list_id:', listId)
   } else {
     listId = list.id
+    console.log('[CANVASS] Using existing list_id:', listId)
   }
 
-  // 3. Duplication check: Prevent adding the same product multiple times
-  const { data: existing } = await supabase
+  // 3. Add item to the list
+  // First check if already exists
+  const { data: existing, error: existingError } = await supabase
     .from('canvass_items')
     .select('id')
     .eq('canvass_list_id', listId)
     .eq('product_id', productId)
     .maybeSingle()
 
-  if (existing) return { status: 'already_exists' }
+  if (existingError) {
+    console.error('[CANVASS] Existing item check error:', existingError)
+    return { error: existingError.message }
+  }
 
-  // 4. Link the product to the user's list
+  if (existing) {
+    console.log('[CANVASS] Item already exists in list')
+    return { status: 'already_exists' }
+  }
+
+  console.log('[CANVASS] Inserting item:', { listId, productId, buyer_id: profile.id })
   const { error: insertError } = await supabase
     .from('canvass_items')
-    .insert({ canvass_list_id: listId, product_id: productId, buyer_id: profile.id })
+    .insert({ 
+      canvass_list_id: listId, 
+      product_id: productId,
+      buyer_id: profile.id
+    })
 
   if (insertError) return { error: insertError.message }
 

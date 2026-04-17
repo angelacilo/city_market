@@ -151,7 +151,7 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
     }
 
     setAddingProduct(productId)
-    const res = await addToCanvass(productId, session.user.id)
+    const res = await addToCanvass(productId)
     setAddingProduct(null)
 
     if (res.status === 'success') {
@@ -161,8 +161,11 @@ export default function SupplyListings({ marketId, marketName = '', vendorId }: 
     } else if (res.status === 'already_exists') {
       window.dispatchEvent(new CustomEvent('open-canvass'))
       setToast({ message: 'Already in your canvass', type: 'info' })
+    } else if (res.error) {
+      setToast({ message: res.error, type: 'info' })
+      console.error('addToCanvass error:', res.error)
     }
-    setTimeout(() => setToast(null), 2000)
+    setTimeout(() => setToast(null), 3000)
   }
 
   if (loading && listings.length === 0) {
