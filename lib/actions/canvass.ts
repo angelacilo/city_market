@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
  * Adds a master product to the buyer's personal canvass list for price comparison.
  * Handles automatic creation of the canvass list if it's the user's first item.
  */
+// v2 - refreshed for deployment
 export async function addToCanvass(productId: string) {
   const supabase = await createClient()
 
