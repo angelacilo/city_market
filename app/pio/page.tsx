@@ -1,4 +1,4 @@
-import { Info, Newspaper, Radio, Globe, Twitter, Facebook, Youtube } from 'lucide-react'
+import { Info, Newspaper, Radio, Globe, Share2, MessageCircle, PlayCircle } from 'lucide-react'
 
 export default function PIOPage() {
   return (
@@ -41,7 +41,7 @@ export default function PIOPage() {
                 <p className="text-blue-100/70 font-medium uppercase text-[10px] tracking-widest">Official verified channels for Butuan City news</p>
               </div>
               <div className="flex gap-4">
-                {[Facebook, Twitter, Youtube].map((Icon, i) => (
+                {[Share2, MessageCircle, PlayCircle].map((Icon, i) => (
                   <div key={i} className="w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center transition-all cursor-pointer active:scale-95">
                     <Icon className="w-6 h-6" />
                   </div>
