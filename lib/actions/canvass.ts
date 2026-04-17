@@ -115,6 +115,39 @@ export async function addToCanvass(productId: string) {
 }
 
 /**
+ * Updates the quantity of a canvass item (e.g., 0.5 kg, 2 units).
+ * Only the owning buyer can update their own items.
+ */
+export async function updateCanvassQuantity(itemId: string, quantity: number) {
+  if (quantity <= 0) return { error: 'Quantity must be greater than 0.' }
+
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) return { error: 'Authentication required.' }
+
+  // Resolve buyer profile for ownership check
+  const { data: profile } = await supabase
+    .from('buyer_profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (!profile) return { error: 'Buyer profile not found.' }
+
+  const { error } = await supabase
+    .from('canvass_items')
+    .update({ quantity })
+    .eq('id', itemId)
+    .eq('buyer_id', profile.id) // security: only own items
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/')
+  return { status: 'success' }
+}
+
+
+/**
  * Removes a specific item from the canvass list.
  */
 export async function removeFromCanvass(itemId: string) {

@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/dialog'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/badge'
-import { addToCanvass, removeFromCanvass, clearCanvass } from '@/lib/actions/canvass'
+import { addToCanvass, removeFromCanvass, clearCanvass, updateCanvassQuantity } from '@/lib/actions/canvass'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -78,6 +78,9 @@ export default function CanvassSheet({
   const [isSearching, setIsSearching] = useState(false)
   const [isProductSearchOpen, setIsProductSearchOpen] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)
+  // Local quantity state: itemId -> qty string so user can type decimals freely
+  const [editingQty, setEditingQty] = useState<Record<string, string>>({})
+  const qtyTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   // Stable supabase client ref — prevents stale closures in Realtime subscriptions
   const supabaseRef = useRef(createClient())
@@ -152,8 +155,10 @@ export default function CanvassSheet({
           .select(`
             id,
             product_id,
+            quantity,
             products:product_id (
               name,
+              unit,
               category_id,
               categories:category_id (
                 name
@@ -190,6 +195,14 @@ export default function CanvassSheet({
             return { ...item, cheapest }
           }))
           setItems(itemsWithPrice)
+          // Seed local qty state from DB values
+          setEditingQty(prev => {
+            const next = { ...prev }
+            itemsWithPrice.forEach((item: any) => {
+              if (!(item.id in next)) next[item.id] = String(item.quantity ?? 1)
+            })
+            return next
+          })
         }
       }
     } catch (error) {
@@ -261,17 +274,31 @@ export default function CanvassSheet({
     }
   }, [supabase, fetchCanvassData])
 
+  // Debounced quantity save
+  const handleQtyChange = (itemId: string, raw: string) => {
+    setEditingQty(prev => ({ ...prev, [itemId]: raw }))
+    if (qtyTimers.current[itemId]) clearTimeout(qtyTimers.current[itemId])
+    qtyTimers.current[itemId] = setTimeout(async () => {
+      const parsed = parseFloat(raw)
+      if (isNaN(parsed) || parsed <= 0) return
+      await updateCanvassQuantity(itemId, parsed)
+      // Update local items so total recalculates immediately
+      setItems(prev => prev.map(it => it.id === itemId ? { ...it, quantity: parsed } : it))
+    }, 600)
+  }
+
   const bestMarket = useMemo(() => {
     if (items.length === 0) return null
     const marketStats: Record<string, { count: number, total: number }> = {}
     items.forEach(item => {
       if (item.cheapest) {
+        const qty = parseFloat(editingQty[item.id] ?? String(item.quantity ?? 1)) || 1
         const market = item.cheapest.market_name
         if (!marketStats[market]) {
           marketStats[market] = { count: 0, total: 0 }
         }
         marketStats[market].count += 1
-        marketStats[market].total += item.cheapest.price
+        marketStats[market].total += item.cheapest.price * qty
       }
     })
     const markets = Object.entries(marketStats)
@@ -285,7 +312,7 @@ export default function CanvassSheet({
       count: markets[0][1].count,
       total: markets[0][1].total
     }
-  }, [items])
+  }, [items, editingQty])
 
   const handleRemove = async (itemId: string) => {
     const res = await removeFromCanvass(itemId)
@@ -399,44 +426,88 @@ export default function CanvassSheet({
             </div>
           ) : (
             <div className="space-y-3">
-              {items.map((item) => (
-                <div key={item.id} className="p-5 rounded-[2rem] bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-xl hover:shadow-black/5 transition-all duration-300 group">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                         <div className="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-                         <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight truncate">
-                           {item.products?.name}
-                         </h4>
-                      </div>
-                      <Badge variant="secondary" className={cn(
-                        "text-[8px] h-5 px-2 font-black uppercase tracking-[0.1em] border-none rounded-lg mb-3 shadow-sm",
-                        getCategoryColor(Array.isArray(item.products?.categories) ? item.products?.categories[0]?.name : item.products?.categories?.name)
-                      )}>
-                        {Array.isArray(item.products?.categories) ? item.products?.categories[0]?.name : item.products?.categories?.name}
-                      </Badge>
-                      
-                      {item.cheapest ? (
-                        <div className="flex flex-col space-y-0.5">
-                           <div className="text-[9px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest">Cheapest market price</div>
-                           <div className="flex items-baseline gap-2">
-                             <span className="text-lg font-black text-green-700 dark:text-green-500 tracking-tighter italic">₱{item.cheapest.price}</span>
-                             <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase truncate opacity-60">@ {item.cheapest.market_name}</span>
-                           </div>
+              {items.map((item) => {
+                const qty = parseFloat(editingQty[item.id] ?? String(item.quantity ?? 1)) || 1
+                const unitPrice = item.cheapest?.price ?? 0
+                const totalPrice = unitPrice * qty
+                const unit = item.products?.unit || 'unit'
+                const catName = Array.isArray(item.products?.categories)
+                  ? item.products?.categories[0]?.name
+                  : item.products?.categories?.name
+
+                return (
+                  <div key={item.id} className="p-5 rounded-[2rem] bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:shadow-xl hover:shadow-black/5 transition-all duration-300 group">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
+                          <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight truncate">
+                            {item.products?.name}
+                          </h4>
                         </div>
-                      ) : (
-                        <span className="text-[9px] text-amber-600 font-black uppercase tracking-widest bg-amber-50 dark:bg-amber-900/10 px-3 py-1 rounded-full">Price monitoring active</span>
-                      )}
+                        <Badge variant="secondary" className={cn(
+                          "text-[8px] h-5 px-2 font-black uppercase tracking-[0.1em] border-none rounded-lg shadow-sm",
+                          getCategoryColor(catName)
+                        )}>
+                          {catName}
+                        </Badge>
+                      </div>
+                      <button
+                        onClick={() => handleRemove(item.id)}
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all active:scale-90"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleRemove(item.id)}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all active:scale-90"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+
+                    {/* Quantity editor */}
+                    <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl p-3 flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="text-[9px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest mb-1">Quantity ({unit})</div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              const newQty = Math.max(0.25, parseFloat(editingQty[item.id] ?? '1') - 0.25)
+                              handleQtyChange(item.id, String(Math.round(newQty * 100) / 100))
+                            }}
+                            className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 flex items-center justify-center font-black text-gray-700 dark:text-white transition-all active:scale-90 text-sm"
+                          >−</button>
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="0.25"
+                            value={editingQty[item.id] ?? '1'}
+                            onChange={e => handleQtyChange(item.id, e.target.value)}
+                            className="w-16 text-center font-black text-gray-900 dark:text-white bg-transparent border-none outline-none text-sm"
+                          />
+                          <button
+                            onClick={() => {
+                              const newQty = parseFloat(editingQty[item.id] ?? '1') + 0.25
+                              handleQtyChange(item.id, String(Math.round(newQty * 100) / 100))
+                            }}
+                            className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 flex items-center justify-center font-black text-gray-700 dark:text-white transition-all active:scale-90 text-sm"
+                          >+</button>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {item.cheapest ? (
+                          <>
+                            <div className="text-[9px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest">Est. Total</div>
+                            <div className="text-lg font-black text-green-700 dark:text-green-500 tracking-tighter italic">
+                              ₱{totalPrice % 1 === 0 ? totalPrice.toLocaleString() : totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-[8px] text-gray-400 font-bold">
+                              ₱{unitPrice}/{unit} @ {item.cheapest.market_name}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-[9px] text-amber-600 font-black uppercase tracking-widest">No price yet</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
 
               {bestMarket && (
                 <div className="pt-6">
