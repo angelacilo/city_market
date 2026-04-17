@@ -142,7 +142,8 @@ export async function updateCanvassQuantity(itemId: string, quantity: number) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/')
+  // NOTE: No revalidatePath here — quantity updates are handled locally
+  // in the client state to avoid re-renders that collapse the basket.
   return { status: 'success' }
 }
 

@@ -240,14 +240,27 @@ export default function CanvassSheet({
 
       await fetchCanvassData(userId)
 
-      // Subscribe to canvass_items changes for this user's list
-      // We use the new buyer_id column for high-performance server-side filtering
+      // Subscribe to canvass_items changes for this user's list.
+      // Only react to INSERT and DELETE — qty UPDATE events are handled
+      // locally in state to avoid collapsing the basket on every keystroke.
       realtimeChannel = supabase
         .channel('canvass-items-realtime')
         .on(
           'postgres_changes',
           { 
-            event: '*', 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'canvass_items',
+            filter: `buyer_id=eq.${profile.id}`
+          },
+          () => {
+            if (userIdRef.current) fetchCanvassData(userIdRef.current)
+          }
+        )
+        .on(
+          'postgres_changes',
+          { 
+            event: 'DELETE', 
             schema: 'public', 
             table: 'canvass_items',
             filter: `buyer_id=eq.${profile.id}`
