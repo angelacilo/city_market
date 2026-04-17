@@ -45,6 +45,8 @@ export async function addToCanvass(productId: string) {
     .from('canvass_lists')
     .select('id')
     .eq('buyer_id', profile.id)
+    .order('created_at', { ascending: true })
+    .limit(1)
     .maybeSingle()
 
   if (listError) {
