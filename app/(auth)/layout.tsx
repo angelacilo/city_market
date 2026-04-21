@@ -47,7 +47,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       .eq('user_id', session.user.id)
       .maybeSingle()
 
-    if (vendorData?.is_approved) {
+    if (vendorData?.id) {
       redirect('/vendor/dashboard')
     }
 

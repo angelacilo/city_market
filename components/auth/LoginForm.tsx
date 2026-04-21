@@ -95,13 +95,8 @@ export default function LoginForm() {
             }
 
             if (vendor) {
-               if (vendor.is_approved) {
-                  await router.push('/vendor/dashboard')
-                  router.refresh()
-               } else {
-                  setError('Account pending approval. Please wait for the market administrator to verify your stall.')
-                  await supabase.auth.signOut()
-               }
+               await router.push('/vendor/dashboard')
+               router.refresh()
                return
             }
 

@@ -218,7 +218,7 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
                market_id: data.marketId ?? '',
                stall_number: data.stallNumber ?? '',
                contact_number: data.contactNumber ?? '',
-               is_approved: false,
+               is_approved: true,
             })
          }
 
@@ -348,7 +348,7 @@ export default function RegisterForm({ markets }: RegisterFormProps) {
             <p className="text-gray-500 dark:text-gray-400 font-medium text-base leading-relaxed mb-12 max-w-md">
                {selectedRole === 'buyer'
                   ? 'Your account is now ready. You can now start browsing the market and messaging vendors.'
-                  : 'Your stall registration has been sent. Please wait for the admin to verify and approve your account.'}
+                  : 'Your stall has been registered successfully. You can now log in and start managing your products.'}
             </p>
 
             <div className="w-full max-w-sm space-y-4">

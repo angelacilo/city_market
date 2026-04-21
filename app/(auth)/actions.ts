@@ -72,7 +72,7 @@ export async function register(formData: FormData) {
         market_id: marketId,
         stall_number: stallNumber,
         contact_number: contactNumber,
-        is_approved: false, // Requires admin approval
+        is_approved: true, // Auto-approved
       })
 
     if (vendorError) {
@@ -82,5 +82,5 @@ export async function register(formData: FormData) {
     }
   }
 
-  redirect('/login?message=' + encodeURIComponent('Registration successful! Please wait for admin approval before logging in.'))
+  redirect('/login?message=' + encodeURIComponent('Registration successful! You can now log in to your store.'))
 }
